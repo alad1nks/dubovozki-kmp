@@ -1,4 +1,4 @@
-rootProject.name = "custommarketplace"
+rootProject.name = "dubovozki"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {

@@ -35,7 +35,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.alad1nks.custommarketplace.core.navigation"
+    namespace = "com.alad1nks.dubovozki.core.navigation"
     compileSdk =
         libs.versions.android.compileSdk
             .get()

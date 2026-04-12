@@ -77,11 +77,11 @@ kotlin {
 }
 
 android {
-    namespace = "com.alad1nks.custommarketplace"
+    namespace = "com.alad1nks.dubovozki"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.alad1nks.custommarketplace"
+        applicationId = "com.alad1nks.dubovozki"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
@@ -94,7 +94,7 @@ android {
     }
     signingConfigs {
         create("release") {
-            storeFile = file("../custommarketplace-release-key.jks")
+            storeFile = file("../dubovozki-release-key.jks")
             storePassword = System.getenv("SIGNING_STORE_PASSWORD")
             keyAlias = System.getenv("SIGNING_KEY_ALIAS")
             keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
@@ -118,11 +118,11 @@ dependencies {
 
 compose.desktop {
     application {
-        mainClass = "com.alad1nks.custommarketplace.MainKt"
+        mainClass = "com.alad1nks.dubovozki.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.alad1nks.custommarketplace"
+            packageName = "com.alad1nks.dubovozki"
             packageVersion = "1.0.0"
         }
     }

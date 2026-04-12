@@ -34,7 +34,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0F7F508315E5437BAE6805B1 /* custommarketplace.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = custommarketplace.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0F7F508315E5437BAE6805B1 /* dubovozki.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = dubovozki.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -101,7 +101,7 @@
 		149C36A6045C916EB972DD23 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0F7F508315E5437BAE6805B1 /* custommarketplace.app */,
+				0F7F508315E5437BAE6805B1 /* dubovozki.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -162,7 +162,7 @@
 				882309792F78FBCF00D818C7 /* FirebaseStorageCombine-Community */,
 			);
 			productName = iosApp;
-			productReference = 0F7F508315E5437BAE6805B1 /* custommarketplace.app */;
+			productReference = 0F7F508315E5437BAE6805B1 /* dubovozki.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */

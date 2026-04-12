@@ -51,7 +51,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.alad1nks.custommarketplace.feature.home"
+    namespace = "com.alad1nks.dubovozki.feature.home"
     compileSdk =
         libs.versions.android.compileSdk
             .get()

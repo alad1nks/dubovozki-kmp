@@ -35,7 +35,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.alad1nks.custommarketplace.core.data"
+    namespace = "com.alad1nks.dubovozki.core.data"
     compileSdk =
         libs.versions.android.compileSdk
             .get()

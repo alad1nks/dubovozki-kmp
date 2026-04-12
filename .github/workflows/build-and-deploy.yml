@@ -31,7 +31,7 @@ jobs:
 
       - name: Decode Keystore
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > custommarketplace-release-key.jks
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > dubovozki-release-key.jks
 
       - name: Build APK
         run: ./gradlew assembleRelease
@@ -42,14 +42,14 @@ jobs:
         if: success()
 
       - name: Rename APK
-        run: mv composeApp/build/outputs/apk/release/composeApp-release.apk composeApp/build/outputs/apk/release/custommarketplace.apk
+        run: mv composeApp/build/outputs/apk/release/composeApp-release.apk composeApp/build/outputs/apk/release/dubovozki.apk
         if: success()
 
       - name: Upload APK to GitHub
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: composeApp/build/outputs/apk/release/custommarketplace.apk
+          path: composeApp/build/outputs/apk/release/dubovozki.apk
         if: success()
 
   post-build:
@@ -72,12 +72,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: app-release
-          path: custommarketplace
+          path: dubovozki
 
       - name: Commit APK
         run: |
           git config --local user.name 'alad1nks'
           git config --local user.email 'alad1nks@users.noreply.github.com'
-          git add custommarketplace/*.apk
+          git add dubovozki/*.apk
           git commit -m 'Add generated APK file'
           git push
