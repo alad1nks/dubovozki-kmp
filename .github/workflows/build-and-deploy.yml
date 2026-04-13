@@ -22,9 +22,6 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
-      - name: Run local tests
-        run: ./gradlew test
-
       - name: Decode Firebase config
         run: |
           echo "${{ secrets.FIREBASE_CONFIG_ANDROID }}" | base64 -d > composeApp/google-services.json
@@ -32,6 +29,9 @@ jobs:
       - name: Decode Keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > dubovozki-release-key.jks
+
+      - name: Run local tests
+        run: ./gradlew test
 
       - name: Build APK
         run: ./gradlew assembleRelease
