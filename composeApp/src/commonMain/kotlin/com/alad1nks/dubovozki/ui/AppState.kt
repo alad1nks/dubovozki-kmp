@@ -10,9 +10,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.alad1nks.dubovozki.feature.collections.navigation.navigateToCollections
 import com.alad1nks.dubovozki.feature.home.navigation.navigateToHome
+import com.alad1nks.dubovozki.feature.settings.navigation.navigateToSettings
 import com.alad1nks.dubovozki.navigation.AppTopLevelDestination
 import com.alad1nks.dubovozki.navigation.AppTopLevelDestination.COLLECTIONS
 import com.alad1nks.dubovozki.navigation.AppTopLevelDestination.HOME
+import com.alad1nks.dubovozki.navigation.AppTopLevelDestination.SETTINGS
 import com.alad1nks.dubovozki.navigation.routeSerialName
 
 @Composable
@@ -53,6 +55,7 @@ internal class AppState(
         when (appTopLevelDestination) {
             HOME -> navController.navigateToHome(topLevelNavOptions)
             COLLECTIONS -> navController.navigateToCollections(topLevelNavOptions)
+            SETTINGS -> navController.navigateToSettings(topLevelNavOptions)
         }
     }
 }
