@@ -62,6 +62,7 @@ kotlin {
             implementation(projects.core.navigation)
             implementation(projects.feature.collections)
             implementation(projects.feature.home)
+            implementation(projects.feature.settings)
             implementation(projects.resources)
 
             implementation(project.dependencies.platform(libs.koin.bom))

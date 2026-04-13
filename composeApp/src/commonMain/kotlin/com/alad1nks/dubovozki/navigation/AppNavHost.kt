@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import com.alad1nks.dubovozki.feature.collections.navigation.collectionsScreen
 import com.alad1nks.dubovozki.feature.home.navigation.HomeRoute
 import com.alad1nks.dubovozki.feature.home.navigation.homeScreen
+import com.alad1nks.dubovozki.feature.settings.navigation.settingsScreen
 import com.alad1nks.dubovozki.ui.AppState
 
 @Composable
@@ -27,5 +28,6 @@ internal fun AppNavHost(
     ) {
         homeScreen()
         collectionsScreen()
+        settingsScreen()
     }
 }
