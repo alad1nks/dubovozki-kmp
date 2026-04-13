@@ -1,7 +1,7 @@
 package com.alad1nks.dubovozki.core.firebase
 
 import cocoapods.FirebaseDatabase.FIRDataEventType
-import com.alad1nks.dubovozki.core.firebase.FirebaseDatabaseReference.database
+import com.alad1nks.dubovozki.core.firebase.FirebaseDatabaseReference.databaseReference
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +18,7 @@ internal class HomeApiImpl : HomeApi {
 
     @OptIn(ExperimentalForeignApi::class)
     private fun MutableStateFlow<List<String>>.addItemsEventListener(path: String) {
-        database.child(path).observeEventType(
+        databaseReference.child(path).observeEventType(
             eventType = FIRDataEventType.FIRDataEventTypeValue,
         ) { snapshot ->
             val list =
