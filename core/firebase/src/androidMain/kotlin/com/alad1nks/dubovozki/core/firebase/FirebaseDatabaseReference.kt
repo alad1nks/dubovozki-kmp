@@ -4,5 +4,6 @@ import com.google.firebase.Firebase
 import com.google.firebase.database.database
 
 internal object FirebaseDatabaseReference {
-    val database = Firebase.database.reference
+    private val database = Firebase.database.apply { setPersistenceEnabled(true) }
+    val databaseReference = database.reference
 }

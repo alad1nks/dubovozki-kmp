@@ -1,6 +1,6 @@
 package com.alad1nks.dubovozki.core.firebase
 
-import com.alad1nks.dubovozki.core.firebase.FirebaseDatabaseReference.database
+import com.alad1nks.dubovozki.core.firebase.FirebaseDatabaseReference.databaseReference
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
@@ -30,6 +30,6 @@ internal class HomeApiImpl : HomeApi {
                 override fun onCancelled(databaseError: DatabaseError) {}
             }
 
-        database.child(pathString).addValueEventListener(postListener)
+        databaseReference.child(pathString).addValueEventListener(postListener)
     }
 }
