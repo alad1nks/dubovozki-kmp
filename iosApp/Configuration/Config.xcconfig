@@ -1,7 +1,7 @@
 TEAM_ID=
 
-PRODUCT_NAME=custommarketplace
-PRODUCT_BUNDLE_IDENTIFIER=com.alad1nks.custommarketplace
+PRODUCT_NAME=dubovozki
+PRODUCT_BUNDLE_IDENTIFIER=com.alad1nks.dubovozki
 
 CURRENT_PROJECT_VERSION=1
 MARKETING_VERSION=1.0

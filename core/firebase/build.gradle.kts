@@ -73,7 +73,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.alad1nks.custommarketplace.core.firebase"
+    namespace = "com.alad1nks.dubovozki.core.firebase"
     compileSdk =
         libs.versions.android.compileSdk
             .get()
