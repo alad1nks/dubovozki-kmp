@@ -60,7 +60,7 @@ kotlin {
             implementation(projects.core.domain)
             implementation(projects.core.firebase)
             implementation(projects.core.navigation)
-            implementation(projects.feature.collections)
+            implementation(projects.feature.busschedule)
             implementation(projects.feature.home)
             implementation(projects.feature.settings)
             implementation(projects.resources)

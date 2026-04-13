@@ -1,5 +1,5 @@
 <resources>
     <string name="home_tab_label">Home</string>
-    <string name="collections_tab_label">Collections</string>
+    <string name="bus_schedule_tab_label">Schedule</string>
     <string name="settings_tab_label">Settings</string>
 </resources>
