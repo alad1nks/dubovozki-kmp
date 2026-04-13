@@ -5,7 +5,7 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
-import com.alad1nks.dubovozki.feature.collections.navigation.collectionsScreen
+import com.alad1nks.dubovozki.feature.busschedule.navigation.busScheduleScreen
 import com.alad1nks.dubovozki.feature.home.navigation.HomeRoute
 import com.alad1nks.dubovozki.feature.home.navigation.homeScreen
 import com.alad1nks.dubovozki.feature.settings.navigation.settingsScreen
@@ -27,7 +27,7 @@ internal fun AppNavHost(
         exitTransition = { ExitTransition.None },
     ) {
         homeScreen()
-        collectionsScreen()
+        busScheduleScreen()
         settingsScreen()
     }
 }

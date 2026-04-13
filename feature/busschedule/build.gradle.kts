@@ -50,7 +50,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.alad1nks.dubovozki.feature.collections"
+    namespace = "com.alad1nks.dubovozki.feature.busschedule"
     compileSdk =
         libs.versions.android.compileSdk
             .get()
