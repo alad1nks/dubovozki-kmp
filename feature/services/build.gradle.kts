@@ -51,7 +51,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.alad1nks.dubovozki.feature.home"
+    namespace = "com.alad1nks.dubovozki.feature.services"
     compileSdk =
         libs.versions.android.compileSdk
             .get()

@@ -61,7 +61,7 @@ kotlin {
             implementation(projects.core.firebase)
             implementation(projects.core.navigation)
             implementation(projects.feature.busschedule)
-            implementation(projects.feature.home)
+            implementation(projects.feature.services)
             implementation(projects.feature.settings)
             implementation(projects.resources)
 

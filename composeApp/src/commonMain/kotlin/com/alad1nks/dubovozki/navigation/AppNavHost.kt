@@ -6,8 +6,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import com.alad1nks.dubovozki.feature.busschedule.navigation.busScheduleScreen
-import com.alad1nks.dubovozki.feature.home.navigation.HomeRoute
-import com.alad1nks.dubovozki.feature.home.navigation.homeScreen
+import com.alad1nks.dubovozki.feature.services.navigation.ServicesRoute
+import com.alad1nks.dubovozki.feature.services.navigation.servicesScreen
 import com.alad1nks.dubovozki.feature.settings.navigation.settingsScreen
 import com.alad1nks.dubovozki.ui.AppState
 
@@ -15,7 +15,7 @@ import com.alad1nks.dubovozki.ui.AppState
 internal fun AppNavHost(
     appState: AppState,
     modifier: Modifier = Modifier,
-    startDestination: Any = HomeRoute,
+    startDestination: Any = ServicesRoute,
 ) {
     val navController = appState.navController
 
@@ -26,7 +26,7 @@ internal fun AppNavHost(
         enterTransition = { EnterTransition.None },
         exitTransition = { ExitTransition.None },
     ) {
-        homeScreen()
+        servicesScreen()
         busScheduleScreen()
         settingsScreen()
     }
