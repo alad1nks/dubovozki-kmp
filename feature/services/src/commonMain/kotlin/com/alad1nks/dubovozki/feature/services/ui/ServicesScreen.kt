@@ -1,4 +1,4 @@
-package com.alad1nks.dubovozki.feature.home.ui
+package com.alad1nks.dubovozki.feature.services.ui
 
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
@@ -8,20 +8,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 
 @Composable
-internal fun HomeRoute(
-    viewModel: HomeViewModel,
+internal fun ServicesRoute(
+    viewModel: ServicesViewModel,
     modifier: Modifier = Modifier,
 ) {
     val items by viewModel.items.collectAsState()
 
-    HomeScreen(
+    ServicesScreen(
         items = items,
         modifier = modifier,
     )
 }
 
 @Composable
-private fun HomeScreen(
+private fun ServicesScreen(
     items: List<String>,
     modifier: Modifier = Modifier,
 ) {
