@@ -57,6 +57,7 @@ kotlin {
             implementation(libs.navigation.compose)
 
             implementation(projects.core.data)
+            implementation(projects.core.designsystem)
             implementation(projects.core.domain)
             implementation(projects.core.firebase)
             implementation(projects.core.navigation)
