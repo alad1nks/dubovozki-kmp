@@ -1,8 +1,11 @@
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.kotlinMultiplatform)
 }
 
 kotlin {
@@ -21,23 +24,10 @@ kotlin {
         browser()
         binaries.executable()
     }
-
-    sourceSets {
-        commonMain.dependencies {
-            implementation(libs.koin.core)
-            implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.kotlinx.datetime)
-
-            implementation(project.dependencies.platform(libs.koin.bom))
-
-            implementation(projects.core.data)
-            implementation(projects.core.model)
-        }
-    }
 }
 
 android {
-    namespace = "com.alad1nks.dubovozki.core.domain"
+    namespace = "com.alad1nks.dubovozki.core.model"
     compileSdk =
         libs.versions.android.compileSdk
             .get()
