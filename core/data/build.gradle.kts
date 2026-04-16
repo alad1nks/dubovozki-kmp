@@ -30,6 +30,7 @@ kotlin {
             implementation(project.dependencies.platform(libs.koin.bom))
 
             implementation(projects.core.firebase)
+            implementation(projects.core.model)
         }
     }
 }
