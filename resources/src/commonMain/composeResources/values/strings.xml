@@ -1,5 +1,12 @@
 <resources>
-    <string name="services_tab_label">Services</string>
+    <string name="bus_departed_time">%1$d min ago</string>
+    <string name="bus_departed_time_with_hour">%1$d h %2$d min ago</string>
     <string name="bus_schedule_tab_label">Schedule</string>
+    <string name="bus_station_molodyozhnaya">Molodyozhnaya</string>
+    <string name="bus_station_odintsovo">Odintsovo</string>
+    <string name="bus_station_slavyansky_bulvar">Slavyansky Blvr</string>
+    <string name="bus_upcoming_time">in %1$d min</string>
+    <string name="bus_upcoming_time_with_hour">in %1$d h %2$d min</string>
+    <string name="services_tab_label">Services</string>
     <string name="settings_tab_label">Settings</string>
 </resources>

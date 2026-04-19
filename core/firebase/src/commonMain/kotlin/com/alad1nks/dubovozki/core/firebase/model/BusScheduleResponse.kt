@@ -11,7 +11,7 @@ data class BusScheduleResponse(
     data class Bus(
         val id: Int? = null,
         val dayOfWeek: Int? = null,
-        val dayTime: Long? = null,
+        val dayTime: Int? = null,
         val dayTimeString: String? = null,
         val direction: String? = null,
         val station: String? = null,
