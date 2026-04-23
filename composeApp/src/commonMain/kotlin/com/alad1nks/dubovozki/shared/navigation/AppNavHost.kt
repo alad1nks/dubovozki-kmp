@@ -1,4 +1,4 @@
-package com.alad1nks.dubovozki.navigation
+package com.alad1nks.dubovozki.shared.navigation
 
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -9,7 +9,7 @@ import com.alad1nks.dubovozki.feature.busschedule.navigation.busScheduleScreen
 import com.alad1nks.dubovozki.feature.services.navigation.ServicesRoute
 import com.alad1nks.dubovozki.feature.services.navigation.servicesScreen
 import com.alad1nks.dubovozki.feature.settings.navigation.settingsScreen
-import com.alad1nks.dubovozki.ui.AppState
+import com.alad1nks.dubovozki.shared.ui.AppState
 
 @Composable
 internal fun AppNavHost(

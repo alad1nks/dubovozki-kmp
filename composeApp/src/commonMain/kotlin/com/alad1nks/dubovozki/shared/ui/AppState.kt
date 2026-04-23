@@ -1,4 +1,4 @@
-package com.alad1nks.dubovozki.ui
+package com.alad1nks.dubovozki.shared.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -11,11 +11,11 @@ import androidx.navigation.compose.rememberNavController
 import com.alad1nks.dubovozki.feature.busschedule.navigation.navigateToBusSchedule
 import com.alad1nks.dubovozki.feature.services.navigation.navigateToServices
 import com.alad1nks.dubovozki.feature.settings.navigation.navigateToSettings
-import com.alad1nks.dubovozki.navigation.AppTopLevelDestination
-import com.alad1nks.dubovozki.navigation.AppTopLevelDestination.BUS_SCHEDULE
-import com.alad1nks.dubovozki.navigation.AppTopLevelDestination.SERVICES
-import com.alad1nks.dubovozki.navigation.AppTopLevelDestination.SETTINGS
-import com.alad1nks.dubovozki.navigation.routeSerialName
+import com.alad1nks.dubovozki.shared.navigation.AppTopLevelDestination
+import com.alad1nks.dubovozki.shared.navigation.AppTopLevelDestination.BUS_SCHEDULE
+import com.alad1nks.dubovozki.shared.navigation.AppTopLevelDestination.SERVICES
+import com.alad1nks.dubovozki.shared.navigation.AppTopLevelDestination.SETTINGS
+import com.alad1nks.dubovozki.shared.navigation.routeSerialName
 
 @Composable
 internal fun rememberAppState(
