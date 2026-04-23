@@ -24,7 +24,7 @@ jobs:
 
       - name: Decode Firebase config
         run: |
-          echo "${{ secrets.FIREBASE_CONFIG_ANDROID }}" | base64 -d > composeApp/google-services.json
+          echo "${{ secrets.FIREBASE_CONFIG_ANDROID }}" | base64 -d > androidApp/google-services.json
 
       - name: Decode Keystore
         run: |
@@ -42,14 +42,14 @@ jobs:
         if: success()
 
       - name: Rename APK
-        run: mv composeApp/build/outputs/apk/release/composeApp-release.apk composeApp/build/outputs/apk/release/dubovozki.apk
+        run: mv androidApp/build/outputs/apk/release/androidApp-release.apk androidApp/build/outputs/apk/release/dubovozki.apk
         if: success()
 
       - name: Upload APK to GitHub
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: composeApp/build/outputs/apk/release/dubovozki.apk
+          path: androidApp/build/outputs/apk/release/dubovozki.apk
         if: success()
 
   post-build:

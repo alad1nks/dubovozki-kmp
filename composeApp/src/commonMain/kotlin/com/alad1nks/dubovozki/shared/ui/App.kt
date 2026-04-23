@@ -1,4 +1,4 @@
-package com.alad1nks.dubovozki.ui
+package com.alad1nks.dubovozki.shared.ui
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -15,19 +15,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.alad1nks.dubovozki.feature.designsystem.theme.AppTheme
-import com.alad1nks.dubovozki.getCommonModules
-import com.alad1nks.dubovozki.getPlatformModules
-import com.alad1nks.dubovozki.navigation.AppNavHost
+import com.alad1nks.dubovozki.shared.getCommonModules
+import com.alad1nks.dubovozki.shared.navigation.AppNavHost
 import org.koin.compose.KoinApplication
+import org.koin.dsl.koinConfiguration
 
 @Composable
 fun App() {
     val appState = rememberAppState()
 
     KoinApplication(
-        application = {
-            modules(getPlatformModules() + getCommonModules())
-        },
+        configuration =
+            koinConfiguration {
+                modules(getCommonModules())
+            },
     ) {
         AppTheme {
             AppContent(appState = appState)

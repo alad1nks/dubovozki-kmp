@@ -1,4 +1,4 @@
-package com.alad1nks.dubovozki.ui
+package com.alad1nks.dubovozki.shared.ui
 
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.Icon
@@ -8,8 +8,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavDestination
-import com.alad1nks.dubovozki.navigation.AppTopLevelDestination
-import com.alad1nks.dubovozki.navigation.routeSerialName
+import com.alad1nks.dubovozki.shared.navigation.AppTopLevelDestination
+import com.alad1nks.dubovozki.shared.navigation.routeSerialName
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

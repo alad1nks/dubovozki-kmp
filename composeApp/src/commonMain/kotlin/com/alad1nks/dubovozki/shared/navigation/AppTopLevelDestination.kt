@@ -1,4 +1,4 @@
-package com.alad1nks.dubovozki.navigation
+package com.alad1nks.dubovozki.shared.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DirectionsBus

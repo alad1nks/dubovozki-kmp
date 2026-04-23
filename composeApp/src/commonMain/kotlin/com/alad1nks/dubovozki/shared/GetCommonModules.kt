@@ -1,4 +1,4 @@
-package com.alad1nks.dubovozki
+package com.alad1nks.dubovozki.shared
 
 import com.alad1nks.dubovozki.core.data.di.DataModule
 import com.alad1nks.dubovozki.core.domain.di.DomainModule
