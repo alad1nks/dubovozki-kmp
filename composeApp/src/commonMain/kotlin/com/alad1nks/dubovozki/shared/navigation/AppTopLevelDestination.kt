@@ -25,19 +25,19 @@ internal enum class AppTopLevelDestination(
     SERVICES(
         selectedIcon = Icons.Filled.HolidayVillage,
         unselectedIcon = Icons.Outlined.HolidayVillage,
-        labelStringResource = AppResource.String.services_tab_label,
+        labelStringResource = AppResource.String.services_navigation_bar_label,
         route = ServicesRoute,
     ),
     BUS_SCHEDULE(
         selectedIcon = Icons.Filled.DirectionsBus,
         unselectedIcon = Icons.Outlined.DirectionsBus,
-        labelStringResource = AppResource.String.bus_schedule_tab_label,
+        labelStringResource = AppResource.String.bus_schedule_navigation_bar_label,
         route = BusScheduleRoute,
     ),
     SETTINGS(
         selectedIcon = Icons.Filled.Settings,
         unselectedIcon = Icons.Outlined.Settings,
-        labelStringResource = AppResource.String.settings_tab_label,
+        labelStringResource = AppResource.String.settings_navigation_bar_label,
         route = SettingsRoute,
     ),
 }

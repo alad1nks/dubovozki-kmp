@@ -69,9 +69,9 @@ internal class BusScheduleViewModel(
             .mapLatest { (busSchedule, currentTime) ->
                 when (busSchedule) {
                     is Data.Success -> {
-                        BusScheduleUiState.Data(
-                            moscowBuses = busSchedule.value.toMoscow.map { it.toBusUi(currentTime) },
-                            dubkiBuses = busSchedule.value.toDubki.map { it.toBusUi(currentTime) },
+                        BusScheduleUiState.Content(
+                            moscowBusList = busSchedule.value.toMoscow.map { it.toBusUi(currentTime) },
+                            dubkiBusList = busSchedule.value.toDubki.map { it.toBusUi(currentTime) },
                             showError = false,
                         )
                     }
