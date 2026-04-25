@@ -1,6 +1,6 @@
 package com.alad1nks.dubovozki.feature.busschedule.model
 
-sealed interface BusScheduleUiState {
+internal sealed interface BusScheduleUiState {
     object Loading : BusScheduleUiState
 
     data class Content(

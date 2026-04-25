@@ -48,6 +48,9 @@ internal class BusScheduleViewModel(
             }
         }
 
+    var firstMoscowBusIndex: Int? = null
+    var firstDubkiBusIndex: Int? = null
+
     val topAppBarUiState: StateFlow<BusScheduleTopAppBarUiState> =
         combine(
             stationFilterSpinnerExpanded,
@@ -96,9 +99,15 @@ internal class BusScheduleViewModel(
             .mapLatest { (busSchedule, currentTime) ->
                 when (busSchedule) {
                     is Data.Success -> {
+                        val moscowBusList = busSchedule.value.toMoscow.map { it.toBusUi(currentTime) }
+                        val dubkiBusList = busSchedule.value.toDubki.map { it.toBusUi(currentTime) }
+
+                        firstMoscowBusIndex = moscowBusList.findFirstBusIndex()
+                        firstDubkiBusIndex = dubkiBusList.findFirstBusIndex()
+
                         BusScheduleUiState.Content(
-                            moscowBusList = busSchedule.value.toMoscow.map { it.toBusUi(currentTime) },
-                            dubkiBusList = busSchedule.value.toDubki.map { it.toBusUi(currentTime) },
+                            moscowBusList = moscowBusList,
+                            dubkiBusList = dubkiBusList,
                             showError = false,
                         )
                     }
@@ -146,6 +155,14 @@ internal class BusScheduleViewModel(
             timeDifference = currentTime?.let { dayTime - it },
             station = station,
         )
+    }
+
+    private fun List<BusUi>.findFirstBusIndex(): Int {
+        return this.indexOfFirst {
+            val timeDifference = it.timeDifference ?: return 0
+
+            timeDifference >= 0
+        }.coerceAtLeast(0)
     }
 
     companion object {
