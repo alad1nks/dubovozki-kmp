@@ -5,8 +5,8 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
+import com.alad1nks.dubovozki.feature.busschedule.navigation.BusScheduleRoute
 import com.alad1nks.dubovozki.feature.busschedule.navigation.busScheduleScreen
-import com.alad1nks.dubovozki.feature.services.navigation.ServicesRoute
 import com.alad1nks.dubovozki.feature.services.navigation.servicesScreen
 import com.alad1nks.dubovozki.feature.settings.navigation.settingsScreen
 import com.alad1nks.dubovozki.shared.ui.AppState
@@ -15,7 +15,7 @@ import com.alad1nks.dubovozki.shared.ui.AppState
 internal fun AppNavHost(
     appState: AppState,
     modifier: Modifier = Modifier,
-    startDestination: Any = ServicesRoute,
+    startDestination: Any = BusScheduleRoute,
 ) {
     val navController = appState.navController
 
