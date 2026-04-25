@@ -13,6 +13,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -44,6 +45,8 @@ internal fun BusScheduleRoute(
         onDayOfWeekFilterSelect = viewModel::selectDayOfWeekFilter,
         onDayOfWeekFilterSpinnerClick = viewModel::expandDayOfWeekFilterSpinner,
         onDayOfWeekFilterSpinnerDismissRequest = viewModel::hideDayOfWeekFilterSpinner,
+        firstMoscowBusIndex = viewModel.firstMoscowBusIndex,
+        firstDubkiBusIndex = viewModel.firstDubkiBusIndex,
         modifier = modifier,
     )
 }
@@ -53,6 +56,8 @@ internal fun BusScheduleRoute(
 private fun BusScheduleScreen(
     topAppBarUiState: BusScheduleTopAppBarUiState,
     uiState: BusScheduleUiState,
+    firstMoscowBusIndex: Int?,
+    firstDubkiBusIndex: Int?,
     onStationFilterSelect: (StationFilter) -> Unit,
     onStationFilterSpinnerClick: () -> Unit,
     onStationFilterSpinnerDismissRequest: () -> Unit,
@@ -63,7 +68,17 @@ private fun BusScheduleScreen(
     scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(),
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
     pagerState: PagerState = rememberPagerState { 2 },
+    moscowState: LazyListState = rememberLazyListState(),
+    dubkiState: LazyListState = rememberLazyListState(),
 ) {
+    LaunchedEffect(firstMoscowBusIndex) {
+        firstMoscowBusIndex?.let { moscowState.scrollToItem(firstMoscowBusIndex) }
+    }
+
+    LaunchedEffect(firstDubkiBusIndex) {
+        firstDubkiBusIndex?.let { dubkiState.scrollToItem(firstDubkiBusIndex) }
+    }
+
     Column(
         modifier = modifier,
     ) {
@@ -104,6 +119,8 @@ private fun BusScheduleScreen(
                             Modifier
                                 .fillMaxSize()
                                 .nestedScroll(scrollBehavior.nestedScrollConnection),
+                        moscowState = moscowState,
+                        dubkiState = dubkiState,
                     )
                 }
             }
