@@ -100,18 +100,18 @@ private fun TimeDifference(
         when {
             timeDifference >= 1.hours ->
                 stringResource(
-                    AppResource.String.bus_upcoming_time_with_hour,
+                    AppResource.String.bus_schedule_upcoming_time_with_hour,
                     hours,
                     minutes,
                 )
-            timeDifference >= 0 -> stringResource(AppResource.String.bus_upcoming_time, minutes)
+            timeDifference >= 0 -> stringResource(AppResource.String.bus_schedule_upcoming_time, minutes)
             timeDifference <= (-1).hours ->
                 stringResource(
-                    AppResource.String.bus_departed_time_with_hour,
+                    AppResource.String.bus_schedule_departed_time_with_hour,
                     -hours,
                     -minutes,
                 )
-            else -> stringResource(AppResource.String.bus_departed_time, -minutes)
+            else -> stringResource(AppResource.String.bus_schedule_departed_time, -minutes)
         }
 
     val soon = (hours == 0 && minutes in 0..10 && timeDifference >= 0)
@@ -142,9 +142,9 @@ private fun TimeDifference(
 
 private val Bus.Station.text: String @Composable get() =
     when (this) {
-        Bus.Station.ODINTSOVO -> stringResource(AppResource.String.bus_station_odintsovo)
-        Bus.Station.SLAVYANKA -> stringResource(AppResource.String.bus_station_slavyansky_bulvar)
-        Bus.Station.MOLODYOZHKA -> stringResource(AppResource.String.bus_station_molodyozhnaya)
+        Bus.Station.ODINTSOVO -> stringResource(AppResource.String.bus_schedule_station_odintsovo)
+        Bus.Station.SLAVYANKA -> stringResource(AppResource.String.bus_schedule_station_slavyansky_bulvar)
+        Bus.Station.MOLODYOZHKA -> stringResource(AppResource.String.bus_schedule_station_molodyozhnaya)
     }
 
 private val Int.minutes: Int get() = this * 1000 * 60

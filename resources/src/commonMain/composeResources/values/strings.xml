@@ -1,12 +1,14 @@
 <resources>
-    <string name="bus_departed_time">%1$d min ago</string>
-    <string name="bus_departed_time_with_hour">%1$d h %2$d min ago</string>
-    <string name="bus_schedule_tab_label">Schedule</string>
-    <string name="bus_station_molodyozhnaya">Molodyozhnaya</string>
-    <string name="bus_station_odintsovo">Odintsovo</string>
-    <string name="bus_station_slavyansky_bulvar">Slavyansky Blvr</string>
-    <string name="bus_upcoming_time">in %1$d min</string>
-    <string name="bus_upcoming_time_with_hour">in %1$d h %2$d min</string>
-    <string name="services_tab_label">Services</string>
-    <string name="settings_tab_label">Settings</string>
+    <string name="bus_schedule_departed_time">%1$d min ago</string>
+    <string name="bus_schedule_departed_time_with_hour">%1$d h %2$d min ago</string>
+    <string name="bus_schedule_navigation_bar_label">Schedule</string>
+    <string name="bus_schedule_station_molodyozhnaya">Molodyozhnaya</string>
+    <string name="bus_schedule_station_odintsovo">Odintsovo</string>
+    <string name="bus_schedule_station_slavyansky_bulvar">Slavyansky Blvr</string>
+    <string name="bus_schedule_tab_dubki">Dubki</string>
+    <string name="bus_schedule_tab_moscow">Moscow</string>
+    <string name="bus_schedule_upcoming_time">in %1$d min</string>
+    <string name="bus_schedule_upcoming_time_with_hour">in %1$d h %2$d min</string>
+    <string name="services_navigation_bar_label">Services</string>
+    <string name="settings_navigation_bar_label">Settings</string>
 </resources>
