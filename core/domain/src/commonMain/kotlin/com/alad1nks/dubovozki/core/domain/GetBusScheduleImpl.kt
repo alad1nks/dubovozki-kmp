@@ -35,15 +35,15 @@ internal class GetBusScheduleImpl(
             when (stationFilter) {
                 StationFilter.ALL -> Bus.Station.entries
                 StationFilter.ODINTSOVO -> listOf(Bus.Station.ODINTSOVO)
-                StationFilter.SLAVYANKA -> listOf(Bus.Station.SLAVYANKA)
-                StationFilter.MOLODYOZHKA -> listOf(Bus.Station.MOLODYOZHKA)
+                StationFilter.SLAVYANSKY_BULVAR -> listOf(Bus.Station.SLAVYANSKY_BULVAR)
+                StationFilter.MOLODYOZHNAYA -> listOf(Bus.Station.MOLODYOZHNAYA)
             }
 
         val allowedDay =
             when (dayOfWeekFilter) {
                 DayOfWeekFilter.TODAY -> getMoscowDayOfWeek().toBusDayOfWeek()
                 DayOfWeekFilter.TOMORROW -> getMoscowDayOfWeek().tomorrow().toBusDayOfWeek()
-                DayOfWeekFilter.WEEKDAY -> Bus.DayOfWeek.WEEKDAY
+                DayOfWeekFilter.WEEKDAYS -> Bus.DayOfWeek.WEEKDAYS
                 DayOfWeekFilter.SATURDAY -> Bus.DayOfWeek.SATURDAY
                 DayOfWeekFilter.SUNDAY -> Bus.DayOfWeek.SUNDAY
             }
@@ -70,7 +70,7 @@ internal class GetBusScheduleImpl(
             DayOfWeek.WEDNESDAY,
             DayOfWeek.THURSDAY,
             DayOfWeek.FRIDAY,
-            -> Bus.DayOfWeek.WEEKDAY
+            -> Bus.DayOfWeek.WEEKDAYS
             DayOfWeek.SATURDAY -> Bus.DayOfWeek.SATURDAY
             DayOfWeek.SUNDAY -> Bus.DayOfWeek.SUNDAY
         }

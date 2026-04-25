@@ -10,15 +10,15 @@ data class Bus(
 ) {
     enum class DayOfWeek {
         MONDAY,
-        WEEKDAY,
+        WEEKDAYS,
         SATURDAY,
         SUNDAY,
     }
 
     enum class Station {
         ODINTSOVO,
-        SLAVYANKA,
-        MOLODYOZHKA,
+        SLAVYANSKY_BULVAR,
+        MOLODYOZHNAYA,
     }
 
     enum class Direction {

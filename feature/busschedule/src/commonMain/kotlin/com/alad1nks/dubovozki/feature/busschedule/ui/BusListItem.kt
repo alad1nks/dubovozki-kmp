@@ -37,8 +37,8 @@ internal fun BusListItem(
     val stationColor =
         when (station) {
             Bus.Station.ODINTSOVO -> colorScheme.odintsovo
-            Bus.Station.SLAVYANKA -> colorScheme.slavyanka
-            Bus.Station.MOLODYOZHKA -> colorScheme.molodyozhnaya
+            Bus.Station.SLAVYANSKY_BULVAR -> colorScheme.slavyanskyBulvar
+            Bus.Station.MOLODYOZHNAYA -> colorScheme.molodyozhnaya
         }
     val isDeparted = (timeDifference ?: 0) < 0
 
@@ -143,8 +143,8 @@ private fun TimeDifference(
 private val Bus.Station.text: String @Composable get() =
     when (this) {
         Bus.Station.ODINTSOVO -> stringResource(AppResource.String.bus_schedule_station_odintsovo)
-        Bus.Station.SLAVYANKA -> stringResource(AppResource.String.bus_schedule_station_slavyansky_bulvar)
-        Bus.Station.MOLODYOZHKA -> stringResource(AppResource.String.bus_schedule_station_molodyozhnaya)
+        Bus.Station.SLAVYANSKY_BULVAR -> stringResource(AppResource.String.bus_schedule_station_slavyansky_bulvar)
+        Bus.Station.MOLODYOZHNAYA -> stringResource(AppResource.String.bus_schedule_station_molodyozhnaya)
     }
 
 private val Int.minutes: Int get() = this * 1000 * 60
@@ -157,7 +157,7 @@ private fun BusListItemPreview() {
         BusListItem(
             dayTime = "08:30",
             timeDifference = null,
-            station = Bus.Station.MOLODYOZHKA,
+            station = Bus.Station.MOLODYOZHNAYA,
         )
     }
 }
@@ -169,7 +169,7 @@ private fun BusListItemSoonPreview() {
         BusListItem(
             dayTime = "08:30",
             timeDifference = 60000,
-            station = Bus.Station.MOLODYOZHKA,
+            station = Bus.Station.MOLODYOZHNAYA,
         )
     }
 }
@@ -181,7 +181,7 @@ private fun BusListItemLaterPreview() {
         BusListItem(
             dayTime = "08:30",
             timeDifference = 60000000,
-            station = Bus.Station.MOLODYOZHKA,
+            station = Bus.Station.MOLODYOZHNAYA,
         )
     }
 }
@@ -193,7 +193,7 @@ private fun BusListItemDepartedPreview() {
         BusListItem(
             dayTime = "08:30",
             timeDifference = -60000,
-            station = Bus.Station.MOLODYOZHKA,
+            station = Bus.Station.MOLODYOZHNAYA,
         )
     }
 }
@@ -205,7 +205,7 @@ private fun BusListItemDepartedLongAgoPreview() {
         BusListItem(
             dayTime = "08:30",
             timeDifference = -60000000,
-            station = Bus.Station.MOLODYOZHKA,
+            station = Bus.Station.MOLODYOZHNAYA,
         )
     }
 }
@@ -219,7 +219,7 @@ private fun BusListItemDarkPreview() {
         BusListItem(
             dayTime = "08:30",
             timeDifference = null,
-            station = Bus.Station.MOLODYOZHKA,
+            station = Bus.Station.MOLODYOZHNAYA,
         )
     }
 }
@@ -233,7 +233,7 @@ private fun BusListItemSoonDarkPreview() {
         BusListItem(
             dayTime = "08:30",
             timeDifference = 60000,
-            station = Bus.Station.MOLODYOZHKA,
+            station = Bus.Station.MOLODYOZHNAYA,
         )
     }
 }
@@ -247,7 +247,7 @@ private fun BusListItemLaterDarkPreview() {
         BusListItem(
             dayTime = "08:30",
             timeDifference = 60000000,
-            station = Bus.Station.MOLODYOZHKA,
+            station = Bus.Station.MOLODYOZHNAYA,
         )
     }
 }
@@ -261,7 +261,7 @@ private fun BusListItemDepartedDarkPreview() {
         BusListItem(
             dayTime = "08:30",
             timeDifference = -60000,
-            station = Bus.Station.MOLODYOZHKA,
+            station = Bus.Station.MOLODYOZHNAYA,
         )
     }
 }
@@ -275,7 +275,7 @@ private fun BusListItemDepartedLongAgoDarkPreview() {
         BusListItem(
             dayTime = "08:30",
             timeDifference = -60000000,
-            station = Bus.Station.MOLODYOZHKA,
+            station = Bus.Station.MOLODYOZHNAYA,
         )
     }
 }

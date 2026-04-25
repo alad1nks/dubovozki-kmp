@@ -1,7 +1,16 @@
 <resources>
+    <string name="bus_schedule_day_of_week_filter_saturday">Saturday</string>
+    <string name="bus_schedule_day_of_week_filter_sunday">Sunday</string>
+    <string name="bus_schedule_day_of_week_filter_today">Today</string>
+    <string name="bus_schedule_day_of_week_filter_tomorrow">Tomorrow</string>
+    <string name="bus_schedule_day_of_week_filter_weekdays">Weekdays</string>
     <string name="bus_schedule_departed_time">%1$d min ago</string>
     <string name="bus_schedule_departed_time_with_hour">%1$d h %2$d min ago</string>
     <string name="bus_schedule_navigation_bar_label">Schedule</string>
+    <string name="bus_schedule_station_filter_all">All</string>
+    <string name="bus_schedule_station_filter_molodyozhnaya">Molodyozhnaya</string>
+    <string name="bus_schedule_station_filter_odintsovo">Odintsovo</string>
+    <string name="bus_schedule_station_filter_slavyansky_bulvar">Slavyansky Blvr</string>
     <string name="bus_schedule_station_molodyozhnaya">Molodyozhnaya</string>
     <string name="bus_schedule_station_odintsovo">Odintsovo</string>
     <string name="bus_schedule_station_slavyansky_bulvar">Slavyansky Blvr</string>
