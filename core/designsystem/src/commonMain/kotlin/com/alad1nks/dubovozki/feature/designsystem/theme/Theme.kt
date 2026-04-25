@@ -9,14 +9,14 @@ import androidx.compose.ui.graphics.Color
 private val LightExtendedColorScheme =
     ExtendedColorScheme(
         odintsovo = Color.Black,
-        slavyanka = light_green,
+        slavyanskyBulvar = light_green,
         molodyozhnaya = light_blue,
     )
 
 private val DarkExtendedColorScheme =
     ExtendedColorScheme(
         odintsovo = Color.White,
-        slavyanka = dark_green,
+        slavyanskyBulvar = dark_green,
         molodyozhnaya = dark_blue,
     )
 

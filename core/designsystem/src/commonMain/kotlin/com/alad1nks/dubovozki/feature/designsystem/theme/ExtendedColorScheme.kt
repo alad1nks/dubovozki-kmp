@@ -7,7 +7,7 @@ import androidx.compose.ui.graphics.Color
 @Immutable
 data class ExtendedColorScheme(
     val odintsovo: Color = Color.Unspecified,
-    val slavyanka: Color = Color.Unspecified,
+    val slavyanskyBulvar: Color = Color.Unspecified,
     val molodyozhnaya: Color = Color.Unspecified,
 )
 

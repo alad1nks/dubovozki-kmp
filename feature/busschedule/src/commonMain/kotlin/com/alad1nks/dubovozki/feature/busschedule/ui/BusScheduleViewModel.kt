@@ -8,6 +8,7 @@ import com.alad1nks.dubovozki.core.model.Bus
 import com.alad1nks.dubovozki.core.model.Data
 import com.alad1nks.dubovozki.core.model.DayOfWeekFilter
 import com.alad1nks.dubovozki.core.model.StationFilter
+import com.alad1nks.dubovozki.feature.busschedule.model.BusScheduleTopAppBarUiState
 import com.alad1nks.dubovozki.feature.busschedule.model.BusScheduleUiState
 import com.alad1nks.dubovozki.feature.busschedule.model.BusUi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,8 +29,10 @@ internal class BusScheduleViewModel(
     private val getBusSchedule: GetBusSchedule,
     private val getMoscowLocalTime: GetMoscowLocalTime,
 ) : ViewModel() {
-    private val stationFilter = MutableStateFlow(StationFilter.ALL)
-    private val dayOfWeekFilter = MutableStateFlow(DayOfWeekFilter.TODAY)
+    private val stationFilterSpinnerExpanded = MutableStateFlow(false)
+    private val selectedStationFilter = MutableStateFlow(StationFilter.ALL)
+    private val dayOfWeekFilterSpinnerExpanded = MutableStateFlow(false)
+    private val selectedDayOfWeekFilter = MutableStateFlow(DayOfWeekFilter.TODAY)
 
     private val currentTime =
         flow {
@@ -45,10 +48,34 @@ internal class BusScheduleViewModel(
             }
         }
 
+    val topAppBarUiState: StateFlow<BusScheduleTopAppBarUiState> =
+        combine(
+            stationFilterSpinnerExpanded,
+            selectedStationFilter,
+            dayOfWeekFilterSpinnerExpanded,
+            selectedDayOfWeekFilter,
+        ) { stationFilterSpinnerExpanded,
+            selectedStationFilter,
+            dayOfWeekFilterSpinnerExpanded,
+            selectedDayOfWeekFilter,
+            ->
+            BusScheduleTopAppBarUiState(
+                stationFilterSpinnerExpanded = stationFilterSpinnerExpanded,
+                selectedStationFilter = selectedStationFilter,
+                dayOfWeekFilterSpinnerExpanded = dayOfWeekFilterSpinnerExpanded,
+                selectedDayOfWeekFilter = selectedDayOfWeekFilter,
+            )
+        }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = BusScheduleTopAppBarUiState(),
+            )
+
     val uiState: StateFlow<BusScheduleUiState> =
         combine(
-            stationFilter,
-            dayOfWeekFilter,
+            selectedStationFilter,
+            selectedDayOfWeekFilter,
         ) { stationFilter, dayOfWeekFilter ->
             stationFilter to dayOfWeekFilter
         }
@@ -85,6 +112,32 @@ internal class BusScheduleViewModel(
                 started = SharingStarted.WhileSubscribed(5_000),
                 initialValue = BusScheduleUiState.Loading,
             )
+
+    fun selectStationFilter(station: StationFilter) {
+        selectedStationFilter.value = station
+        hideStationFilterSpinner()
+    }
+
+    fun expandStationFilterSpinner() {
+        stationFilterSpinnerExpanded.value = true
+    }
+
+    fun hideStationFilterSpinner() {
+        stationFilterSpinnerExpanded.value = false
+    }
+
+    fun selectDayOfWeekFilter(day: DayOfWeekFilter) {
+        selectedDayOfWeekFilter.value = day
+        hideDayOfWeekFilterSpinner()
+    }
+
+    fun expandDayOfWeekFilterSpinner() {
+        dayOfWeekFilterSpinnerExpanded.value = true
+    }
+
+    fun hideDayOfWeekFilterSpinner() {
+        dayOfWeekFilterSpinnerExpanded.value = false
+    }
 
     private fun Bus.toBusUi(currentTime: Int?): BusUi {
         return BusUi(

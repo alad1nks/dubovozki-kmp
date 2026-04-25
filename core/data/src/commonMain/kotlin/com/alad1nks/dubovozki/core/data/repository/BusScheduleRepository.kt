@@ -44,7 +44,7 @@ class BusScheduleRepository(
     private fun Int.toDomainDayOfWeek(): Bus.DayOfWeek? {
         return when (this) {
             2 -> Bus.DayOfWeek.MONDAY
-            3 -> Bus.DayOfWeek.WEEKDAY
+            3 -> Bus.DayOfWeek.WEEKDAYS
             7 -> Bus.DayOfWeek.SATURDAY
             1 -> Bus.DayOfWeek.SUNDAY
             else -> null
@@ -54,8 +54,8 @@ class BusScheduleRepository(
     private fun String.toDomainStation(): Bus.Station? {
         return when (this) {
             "odn" -> Bus.Station.ODINTSOVO
-            "slv" -> Bus.Station.SLAVYANKA
-            "mld" -> Bus.Station.MOLODYOZHKA
+            "slv" -> Bus.Station.SLAVYANSKY_BULVAR
+            "mld" -> Bus.Station.MOLODYOZHNAYA
             else -> null
         }
     }
