@@ -47,6 +47,9 @@ kotlin {
     }
 
     sourceSets {
+        androidMain.dependencies {
+            implementation(projects.core.storage.datastore)
+        }
         commonMain.dependencies {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
@@ -68,6 +71,7 @@ kotlin {
             implementation(projects.core.domain)
             implementation(projects.core.firebase)
             implementation(projects.core.navigation)
+            implementation(projects.core.storage.common)
             implementation(projects.feature.busschedule)
             implementation(projects.feature.services)
             implementation(projects.feature.settings)
@@ -78,9 +82,17 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+        iosMain.dependencies {
+            implementation(projects.core.storage.datastore)
+        }
+        jsMain.dependencies {
+            implementation(projects.core.storage.js)
+        }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
+
+            implementation(projects.core.storage.datastore)
         }
     }
 }
