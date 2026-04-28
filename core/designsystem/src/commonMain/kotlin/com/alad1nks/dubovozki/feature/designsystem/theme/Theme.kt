@@ -25,7 +25,9 @@ fun AppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
-    val extendedColorScheme = if (darkTheme) DarkExtendedColorScheme else LightExtendedColorScheme
+    // TODO Add full dark theme and uncomment
+    // val extendedColorScheme = if (darkTheme) DarkExtendedColorScheme else LightExtendedColorScheme
+    val extendedColorScheme = LightExtendedColorScheme
 
     CompositionLocalProvider(
         LocalExtendedColorScheme provides extendedColorScheme,

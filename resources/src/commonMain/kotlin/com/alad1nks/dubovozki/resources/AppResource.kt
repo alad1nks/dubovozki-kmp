@@ -21,7 +21,9 @@ import dubovozki.resources.generated.resources.bus_schedule_tab_moscow
 import dubovozki.resources.generated.resources.bus_schedule_upcoming_time
 import dubovozki.resources.generated.resources.bus_schedule_upcoming_time_with_hour
 import dubovozki.resources.generated.resources.services_navigation_bar_label
+import dubovozki.resources.generated.resources.settings_dark_theme
 import dubovozki.resources.generated.resources.settings_navigation_bar_label
+import dubovozki.resources.generated.resources.settings_top_app_bar
 
 object AppResource {
     object String {
@@ -46,5 +48,7 @@ object AppResource {
         val bus_schedule_upcoming_time_with_hour = Res.string.bus_schedule_upcoming_time_with_hour
         val services_navigation_bar_label = Res.string.services_navigation_bar_label
         val settings_navigation_bar_label = Res.string.settings_navigation_bar_label
+        val settings_top_app_bar = Res.string.settings_top_app_bar
+        val settings_dark_theme = Res.string.settings_dark_theme
     }
 }

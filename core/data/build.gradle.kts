@@ -41,6 +41,7 @@ kotlin {
 
             implementation(projects.core.firebase)
             implementation(projects.core.model)
+            implementation(projects.core.storage.common)
         }
     }
 }

@@ -20,4 +20,6 @@
     <string name="bus_schedule_upcoming_time_with_hour">in %1$d h %2$d min</string>
     <string name="services_navigation_bar_label">Services</string>
     <string name="settings_navigation_bar_label">Settings</string>
+    <string name="settings_top_app_bar">Settings</string>
+    <string name="settings_dark_theme">Dark theme</string>
 </resources>
