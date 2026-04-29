@@ -6,9 +6,9 @@ import androidx.compose.ui.graphics.Color
 
 @Immutable
 data class ExtendedColorScheme(
-    val odintsovo: Color = Color.Unspecified,
-    val slavyanskyBulvar: Color = Color.Unspecified,
-    val molodyozhnaya: Color = Color.Unspecified,
+    val busScheduleStationOdintsovo: Color = Color.Unspecified,
+    val busScheduleStationSlavyanskyBulvar: Color = Color.Unspecified,
+    val busScheduleStationMolodyozhnaya: Color = Color.Unspecified,
 )
 
 val LocalExtendedColorScheme = staticCompositionLocalOf { ExtendedColorScheme() }

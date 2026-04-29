@@ -36,9 +36,9 @@ internal fun BusListItem(
     val colorScheme = LocalExtendedColorScheme.current
     val stationColor =
         when (station) {
-            Bus.Station.ODINTSOVO -> colorScheme.odintsovo
-            Bus.Station.SLAVYANSKY_BULVAR -> colorScheme.slavyanskyBulvar
-            Bus.Station.MOLODYOZHNAYA -> colorScheme.molodyozhnaya
+            Bus.Station.ODINTSOVO -> colorScheme.busScheduleStationOdintsovo
+            Bus.Station.SLAVYANSKY_BULVAR -> colorScheme.busScheduleStationSlavyanskyBulvar
+            Bus.Station.MOLODYOZHNAYA -> colorScheme.busScheduleStationMolodyozhnaya
         }
     val isDeparted = (timeDifference ?: 0) < 0
 
@@ -129,7 +129,7 @@ private fun TimeDifference(
         when {
             timeDifference < 0 -> departedColor
             soon -> Color.White
-            else -> LocalExtendedColorScheme.current.odintsovo
+            else -> LocalExtendedColorScheme.current.busScheduleStationOdintsovo
         }
 
     Text(
