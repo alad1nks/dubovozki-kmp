@@ -7,11 +7,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 internal class BusScheduleApiImpl : BusScheduleApi {
-    private val busList =
+    private val busSchedule =
         MutableStateFlow<Data<BusScheduleResponse>>(Data.Initial())
             .apply { addValueEventListener("busSchedule") }
 
     override fun getBusSchedule(): StateFlow<Data<BusScheduleResponse>> {
-        return busList.asStateFlow()
+        return busSchedule.asStateFlow()
     }
 }

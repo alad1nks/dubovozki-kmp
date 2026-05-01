@@ -20,7 +20,12 @@ import dubovozki.resources.generated.resources.bus_schedule_tab_dubki
 import dubovozki.resources.generated.resources.bus_schedule_tab_moscow
 import dubovozki.resources.generated.resources.bus_schedule_upcoming_time
 import dubovozki.resources.generated.resources.bus_schedule_upcoming_time_with_hour
+import dubovozki.resources.generated.resources.services_contact_headline
+import dubovozki.resources.generated.resources.services_contact_supporting
+import dubovozki.resources.generated.resources.services_donut_headline
+import dubovozki.resources.generated.resources.services_donut_supporting
 import dubovozki.resources.generated.resources.services_navigation_bar_label
+import dubovozki.resources.generated.resources.services_top_app_bar
 import dubovozki.resources.generated.resources.settings_dark_theme
 import dubovozki.resources.generated.resources.settings_navigation_bar_label
 import dubovozki.resources.generated.resources.settings_top_app_bar
@@ -46,7 +51,12 @@ object AppResource {
         val bus_schedule_tab_moscow = Res.string.bus_schedule_tab_moscow
         val bus_schedule_upcoming_time = Res.string.bus_schedule_upcoming_time
         val bus_schedule_upcoming_time_with_hour = Res.string.bus_schedule_upcoming_time_with_hour
+        val services_contact_headline = Res.string.services_contact_headline
+        val services_contact_supporting = Res.string.services_contact_supporting
+        val services_donut_headline = Res.string.services_donut_headline
+        val services_donut_supporting = Res.string.services_donut_supporting
         val services_navigation_bar_label = Res.string.services_navigation_bar_label
+        val services_top_app_bar = Res.string.services_top_app_bar
         val settings_navigation_bar_label = Res.string.settings_navigation_bar_label
         val settings_top_app_bar = Res.string.settings_top_app_bar
         val settings_dark_theme = Res.string.settings_dark_theme

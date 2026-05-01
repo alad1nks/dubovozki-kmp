@@ -8,6 +8,8 @@ import com.alad1nks.dubovozki.core.domain.GetMoscowDayOfWeek
 import com.alad1nks.dubovozki.core.domain.GetMoscowLocalDateTime
 import com.alad1nks.dubovozki.core.domain.GetMoscowLocalTime
 import com.alad1nks.dubovozki.core.domain.GetMoscowLocalTimeImpl
+import com.alad1nks.dubovozki.core.domain.GetServices
+import com.alad1nks.dubovozki.core.domain.GetServicesImpl
 import com.alad1nks.dubovozki.core.domain.SetDarkTheme
 import com.alad1nks.dubovozki.core.domain.SetDarkThemeImpl
 import org.koin.dsl.module
@@ -15,6 +17,7 @@ import org.koin.dsl.module
 val DomainModule =
     module {
         factory<GetBusSchedule> { GetBusScheduleImpl(get(), get()) }
+        factory<GetServices> { GetServicesImpl(get()) }
         factory<GetDarkTheme> { GetDarkThemeImpl(get()) }
         factory { GetMoscowDayOfWeek(get()) }
         factory { GetMoscowLocalDateTime() }
