@@ -1,6 +1,7 @@
 package com.alad1nks.dubovozki.shared.ui
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -17,6 +18,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import com.alad1nks.dubovozki.feature.designsystem.isTablet
 import com.alad1nks.dubovozki.feature.designsystem.theme.AppTheme
 import com.alad1nks.dubovozki.shared.CommonModules
 import com.alad1nks.dubovozki.shared.PlatformModules
@@ -55,6 +57,7 @@ private fun AppContent(
     appState: AppState,
     modifier: Modifier = Modifier,
 ) {
+    val isTablet = isTablet()
     val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
@@ -62,8 +65,8 @@ private fun AppContent(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar =
             {
-                if (appState.shouldShowBottomBar) {
-                    AppBottomBar(
+                if (appState.shouldShowNavigationBar && !isTablet) {
+                    AppNavigationBar(
                         appTopLevelDestinations = appState.appTopLevelDestinations,
                         onNavigateToDestination = appState::navigateToTopLevelDestination,
                         currentDestination = appState.currentDestination,
@@ -72,14 +75,23 @@ private fun AppContent(
             },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
-        AppNavHost(
-            appState = appState,
+        Row(
             modifier =
                 Modifier
                     .fillMaxSize()
                     .padding(padding)
                     .consumeWindowInsets(padding)
                     .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
-        )
+        ) {
+            if (appState.shouldShowNavigationBar && isTablet) {
+                AppNavigationRail(
+                    appTopLevelDestinations = appState.appTopLevelDestinations,
+                    onNavigateToDestination = appState::navigateToTopLevelDestination,
+                    currentDestination = appState.currentDestination,
+                )
+            }
+
+            AppNavHost(appState = appState)
+        }
     }
 }
