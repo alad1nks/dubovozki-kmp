@@ -36,7 +36,7 @@ internal class AppState(
 
     val appTopLevelDestinations: List<AppTopLevelDestination> = AppTopLevelDestination.entries
 
-    val shouldShowBottomBar: Boolean @Composable get() {
+    val shouldShowNavigationBar: Boolean @Composable get() {
         val currentDestinationRoute = currentDestination?.route
         return appTopLevelDestinations.any {
             it.routeSerialName() == currentDestinationRoute

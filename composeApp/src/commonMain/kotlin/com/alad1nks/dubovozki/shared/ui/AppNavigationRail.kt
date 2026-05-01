@@ -1,9 +1,8 @@
 package com.alad1nks.dubovozki.shared.ui
 
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -13,19 +12,19 @@ import com.alad1nks.dubovozki.shared.navigation.routeSerialName
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-internal fun AppBottomBar(
+internal fun AppNavigationRail(
     appTopLevelDestinations: List<AppTopLevelDestination>,
     onNavigateToDestination: (AppTopLevelDestination) -> Unit,
     currentDestination: NavDestination?,
     modifier: Modifier = Modifier,
 ) {
-    NavigationBar(
+    NavigationRail(
         modifier = modifier,
     ) {
         appTopLevelDestinations.forEach { topLevelDestination ->
             val selected = currentDestination.isTopLevelDestinationInHierarchy(topLevelDestination)
 
-            AppNavigationBarItem(
+            AppNavigationRailItem(
                 selected = selected,
                 onClick = { onNavigateToDestination(topLevelDestination) },
                 icon = {
@@ -47,7 +46,7 @@ internal fun AppBottomBar(
 }
 
 @Composable
-private fun RowScope.AppNavigationBarItem(
+private fun AppNavigationRailItem(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -57,7 +56,7 @@ private fun RowScope.AppNavigationBarItem(
     selectedIcon: @Composable () -> Unit = icon,
     label: @Composable (() -> Unit)? = null,
 ) {
-    NavigationBarItem(
+    NavigationRailItem(
         selected = selected,
         onClick = onClick,
         icon = if (selected) selectedIcon else icon,
