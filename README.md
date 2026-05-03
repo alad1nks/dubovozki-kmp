@@ -5,9 +5,9 @@ Multi-platform application with bus schedule for HSE Students
 Keep track of the current bus schedule for the Dubki dormitory using convenient app "Дубовозки". No need to search for
 the right cell in the old schedule file Just open it and instantly find out the next bus departure time.
 
-<img height="800" src="https://github.com/alad1nks/dubovozki-kmp/blob/main/.readme/screenshot_1.png" width="360"/>
-<img height="800" src="https://github.com/alad1nks/dubovozki-kmp/blob/main/.readme/screenshot_2.png" width="360"/>
-<img height="800" src="https://github.com/alad1nks/dubovozki-kmp/blob/main/.readme/screenshot_3.png" width="360"/>
+![](https://github.com/alad1nks/dubovozki-kmp/blob/main/.readme/screenshot_1.png)
+![](https://github.com/alad1nks/dubovozki-kmp/blob/main/.readme/screenshot_2.png)
+![](https://github.com/alad1nks/dubovozki-kmp/blob/main/.readme/screenshot_3.png)
 
 ---
 
