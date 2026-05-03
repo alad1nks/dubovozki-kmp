@@ -1,0 +1,82 @@
+name: Release
+
+on:
+  pull_request:
+    branches: [ release/* ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Decode Firebase config
+        run: |
+          echo "${{ secrets.FIREBASE_CONFIG_ANDROID }}" | base64 -d > androidApp/google-services.json
+
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > dubovozki-release-key.jks
+
+      - name: Run local tests
+        run: ./gradlew test
+
+      - name: Build AAB
+        run: ./gradlew bundleRelease
+        env:
+          SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        if: success()
+
+      - name: Rename AAB
+        run: mv androidApp/build/outputs/aab/release/androidApp-release.aab androidApp/build/outputs/aab/release/dubovozki.aab
+        if: success()
+
+      - name: Upload AAB to GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: androidApp/build/outputs/aab/release/dubovozki.aab
+        if: success()
+
+  post-build:
+    needs: build
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Checkout io repository
+        uses: actions/checkout@v4
+        with:
+          repository: 'alad1nks/alad1nks.github.io'
+          token: ${{ secrets.ACCESS_TOKEN }}
+
+      - name: Download AAB
+        uses: actions/download-artifact@v4
+        with:
+          name: app-release
+          path: dubovozki
+
+      - name: Commit AAB
+        run: |
+          git config --local user.name 'alad1nks'
+          git config --local user.email 'alad1nks@users.noreply.github.com'
+          git add dubovozki/*.aab
+          git commit -m 'Add generated AAB file'
+          git push
