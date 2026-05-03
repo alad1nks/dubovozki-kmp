@@ -1,0 +1,32 @@
+<resources>
+    <string name="bus_schedule_day_of_week_filter_saturday">Сенбі</string>
+    <string name="bus_schedule_day_of_week_filter_sunday">Жексенбі</string>
+    <string name="bus_schedule_day_of_week_filter_today">Бүгін</string>
+    <string name="bus_schedule_day_of_week_filter_tomorrow">Ертең</string>
+    <string name="bus_schedule_day_of_week_filter_weekdays">Жұмыс күндері</string>
+    <string name="bus_schedule_departed_time">%1$d мин бұрын</string>
+    <string name="bus_schedule_departed_time_with_hour">%1$d с %2$d мин бұрын</string>
+    <string name="bus_schedule_navigation_bar_label">Кесте</string>
+    <string name="bus_schedule_station_filter_all">Барлық станциялар</string>
+    <string name="bus_schedule_station_filter_molodyozhnaya">Молодежная</string>
+    <string name="bus_schedule_station_filter_odintsovo">Одинцово</string>
+    <string name="bus_schedule_station_filter_slavyansky_bulvar">Славянский б-р</string>
+    <string name="bus_schedule_station_molodyozhnaya">Молодежная</string>
+    <string name="bus_schedule_station_odintsovo">Одинцово</string>
+    <string name="bus_schedule_station_slavyansky_bulvar">Славянский б-р</string>
+    <string name="bus_schedule_tab_dubki">Дубки</string>
+    <string name="bus_schedule_tab_moscow">Мәскеу</string>
+    <string name="bus_schedule_upcoming_time">%1$d мин ішінде</string>
+    <string name="bus_schedule_upcoming_time_with_hour">%1$d с %2$d мин ішінде</string>
+    <string name="services_contact_headline">Автормен байланысу</string>
+    <string name="services_contact_supporting">Кез келген сұраққа жауап беремін</string>
+    <string name="services_donut_headline">Жобаны қолдау</string>
+    <string name="services_donut_supporting">Қаражат функционалдылықты дамытуға жұмсалатын болады</string>
+    <string name="services_navigation_bar_label">Қызметтер</string>
+    <string name="services_top_app_bar">Қызметтер</string>
+    <string name="settings_dark_theme">Қараңғы тақырып</string>
+    <string name="settings_language">Тіл</string>
+    <string name="settings_language_system">Жүйе тілі</string>
+    <string name="settings_navigation_bar_label">Параметрлер</string>
+    <string name="settings_top_app_bar">Параметрлер</string>
+</resources>

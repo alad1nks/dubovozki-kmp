@@ -15,9 +15,10 @@ kotlin {
     }
 
     dependencies {
-        implementation(projects.composeApp)
         implementation(libs.androidx.activity.compose)
         implementation(libs.compose.ui.tooling)
+
+        implementation(projects.composeApp)
     }
 }
 

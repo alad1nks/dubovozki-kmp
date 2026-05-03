@@ -7,7 +7,18 @@ import kotlinx.coroutines.flow.map
 import kotlin.collections.set
 
 internal class AppPreferencesImpl : AppPreferences {
+    private val stringPreferences = MutableStateFlow(emptyMap<String, String?>())
     private val booleanPreferences = MutableStateFlow(emptyMap<String, Boolean?>())
+
+    override fun getString(key: String): Flow<String?> {
+        if (key !in stringPreferences.value) {
+            val stringPreferencesCopy = stringPreferences.value.toMutableMap()
+            stringPreferencesCopy[key] = localStorage.getItem(key)
+            stringPreferences.value = stringPreferencesCopy.toMap()
+        }
+
+        return stringPreferences.map { it[key] }
+    }
 
     override fun getBoolean(key: String): Flow<Boolean?> {
         if (key !in booleanPreferences.value) {
@@ -17,6 +28,14 @@ internal class AppPreferencesImpl : AppPreferences {
         }
 
         return booleanPreferences.map { it[key] }
+    }
+
+    override suspend fun setString(key: String, value: String) {
+        val stringPreferencesCopy = stringPreferences.value.toMutableMap()
+        stringPreferencesCopy[key] = value
+        stringPreferences.value = stringPreferencesCopy.toMap()
+
+        localStorage.setItem(key, value)
     }
 
     override suspend fun setBoolean(key: String, value: Boolean) {

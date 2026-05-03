@@ -1,7 +1,9 @@
 package com.alad1nks.dubovozki.feature.designsystem.component
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,13 +31,14 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun Spinner(
     expanded: Boolean,
-    content: @Composable () -> Unit,
-    dropdownMenuContent: @Composable () -> Unit,
+    content: @Composable RowScope.() -> Unit,
+    dropdownMenuContent: @Composable ColumnScope.() -> Unit,
     onClick: () -> Unit,
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     shape: Shape = SpinnerDefaults.shape,
     backgroundColor: Color = SpinnerDefaults.backgroundColor,
+    fillMaxWidth: Boolean = true,
 ) {
     Box(
         modifier = modifier,
@@ -53,7 +56,7 @@ fun Spinner(
                     content()
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
+                if (fillMaxWidth) Spacer(modifier = Modifier.weight(1f))
 
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded)
             }

@@ -14,8 +14,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.alad1nks.dubovozki.feature.designsystem.isTablet
@@ -43,11 +45,18 @@ fun App() {
                 parameters = { parametersOf() },
             )
         val darkTheme by viewModel.darkTheme.collectAsState(isSystemInDarkTheme())
+        val language by viewModel.language.collectAsState(null)
 
         AppTheme(
             darkTheme = darkTheme,
         ) {
-            AppContent(appState = appState)
+            CompositionLocalProvider(
+                LocalAppLocale provides language?.code,
+            ) {
+                key(language) {
+                    AppContent(appState = appState)
+                }
+            }
         }
     }
 }
