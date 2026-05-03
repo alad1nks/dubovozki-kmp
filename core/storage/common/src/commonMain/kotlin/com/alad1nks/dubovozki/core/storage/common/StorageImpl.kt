@@ -9,11 +9,20 @@ internal class StorageImpl(
         return appPreferences.getBoolean(DARK_THEME)
     }
 
+    override fun getLanguageCode(): Flow<String?> {
+        return appPreferences.getString(LANGUAGE)
+    }
+
     override suspend fun setDarkTheme(value: Boolean) {
         appPreferences.setBoolean(DARK_THEME, value)
     }
 
+    override suspend fun setLanguageCode(value: String) {
+        appPreferences.setString(LANGUAGE, value)
+    }
+
     private companion object {
         const val DARK_THEME = "dark_theme"
+        const val LANGUAGE = "language"
     }
 }

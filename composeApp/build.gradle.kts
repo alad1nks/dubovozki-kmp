@@ -70,6 +70,7 @@ kotlin {
             implementation(projects.core.designsystem)
             implementation(projects.core.domain)
             implementation(projects.core.firebase)
+            implementation(projects.core.model)
             implementation(projects.core.navigation)
             implementation(projects.core.storage.common)
             implementation(projects.feature.busschedule)

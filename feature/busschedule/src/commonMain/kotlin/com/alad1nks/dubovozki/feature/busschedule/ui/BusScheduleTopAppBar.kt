@@ -17,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.alad1nks.dubovozki.core.model.DayOfWeekFilter
@@ -92,7 +93,14 @@ private fun BusScheduleTopAppBarSpinnerRow(
     ) {
         Spinner(
             expanded = stationFilterSpinnerExpanded,
-            content = { Text(text = selectedStationFilter.text) },
+            content =
+                {
+                    Text(
+                        text = selectedStationFilter.text,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                    )
+                },
             dropdownMenuContent = {
                 stationFilterList.forEach { station ->
                     DropdownMenuItem(
@@ -110,7 +118,14 @@ private fun BusScheduleTopAppBarSpinnerRow(
 
         Spinner(
             expanded = dayOfWeekFilterSpinnerExpanded,
-            content = { Text(text = selectedDayOfWeekFilter.text) },
+            content =
+                {
+                    Text(
+                        text = selectedDayOfWeekFilter.text,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                    )
+                },
             dropdownMenuContent = {
                 dayOfWeekFilterList.forEach { day ->
                     DropdownMenuItem(
