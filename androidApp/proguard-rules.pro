@@ -1,0 +1,1 @@
+-keep class com.alad1nks.dubovozki.core.firebase.model.** { *; }
