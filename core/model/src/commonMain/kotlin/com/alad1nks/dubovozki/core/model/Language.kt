@@ -4,5 +4,5 @@ enum class Language(val code: String?) {
     SYSTEM(null),
     RUSSIAN("ru"),
     ENGLISH("en"),
-    KAZAKH("kz"),
+    KAZAKH("kk"),
 }
