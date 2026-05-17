@@ -30,8 +30,8 @@ android {
         applicationId = "com.alad1nks.dubovozki"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 6
-        versionName = "2.1"
+        versionCode = 7
+        versionName = "2.2"
     }
     packaging {
         resources {
