@@ -24,7 +24,19 @@ import dubovozki.resources.generated.resources.services_contact_headline
 import dubovozki.resources.generated.resources.services_contact_supporting
 import dubovozki.resources.generated.resources.services_donut_headline
 import dubovozki.resources.generated.resources.services_donut_supporting
+import dubovozki.resources.generated.resources.services_linen_room_headline
+import dubovozki.resources.generated.resources.services_linen_room_supporting
 import dubovozki.resources.generated.resources.services_navigation_bar_label
+import dubovozki.resources.generated.resources.services_schedule_building_1
+import dubovozki.resources.generated.resources.services_schedule_building_2
+import dubovozki.resources.generated.resources.services_schedule_building_3
+import dubovozki.resources.generated.resources.services_schedule_day_of_week_friday
+import dubovozki.resources.generated.resources.services_schedule_day_of_week_monday
+import dubovozki.resources.generated.resources.services_schedule_day_of_week_saturday
+import dubovozki.resources.generated.resources.services_schedule_day_of_week_sunday
+import dubovozki.resources.generated.resources.services_schedule_day_of_week_thursday
+import dubovozki.resources.generated.resources.services_schedule_day_of_week_tuesday
+import dubovozki.resources.generated.resources.services_schedule_day_of_week_wednesday
 import dubovozki.resources.generated.resources.services_top_app_bar
 import dubovozki.resources.generated.resources.settings_dark_theme
 import dubovozki.resources.generated.resources.settings_language
@@ -60,7 +72,19 @@ object AppResource {
         val services_contact_supporting = Res.string.services_contact_supporting
         val services_donut_headline = Res.string.services_donut_headline
         val services_donut_supporting = Res.string.services_donut_supporting
+        val services_linen_room_headline = Res.string.services_linen_room_headline
+        val services_linen_room_supporting = Res.string.services_linen_room_supporting
         val services_navigation_bar_label = Res.string.services_navigation_bar_label
+        val services_schedule_building_1 = Res.string.services_schedule_building_1
+        val services_schedule_building_2 = Res.string.services_schedule_building_2
+        val services_schedule_building_3 = Res.string.services_schedule_building_3
+        val services_schedule_day_of_week_monday = Res.string.services_schedule_day_of_week_monday
+        val services_schedule_day_of_week_tuesday = Res.string.services_schedule_day_of_week_tuesday
+        val services_schedule_day_of_week_wednesday = Res.string.services_schedule_day_of_week_wednesday
+        val services_schedule_day_of_week_thursday = Res.string.services_schedule_day_of_week_thursday
+        val services_schedule_day_of_week_friday = Res.string.services_schedule_day_of_week_friday
+        val services_schedule_day_of_week_saturday = Res.string.services_schedule_day_of_week_saturday
+        val services_schedule_day_of_week_sunday = Res.string.services_schedule_day_of_week_sunday
         val services_top_app_bar = Res.string.services_top_app_bar
         val settings_dark_theme = Res.string.settings_dark_theme
         val settings_language = Res.string.settings_language

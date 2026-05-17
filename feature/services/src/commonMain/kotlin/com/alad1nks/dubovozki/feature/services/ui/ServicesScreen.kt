@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Message
+import androidx.compose.material.icons.outlined.LocalLaundryService
 import androidx.compose.material.icons.outlined.MonetizationOn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LargeTopAppBar
@@ -13,6 +14,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
+import com.alad1nks.dubovozki.core.model.ServicesScheduleType
 import com.alad1nks.dubovozki.feature.services.model.ServicesUiState
 import com.alad1nks.dubovozki.resources.AppResource
 import org.jetbrains.compose.resources.stringResource
@@ -20,12 +22,14 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun ServicesRoute(
     viewModel: ServicesViewModel,
+    navigateToServicesSchedule: (ServicesScheduleType) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     ServicesScreen(
         uiState = uiState,
+        onLinenRoomClick = { navigateToServicesSchedule(ServicesScheduleType.LINEN_ROOM) },
         modifier = modifier,
     )
 }
@@ -33,6 +37,7 @@ internal fun ServicesRoute(
 @Composable
 private fun ServicesScreen(
     uiState: ServicesUiState,
+    onLinenRoomClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -44,9 +49,12 @@ private fun ServicesScreen(
             is ServicesUiState.Loading -> {}
 
             is ServicesUiState.Content -> {
+                val uriHandler = LocalUriHandler.current
+
                 ServicesContent(
-                    contactLink = uiState.contactLink,
-                    donutLink = uiState.donutLink,
+                    onLinenRoomClick = onLinenRoomClick,
+                    onContactClick = { uriHandler.openUri(uiState.contactLink) },
+                    onDonutClick = { uriHandler.openUri(uiState.donutLink) },
                     modifier = Modifier.fillMaxSize(),
                 )
             }
@@ -56,24 +64,30 @@ private fun ServicesScreen(
 
 @Composable
 private fun ServicesContent(
-    contactLink: String,
-    donutLink: String,
+    onLinenRoomClick: () -> Unit,
+    onContactClick: () -> Unit,
+    onDonutClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val uriHandler = LocalUriHandler.current
-
     Column(
         modifier = modifier,
     ) {
         ServiceItem(
-            onClick = { uriHandler.openUri(contactLink) },
+            onClick = onLinenRoomClick,
+            headlineText = stringResource(AppResource.String.services_linen_room_headline),
+            supportingText = stringResource(AppResource.String.services_linen_room_supporting),
+            leadingImageVector = Icons.Outlined.LocalLaundryService,
+        )
+
+        ServiceItem(
+            onClick = onContactClick,
             headlineText = stringResource(AppResource.String.services_contact_headline),
             supportingText = stringResource(AppResource.String.services_contact_supporting),
             leadingImageVector = Icons.AutoMirrored.Outlined.Message,
         )
 
         ServiceItem(
-            onClick = { uriHandler.openUri(donutLink) },
+            onClick = onDonutClick,
             headlineText = stringResource(AppResource.String.services_donut_headline),
             supportingText = stringResource(AppResource.String.services_donut_supporting),
             leadingImageVector = Icons.Outlined.MonetizationOn,

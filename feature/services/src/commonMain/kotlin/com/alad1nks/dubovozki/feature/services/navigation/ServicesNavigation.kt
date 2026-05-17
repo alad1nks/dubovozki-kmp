@@ -4,6 +4,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
+import com.alad1nks.dubovozki.core.model.ServicesScheduleType
 import com.alad1nks.dubovozki.core.navigation.Destination
 import com.alad1nks.dubovozki.feature.services.ui.ServicesRoute
 import com.alad1nks.dubovozki.feature.services.ui.ServicesViewModel
@@ -23,7 +24,7 @@ fun NavController.navigateToServices(
     )
 }
 
-fun NavGraphBuilder.servicesScreen() {
+fun NavGraphBuilder.servicesScreen(navigateToServicesSchedule: (ServicesScheduleType) -> Unit) {
     composable<ServicesRoute> {
         val viewModel =
             koinViewModel<ServicesViewModel>(
@@ -32,6 +33,7 @@ fun NavGraphBuilder.servicesScreen() {
 
         ServicesRoute(
             viewModel = viewModel,
+            navigateToServicesSchedule = navigateToServicesSchedule,
         )
     }
 }

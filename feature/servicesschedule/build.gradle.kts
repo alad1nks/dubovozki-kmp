@@ -1,43 +1,32 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
-    alias(libs.plugins.composeHotReload)
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinxSerialization)
 }
 
 kotlin {
     android {
-        namespace = "com.alad1nks.dubovozki.shared"
+        namespace = "com.alad1nks.dubovozki.feature.servicesschedule"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
 
         compilerOptions {
             jvmTarget = JvmTarget.JVM_11
         }
-
         androidResources {
             enable = true
         }
-
         withHostTest {
             isIncludeAndroidResources = true
         }
     }
 
-    listOf(
-        iosArm64(),
-        iosSimulatorArm64(),
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "ComposeApp"
-            isStatic = true
-        }
-    }
+    iosArm64()
+    iosSimulatorArm64()
 
     jvm()
 
@@ -47,9 +36,6 @@ kotlin {
     }
 
     sourceSets {
-        androidMain.dependencies {
-            implementation(projects.core.storage.datastore)
-        }
         commonMain.dependencies {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
@@ -63,54 +49,21 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
+            implementation(libs.kotlinx.datetime)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.navigation.compose)
 
-            implementation(projects.core.data)
+            implementation(project.dependencies.platform(libs.koin.bom))
+
             implementation(projects.core.designsystem)
             implementation(projects.core.domain)
-            implementation(projects.core.firebase)
             implementation(projects.core.model)
             implementation(projects.core.navigation)
-            implementation(projects.core.storage.common)
-            implementation(projects.feature.busschedule)
-            implementation(projects.feature.services)
-            implementation(projects.feature.servicesschedule)
-            implementation(projects.feature.settings)
             implementation(projects.resources)
-
-            implementation(project.dependencies.platform(libs.koin.bom))
-        }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-        }
-        iosMain.dependencies {
-            implementation(projects.core.storage.datastore)
-        }
-        jsMain.dependencies {
-            implementation(projects.core.storage.js)
-        }
-        jvmMain.dependencies {
-            implementation(compose.desktop.currentOs)
-            implementation(libs.kotlinx.coroutines.swing)
-
-            implementation(projects.core.storage.datastore)
         }
     }
 }
 
 dependencies {
     androidRuntimeClasspath(libs.compose.ui.tooling)
-}
-
-compose.desktop {
-    application {
-        mainClass = "com.alad1nks.dubovozki.MainKt"
-
-        nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.alad1nks.dubovozki"
-            packageVersion = "1.0.0"
-        }
-    }
 }

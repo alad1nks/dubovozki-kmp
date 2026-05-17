@@ -8,6 +8,8 @@ import androidx.navigation.compose.NavHost
 import com.alad1nks.dubovozki.feature.busschedule.navigation.BusScheduleRoute
 import com.alad1nks.dubovozki.feature.busschedule.navigation.busScheduleScreen
 import com.alad1nks.dubovozki.feature.services.navigation.servicesScreen
+import com.alad1nks.dubovozki.feature.servicesschedule.navigation.navigateToServicesSchedule
+import com.alad1nks.dubovozki.feature.servicesschedule.navigation.servicesScheduleScreen
 import com.alad1nks.dubovozki.feature.settings.navigation.settingsScreen
 import com.alad1nks.dubovozki.shared.ui.AppState
 
@@ -26,8 +28,9 @@ internal fun AppNavHost(
         enterTransition = { EnterTransition.None },
         exitTransition = { ExitTransition.None },
     ) {
-        servicesScreen()
+        servicesScreen(navigateToServicesSchedule = navController::navigateToServicesSchedule)
         busScheduleScreen()
         settingsScreen()
+        servicesScheduleScreen(onBackClick = navController::popBackStack)
     }
 }

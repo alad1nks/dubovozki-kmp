@@ -1,7 +1,7 @@
 package com.alad1nks.dubovozki.feature.busschedule.model
 
 internal sealed interface BusScheduleUiState {
-    object Loading : BusScheduleUiState
+    data object Loading : BusScheduleUiState
 
     data class Content(
         val moscowBusList: List<BusUi>,
