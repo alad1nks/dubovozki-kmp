@@ -1,1 +1,2 @@
 -keep class com.alad1nks.dubovozki.core.firebase.model.** { *; }
+-keep class com.alad1nks.dubovozki.core.model.ServicesScheduleType
