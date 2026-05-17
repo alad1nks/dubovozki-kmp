@@ -31,7 +31,7 @@ internal fun BusListItem(
     timeDifference: Int?,
     station: Bus.Station,
     modifier: Modifier = Modifier,
-    departedColor: Color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+    departedColor: Color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
 ) {
     val colorScheme = LocalExtendedColorScheme.current
     val stationColor =
@@ -119,8 +119,9 @@ private fun TimeDifference(
     val finalModifier =
         if (soon) {
             modifier
+                .padding(vertical = 4.dp)
                 .background(color = Color.Red, shape = MaterialTheme.shapes.small)
-                .padding(vertical = 8.dp, horizontal = 12.dp)
+                .padding(vertical = 4.dp, horizontal = 12.dp)
         } else {
             modifier.padding(vertical = 8.dp, horizontal = 12.dp)
         }
