@@ -7,30 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		8823094C2F78FBCF00D818C7 /* FirebaseAI in Frameworks */ = {isa = PBXBuildFile; productRef = 8823094B2F78FBCF00D818C7 /* FirebaseAI */; };
-		8823094E2F78FBCF00D818C7 /* FirebaseAILogic in Frameworks */ = {isa = PBXBuildFile; productRef = 8823094D2F78FBCF00D818C7 /* FirebaseAILogic */; };
-		882309502F78FBCF00D818C7 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 8823094F2F78FBCF00D818C7 /* FirebaseAnalytics */; };
-		882309522F78FBCF00D818C7 /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = 882309512F78FBCF00D818C7 /* FirebaseAnalyticsCore */; };
-		882309542F78FBCF00D818C7 /* FirebaseAnalyticsIdentitySupport in Frameworks */ = {isa = PBXBuildFile; productRef = 882309532F78FBCF00D818C7 /* FirebaseAnalyticsIdentitySupport */; };
-		882309562F78FBCF00D818C7 /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = 882309552F78FBCF00D818C7 /* FirebaseAppCheck */; };
-		882309582F78FBCF00D818C7 /* FirebaseAppDistribution-Beta in Frameworks */ = {isa = PBXBuildFile; productRef = 882309572F78FBCF00D818C7 /* FirebaseAppDistribution-Beta */; };
-		8823095A2F78FBCF00D818C7 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 882309592F78FBCF00D818C7 /* FirebaseAuth */; };
-		8823095C2F78FBCF00D818C7 /* FirebaseAuthCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 8823095B2F78FBCF00D818C7 /* FirebaseAuthCombine-Community */; };
 		8823095E2F78FBCF00D818C7 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 8823095D2F78FBCF00D818C7 /* FirebaseCore */; };
-		882309602F78FBCF00D818C7 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 8823095F2F78FBCF00D818C7 /* FirebaseCrashlytics */; };
 		882309622F78FBCF00D818C7 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 882309612F78FBCF00D818C7 /* FirebaseDatabase */; };
-		882309642F78FBCF00D818C7 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 882309632F78FBCF00D818C7 /* FirebaseFirestore */; };
-		882309662F78FBCF00D818C7 /* FirebaseFirestoreCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 882309652F78FBCF00D818C7 /* FirebaseFirestoreCombine-Community */; };
-		882309682F78FBCF00D818C7 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 882309672F78FBCF00D818C7 /* FirebaseFunctions */; };
-		8823096A2F78FBCF00D818C7 /* FirebaseFunctionsCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 882309692F78FBCF00D818C7 /* FirebaseFunctionsCombine-Community */; };
-		8823096C2F78FBCF00D818C7 /* FirebaseInAppMessaging-Beta in Frameworks */ = {isa = PBXBuildFile; productRef = 8823096B2F78FBCF00D818C7 /* FirebaseInAppMessaging-Beta */; };
-		8823096E2F78FBCF00D818C7 /* FirebaseInstallations in Frameworks */ = {isa = PBXBuildFile; productRef = 8823096D2F78FBCF00D818C7 /* FirebaseInstallations */; };
-		882309702F78FBCF00D818C7 /* FirebaseMLModelDownloader in Frameworks */ = {isa = PBXBuildFile; productRef = 8823096F2F78FBCF00D818C7 /* FirebaseMLModelDownloader */; };
-		882309722F78FBCF00D818C7 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 882309712F78FBCF00D818C7 /* FirebaseMessaging */; };
-		882309742F78FBCF00D818C7 /* FirebasePerformance in Frameworks */ = {isa = PBXBuildFile; productRef = 882309732F78FBCF00D818C7 /* FirebasePerformance */; };
-		882309762F78FBCF00D818C7 /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = 882309752F78FBCF00D818C7 /* FirebaseRemoteConfig */; };
-		882309782F78FBCF00D818C7 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 882309772F78FBCF00D818C7 /* FirebaseStorage */; };
-		8823097A2F78FBCF00D818C7 /* FirebaseStorageCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 882309792F78FBCF00D818C7 /* FirebaseStorageCombine-Community */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -68,30 +46,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				882309582F78FBCF00D818C7 /* FirebaseAppDistribution-Beta in Frameworks */,
-				882309642F78FBCF00D818C7 /* FirebaseFirestore in Frameworks */,
-				8823095C2F78FBCF00D818C7 /* FirebaseAuthCombine-Community in Frameworks */,
-				8823096E2F78FBCF00D818C7 /* FirebaseInstallations in Frameworks */,
-				8823094E2F78FBCF00D818C7 /* FirebaseAILogic in Frameworks */,
-				882309542F78FBCF00D818C7 /* FirebaseAnalyticsIdentitySupport in Frameworks */,
-				8823096C2F78FBCF00D818C7 /* FirebaseInAppMessaging-Beta in Frameworks */,
-				8823094C2F78FBCF00D818C7 /* FirebaseAI in Frameworks */,
-				882309602F78FBCF00D818C7 /* FirebaseCrashlytics in Frameworks */,
-				8823096A2F78FBCF00D818C7 /* FirebaseFunctionsCombine-Community in Frameworks */,
-				8823097A2F78FBCF00D818C7 /* FirebaseStorageCombine-Community in Frameworks */,
-				882309622F78FBCF00D818C7 /* FirebaseDatabase in Frameworks */,
-				882309782F78FBCF00D818C7 /* FirebaseStorage in Frameworks */,
-				882309762F78FBCF00D818C7 /* FirebaseRemoteConfig in Frameworks */,
-				882309502F78FBCF00D818C7 /* FirebaseAnalytics in Frameworks */,
-				882309722F78FBCF00D818C7 /* FirebaseMessaging in Frameworks */,
-				882309702F78FBCF00D818C7 /* FirebaseMLModelDownloader in Frameworks */,
-				882309742F78FBCF00D818C7 /* FirebasePerformance in Frameworks */,
 				8823095E2F78FBCF00D818C7 /* FirebaseCore in Frameworks */,
-				882309562F78FBCF00D818C7 /* FirebaseAppCheck in Frameworks */,
-				882309522F78FBCF00D818C7 /* FirebaseAnalyticsCore in Frameworks */,
-				882309682F78FBCF00D818C7 /* FirebaseFunctions in Frameworks */,
-				8823095A2F78FBCF00D818C7 /* FirebaseAuth in Frameworks */,
-				882309662F78FBCF00D818C7 /* FirebaseFirestoreCombine-Community in Frameworks */,
+				882309622F78FBCF00D818C7 /* FirebaseDatabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -136,30 +92,8 @@
 			);
 			name = iosApp;
 			packageProductDependencies = (
-				8823094B2F78FBCF00D818C7 /* FirebaseAI */,
-				8823094D2F78FBCF00D818C7 /* FirebaseAILogic */,
-				8823094F2F78FBCF00D818C7 /* FirebaseAnalytics */,
-				882309512F78FBCF00D818C7 /* FirebaseAnalyticsCore */,
-				882309532F78FBCF00D818C7 /* FirebaseAnalyticsIdentitySupport */,
-				882309552F78FBCF00D818C7 /* FirebaseAppCheck */,
-				882309572F78FBCF00D818C7 /* FirebaseAppDistribution-Beta */,
-				882309592F78FBCF00D818C7 /* FirebaseAuth */,
-				8823095B2F78FBCF00D818C7 /* FirebaseAuthCombine-Community */,
 				8823095D2F78FBCF00D818C7 /* FirebaseCore */,
-				8823095F2F78FBCF00D818C7 /* FirebaseCrashlytics */,
 				882309612F78FBCF00D818C7 /* FirebaseDatabase */,
-				882309632F78FBCF00D818C7 /* FirebaseFirestore */,
-				882309652F78FBCF00D818C7 /* FirebaseFirestoreCombine-Community */,
-				882309672F78FBCF00D818C7 /* FirebaseFunctions */,
-				882309692F78FBCF00D818C7 /* FirebaseFunctionsCombine-Community */,
-				8823096B2F78FBCF00D818C7 /* FirebaseInAppMessaging-Beta */,
-				8823096D2F78FBCF00D818C7 /* FirebaseInstallations */,
-				8823096F2F78FBCF00D818C7 /* FirebaseMLModelDownloader */,
-				882309712F78FBCF00D818C7 /* FirebaseMessaging */,
-				882309732F78FBCF00D818C7 /* FirebasePerformance */,
-				882309752F78FBCF00D818C7 /* FirebaseRemoteConfig */,
-				882309772F78FBCF00D818C7 /* FirebaseStorage */,
-				882309792F78FBCF00D818C7 /* FirebaseStorageCombine-Community */,
 			);
 			productName = iosApp;
 			productReference = 0F7F508315E5437BAE6805B1 /* Дубовозки.app */;
@@ -230,7 +164,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :composeApp:embedAndSignAppleFrameworkForXcode\n";
+			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\nunset GEM_HOME GEM_PATH\nunset EMBED_PACKAGE_RESOURCE_BUNDLE_NAMES\nunset FRAMEWORK_SEARCH_PATHS HEADER_SEARCH_PATHS LIBRARY_SEARCH_PATHS\nunset OTHER_CFLAGS OTHER_CPLUSPLUSFLAGS OTHER_SWIFT_FLAGS\nunset MODULE_CACHE_DIR CLANG_MODULE_CACHE_PATH SWIFT_MODULE_CACHE_PATH\nunset GENERATED_MODULEMAP_DIR CLANG_MODULES_BUILD_SESSION_FILE\n./gradlew --no-daemon :composeApp:embedAndSignAppleFrameworkForXcode\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
