@@ -14,19 +14,20 @@ import org.koin.core.parameter.parametersOf
 
 @Serializable
 data class ServicesScheduleRoute(
-    val type: ServicesScheduleType,
+    val type: String,
 )
 
 fun NavController.navigateToServicesSchedule(
     type: ServicesScheduleType,
     navOptions: NavOptions? = null,
-) = navigate(ServicesScheduleRoute(type), navOptions)
+) = navigate(ServicesScheduleRoute(type.name), navOptions)
 
 fun NavGraphBuilder.servicesScheduleScreen(
     onBackClick: () -> Unit,
 ) {
     composable<ServicesScheduleRoute> { entry ->
-        val servicesScheduleType = entry.toRoute<ServicesScheduleRoute>().type
+        val servicesScheduleType =
+            ServicesScheduleType.valueOf(entry.toRoute<ServicesScheduleRoute>().type)
 
         val viewModel =
             koinViewModel<ServicesScheduleViewModel>(
