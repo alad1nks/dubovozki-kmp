@@ -4,8 +4,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -39,6 +43,7 @@ internal fun BusScheduleTopAppBar(
     onDayOfWeekFilterSelect: (DayOfWeekFilter) -> Unit,
     onDayOfWeekFilterSpinnerClick: () -> Unit,
     onDayOfWeekFilterSpinnerDismissRequest: () -> Unit,
+    onRefreshClick: () -> Unit,
     modifier: Modifier = Modifier,
     stationFilterList: List<StationFilter> = StationFilter.entries,
     dayOfWeekFilterList: List<DayOfWeekFilter> = DayOfWeekFilter.entries,
@@ -61,6 +66,14 @@ internal fun BusScheduleTopAppBar(
                 onDayOfWeekFilterSpinnerDismissRequest = onDayOfWeekFilterSpinnerDismissRequest,
                 modifier = Modifier.padding(end = 16.dp),
             )
+        },
+        actions = {
+            IconButton(onClick = onRefreshClick) {
+                Icon(
+                    imageVector = Icons.Outlined.Refresh,
+                    contentDescription = stringResource(AppResource.String.common_refresh),
+                )
+            }
         },
         modifier = modifier,
         colors =
@@ -185,5 +198,6 @@ private fun BusScheduleTopAppBarPreview() {
         },
         onDayOfWeekFilterSpinnerClick = { daysExpanded = true },
         onDayOfWeekFilterSpinnerDismissRequest = { daysExpanded = false },
+        onRefreshClick = {},
     )
 }

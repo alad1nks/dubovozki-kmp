@@ -11,4 +11,6 @@ interface GetBusSchedule {
         stationFilter: StationFilter,
         dayOfWeekFilter: DayOfWeekFilter,
     ): Flow<Data<BusSchedule>>
+
+    fun refresh()
 }

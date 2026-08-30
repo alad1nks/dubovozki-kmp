@@ -14,4 +14,10 @@ internal class GetServicesScheduleImpl(
             ServicesScheduleType.LINEN_ROOM -> servicesScheduleRepository.getLinenRoomSchedule()
         }
     }
+
+    override fun refresh(servicesScheduleType: ServicesScheduleType) {
+        when (servicesScheduleType) {
+            ServicesScheduleType.LINEN_ROOM -> servicesScheduleRepository.refresh()
+        }
+    }
 }

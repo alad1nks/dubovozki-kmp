@@ -6,4 +6,6 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface BusScheduleApi {
     fun getBusSchedule(): StateFlow<Data<BusScheduleResponse>>
+
+    fun refresh()
 }

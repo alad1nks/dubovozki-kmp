@@ -2,11 +2,12 @@ package com.alad1nks.dubovozki.feature.settings.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.alad1nks.dubovozki.core.domain.GetDarkTheme
 import com.alad1nks.dubovozki.core.domain.GetLanguage
-import com.alad1nks.dubovozki.core.domain.SetDarkTheme
+import com.alad1nks.dubovozki.core.domain.GetThemeMode
 import com.alad1nks.dubovozki.core.domain.SetLanguage
+import com.alad1nks.dubovozki.core.domain.SetThemeMode
 import com.alad1nks.dubovozki.core.model.Language
+import com.alad1nks.dubovozki.core.model.ThemeMode
 import com.alad1nks.dubovozki.feature.settings.model.SettingsUiState
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -15,18 +16,18 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 internal class SettingsViewModel(
-    getDarkTheme: GetDarkTheme,
+    getThemeMode: GetThemeMode,
     getLanguage: GetLanguage,
-    private val setDarkTheme: SetDarkTheme,
+    private val setThemeMode: SetThemeMode,
     private val setLanguage: SetLanguage,
 ) : ViewModel() {
     val uiState: StateFlow<SettingsUiState> =
         combine(
-            getDarkTheme(),
+            getThemeMode(),
             getLanguage(),
-        ) { darkTheme, language ->
+        ) { themeMode, language ->
             SettingsUiState.Content(
-                darkTheme = darkTheme,
+                themeMode = themeMode,
                 language = language,
             )
         }
@@ -36,9 +37,9 @@ internal class SettingsViewModel(
                 initialValue = SettingsUiState.Loading,
             )
 
-    fun changeDarkTheme(value: Boolean) {
+    fun selectThemeMode(value: ThemeMode) {
         viewModelScope.launch {
-            setDarkTheme(value)
+            setThemeMode(value)
         }
     }
 

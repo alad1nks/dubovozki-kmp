@@ -7,7 +7,21 @@ interface Storage {
 
     fun getLanguageCode(): Flow<String?>
 
-    suspend fun setDarkTheme(value: Boolean)
+    fun getThemeModeCode(): Flow<String?>
+
+    fun getBusScheduleCache(): Flow<String?>
+
+    fun getServicesCache(): Flow<String?>
+
+    fun getServicesScheduleCache(): Flow<String?>
 
     suspend fun setLanguageCode(value: String)
+
+    suspend fun setThemeModeCode(value: String)
+
+    suspend fun setBusScheduleCache(value: String)
+
+    suspend fun setServicesCache(value: String)
+
+    suspend fun setServicesScheduleCache(value: String)
 }

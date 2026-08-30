@@ -1,6 +1,7 @@
 package com.alad1nks.dubovozki.feature.services.ui
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.LocalLaundryService
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -17,6 +18,7 @@ fun ServiceItem(
     headlineText: String,
     supportingText: String,
     leadingImageVector: ImageVector,
+    opensExternalLink: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -27,6 +29,17 @@ fun ServiceItem(
             headlineContent = { Text(text = headlineText) },
             supportingContent = { Text(text = supportingText) },
             leadingContent = { Icon(imageVector = leadingImageVector, contentDescription = null) },
+            trailingContent =
+                if (opensExternalLink) {
+                    {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
+                            contentDescription = null,
+                        )
+                    }
+                } else {
+                    null
+                },
         )
     }
 }

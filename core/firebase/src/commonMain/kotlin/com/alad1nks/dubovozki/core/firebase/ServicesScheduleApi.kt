@@ -6,4 +6,6 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface ServicesScheduleApi {
     fun getLinenRoomSchedule(): StateFlow<Data<ServicesScheduleResponse>>
+
+    fun refresh()
 }

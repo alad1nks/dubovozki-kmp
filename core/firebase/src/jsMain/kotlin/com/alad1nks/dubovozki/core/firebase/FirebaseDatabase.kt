@@ -7,5 +7,9 @@ internal external object FirebaseDatabase {
 
     fun ref(db: dynamic, path: String): dynamic
 
-    fun onValue(ref: dynamic, callback: (dynamic) -> Unit)
+    fun onValue(
+        ref: dynamic,
+        callback: (dynamic) -> Unit,
+        cancelCallback: (dynamic) -> Unit,
+    ): () -> Unit
 }

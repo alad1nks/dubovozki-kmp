@@ -6,22 +6,56 @@ import com.alad1nks.dubovozki.core.firebase.model.ServicesScheduleResponse.Servi
 import com.alad1nks.dubovozki.core.model.Data
 import com.alad1nks.dubovozki.core.model.ServicesSchedule
 import com.alad1nks.dubovozki.core.model.ServicesScheduleItem
+import com.alad1nks.dubovozki.core.storage.common.Storage
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 class ServicesScheduleRepository(
     private val servicesScheduleApi: ServicesScheduleApi,
+    private val storage: Storage,
 ) {
     fun getLinenRoomSchedule(): Flow<Data<ServicesSchedule>> {
-        return servicesScheduleApi.getLinenRoomSchedule()
-            .map { data ->
+        return flow {
+            var cached =
+                storage.getServicesScheduleCache().first()?.decodeCacheEntry<ServicesScheduleResponse>()
+            cached?.let {
+                emit(Data.Success(it.value.toDomainServicesSchedule(), it.updatedAtEpochMillis, isStale = true))
+            }
+
+            servicesScheduleApi.getLinenRoomSchedule().collect { data ->
                 when (data) {
-                    is Data.Initial -> Data.Initial()
-                    is Data.Error -> Data.Error(data.message)
-                    is Data.Success -> Data.Success(data.value.toDomainServicesSchedule())
+                    is Data.Initial -> if (cached == null) emit(Data.Initial())
+                    is Data.Error -> {
+                        val cachedValue = cached
+                        if (cachedValue == null) {
+                            emit(Data.Error(data.message))
+                        } else {
+                            emit(
+                                Data.Success(
+                                    cachedValue.value.toDomainServicesSchedule(),
+                                    cachedValue.updatedAtEpochMillis,
+                                    isStale = true,
+                                ),
+                            )
+                        }
+                    }
+                    is Data.Success -> {
+                        val entry = CacheEntry(data.value, Clock.System.now().toEpochMilliseconds())
+                        cached = entry
+                        runCatching { storage.setServicesScheduleCache(entry.encode()) }
+                        emit(Data.Success(data.value.toDomainServicesSchedule(), entry.updatedAtEpochMillis))
+                    }
                 }
             }
+        }
     }
+
+    fun refresh() = servicesScheduleApi.refresh()
 
     private fun ServicesScheduleResponse.toDomainServicesSchedule(): ServicesSchedule {
         return ServicesSchedule(

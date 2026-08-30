@@ -1,25 +1,27 @@
 package com.alad1nks.dubovozki.feature.settings.ui
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.alad1nks.dubovozki.core.model.Language
+import com.alad1nks.dubovozki.core.model.ThemeMode
+import com.alad1nks.dubovozki.feature.designsystem.component.LoadingState
 import com.alad1nks.dubovozki.feature.designsystem.component.Spinner
 import com.alad1nks.dubovozki.feature.designsystem.theme.AppTheme
 import com.alad1nks.dubovozki.feature.settings.model.SettingsUiState
@@ -36,7 +38,7 @@ internal fun SettingsRoute(
 
     SettingsScreen(
         uiState = uiState,
-        onDarkThemeCheckedChange = viewModel::changeDarkTheme,
+        onThemeModeSelect = viewModel::selectThemeMode,
         onLanguageSelect = viewModel::selectLanguage,
         modifier = modifier,
     )
@@ -45,26 +47,36 @@ internal fun SettingsRoute(
 @Composable
 private fun SettingsScreen(
     uiState: SettingsUiState,
-    onDarkThemeCheckedChange: (Boolean) -> Unit,
+    onThemeModeSelect: (ThemeMode) -> Unit,
     onLanguageSelect: (Language) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier,
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopCenter,
     ) {
-        SettingsTopAppBar()
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .widthIn(max = 720.dp),
+        ) {
+            SettingsTopAppBar()
 
-        when (uiState) {
-            is SettingsUiState.Loading -> {}
-
-            is SettingsUiState.Content -> {
-                SettingsContent(
-                    darkTheme = uiState.darkTheme,
-                    language = uiState.language,
-                    onDarkThemeCheckedChange = onDarkThemeCheckedChange,
-                    onLanguageSelect = onLanguageSelect,
-                    modifier = Modifier.fillMaxSize(),
-                )
+            when (uiState) {
+                is SettingsUiState.Loading ->
+                    LoadingState(
+                        message = stringResource(AppResource.String.common_loading),
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                is SettingsUiState.Content ->
+                    SettingsContent(
+                        themeMode = uiState.themeMode,
+                        language = uiState.language,
+                        onThemeModeSelect = onThemeModeSelect,
+                        onLanguageSelect = onLanguageSelect,
+                        modifier = Modifier.fillMaxSize(),
+                    )
             }
         }
     }
@@ -83,78 +95,56 @@ private fun SettingsTopAppBar(
 
 @Composable
 private fun SettingsContent(
-    darkTheme: Boolean,
+    themeMode: ThemeMode,
     language: Language,
-    onDarkThemeCheckedChange: (Boolean) -> Unit,
+    onThemeModeSelect: (ThemeMode) -> Unit,
     onLanguageSelect: (Language) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier,
-    ) {
-        SettingsSwitch(
-            title = stringResource(AppResource.String.settings_dark_theme),
-            checked = darkTheme,
-            onCheckedChange = onDarkThemeCheckedChange,
+    Column(modifier = modifier) {
+        SettingsSpinner(
+            title = stringResource(AppResource.String.settings_theme),
+            selectedText = stringResource(themeMode.stringResource),
+            items = ThemeMode.entries,
+            itemText = { stringResource(it.stringResource) },
+            onSelect = onThemeModeSelect,
         )
-
-        SettingsSpinnerLanguage(
-            selectedLanguage = language,
-            onLanguageSelect = onLanguageSelect,
+        SettingsSpinner(
+            title = stringResource(AppResource.String.settings_language),
+            selectedText = stringResource(language.stringResource),
+            items = Language.entries,
+            itemText = { stringResource(it.stringResource) },
+            onSelect = onLanguageSelect,
         )
     }
 }
 
 @Composable
-private fun SettingsSwitch(
+private fun <T> SettingsSpinner(
     title: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
-    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
-) {
-    ListItem(
-        modifier =
-            modifier
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = ripple(),
-                ) { onCheckedChange(!checked) },
-        headlineContent = { Text(text = title) },
-        trailingContent = {
-            Switch(
-                checked = checked,
-                onCheckedChange = null,
-                interactionSource = interactionSource,
-            )
-        },
-    )
-}
-
-@Composable
-private fun SettingsSpinnerLanguage(
-    selectedLanguage: Language,
-    onLanguageSelect: (Language) -> Unit,
+    selectedText: String,
+    items: List<T>,
+    itemText: @Composable (T) -> String,
+    onSelect: (T) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     ListItem(
         modifier = modifier,
-        headlineContent = { Text(text = stringResource(AppResource.String.settings_language)) },
+        headlineContent = { Text(text = title) },
         trailingContent = {
             Spinner(
                 expanded = expanded,
-                content = { Text(text = stringResource(selectedLanguage.stringResource)) },
+                content = { Text(text = selectedText) },
                 dropdownMenuContent = {
-                    Language.entries.forEach { language ->
+                    items.forEach { item ->
                         DropdownMenuItem(
-                            text = { Text(text = stringResource(language.stringResource)) },
-                            onClick =
-                                {
-                                    expanded = false
-                                    onLanguageSelect(language)
-                                },
+                            text = { Text(text = itemText(item)) },
+                            onClick = {
+                                expanded = false
+                                onSelect(item)
+                            },
                         )
                     }
                 },
@@ -166,32 +156,35 @@ private fun SettingsSpinnerLanguage(
     )
 }
 
-private val Language.stringResource: StringResource @Composable get() =
-    when (this) {
-        Language.SYSTEM -> AppResource.String.settings_language_system
-        Language.ENGLISH -> AppResource.String.settings_language_english
-        Language.RUSSIAN -> AppResource.String.settings_language_russian
-        Language.KAZAKH -> AppResource.String.settings_language_kazakh
-    }
+private val ThemeMode.stringResource: StringResource
+    @Composable get() =
+        when (this) {
+            ThemeMode.SYSTEM -> AppResource.String.settings_theme_system
+            ThemeMode.LIGHT -> AppResource.String.settings_theme_light
+            ThemeMode.DARK -> AppResource.String.settings_theme_dark
+        }
+
+private val Language.stringResource: StringResource
+    @Composable get() =
+        when (this) {
+            Language.SYSTEM -> AppResource.String.settings_language_system
+            Language.ENGLISH -> AppResource.String.settings_language_english
+            Language.RUSSIAN -> AppResource.String.settings_language_russian
+            Language.KAZAKH -> AppResource.String.settings_language_kazakh
+        }
 
 @Preview(showBackground = true)
 @Composable
 private fun SettingsScreenPreview() {
-    var darkTheme by remember { mutableStateOf(false) }
-    var language by remember { mutableStateOf(Language.SYSTEM) }
-    val uiState =
-        SettingsUiState.Content(
-            darkTheme = darkTheme,
-            language = language,
-        )
-
-    AppTheme(
-        darkTheme = darkTheme,
-    ) {
+    AppTheme {
         SettingsScreen(
-            uiState = uiState,
-            onDarkThemeCheckedChange = { darkTheme = it },
-            onLanguageSelect = { language = it },
+            uiState =
+                SettingsUiState.Content(
+                    themeMode = ThemeMode.SYSTEM,
+                    language = Language.SYSTEM,
+                ),
+            onThemeModeSelect = {},
+            onLanguageSelect = {},
         )
     }
 }

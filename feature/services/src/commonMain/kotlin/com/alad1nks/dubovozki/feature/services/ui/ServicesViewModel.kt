@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 internal class ServicesViewModel(
-    getServices: GetServices,
+    private val getServices: GetServices,
 ) : ViewModel() {
     val uiState: StateFlow<ServicesUiState> =
         getServices()
@@ -21,10 +21,11 @@ internal class ServicesViewModel(
                         ServicesUiState.Content(
                             contactLink = services.value.contactLink,
                             donutLink = services.value.donutLink,
+                            updatedAtEpochMillis = services.updatedAtEpochMillis,
+                            isStale = services.isStale,
                         )
-                    is Data.Initial,
-                    is Data.Error,
-                    -> ServicesUiState.Loading
+                    is Data.Initial -> ServicesUiState.Loading
+                    is Data.Error -> ServicesUiState.Error(services.message)
                 }
             }
             .stateIn(
@@ -32,4 +33,8 @@ internal class ServicesViewModel(
                 started = SharingStarted.WhileSubscribed(5_000),
                 initialValue = ServicesUiState.Loading,
             )
+
+    fun refresh() {
+        getServices.refresh()
+    }
 }
