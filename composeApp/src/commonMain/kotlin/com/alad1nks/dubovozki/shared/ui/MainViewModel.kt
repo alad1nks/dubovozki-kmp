@@ -1,13 +1,13 @@
 package com.alad1nks.dubovozki.shared.ui
 
 import androidx.lifecycle.ViewModel
-import com.alad1nks.dubovozki.core.domain.GetDarkTheme
 import com.alad1nks.dubovozki.core.domain.GetLanguage
+import com.alad1nks.dubovozki.core.domain.GetThemeMode
 
 internal class MainViewModel(
-    getDarkTheme: GetDarkTheme,
+    getThemeMode: GetThemeMode,
     getLanguage: GetLanguage,
 ) : ViewModel() {
-    val darkTheme = getDarkTheme()
+    val themeMode = getThemeMode()
     val language = getLanguage()
 }

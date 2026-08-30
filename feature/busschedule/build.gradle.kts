@@ -61,6 +61,9 @@ kotlin {
             implementation(projects.core.navigation)
             implementation(projects.resources)
         }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
     }
 }
 

@@ -5,6 +5,8 @@ sealed interface Data<T> {
 
     data class Success<T>(
         val value: T,
+        val updatedAtEpochMillis: Long? = null,
+        val isStale: Boolean = false,
     ) : Data<T>
 
     data class Error<T>(

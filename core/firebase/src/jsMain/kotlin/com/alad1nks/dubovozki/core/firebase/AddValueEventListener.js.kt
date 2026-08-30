@@ -10,19 +10,24 @@ private val json =
         ignoreUnknownKeys = true
     }
 
-internal actual inline fun <reified T> MutableStateFlow<Data<T>>.addValueEventListener(pathString: String) {
+internal actual inline fun <reified T> MutableStateFlow<Data<T>>.addValueEventListener(
+    pathString: String,
+): FirebaseListenerRegistration {
     val ref = FirebaseDatabase.ref(database, pathString)
 
-    FirebaseDatabase.onValue(ref) { snapshot ->
-        val snapshotValue = snapshot.`val`()
-        val snapshotValueString = JSON.stringify(snapshotValue)
-        val data = json.decodeFromString<T>(snapshotValueString)
-
-        if (data == null) {
-            value = Data.Error("Parse error")
-            return@onValue
-        }
-
-        value = Data.Success(data)
-    }
+    val unsubscribe =
+        FirebaseDatabase.onValue(
+            ref = ref,
+            callback = { snapshot ->
+                try {
+                    val snapshotValue = snapshot.`val`()
+                    val snapshotValueString = JSON.stringify(snapshotValue)
+                    value = Data.Success(json.decodeFromString<T>(snapshotValueString))
+                } catch (e: Exception) {
+                    value = Data.Error(e.message ?: "Parse error")
+                }
+            },
+            cancelCallback = { error -> value = Data.Error(error.message as? String) },
+        )
+    return FirebaseListenerRegistration(unsubscribe)
 }

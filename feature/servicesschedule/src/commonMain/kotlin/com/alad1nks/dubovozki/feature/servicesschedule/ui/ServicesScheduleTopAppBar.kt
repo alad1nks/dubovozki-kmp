@@ -2,6 +2,7 @@ package com.alad1nks.dubovozki.feature.servicesschedule.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -19,6 +20,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun ServicesScheduleTopAppBar(
     servicesScheduleType: ServicesScheduleType,
     onBackClick: () -> Unit,
+    onRefreshClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val text =
@@ -35,7 +37,15 @@ internal fun ServicesScheduleTopAppBar(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                    contentDescription = null,
+                    contentDescription = stringResource(AppResource.String.common_back),
+                )
+            }
+        },
+        actions = {
+            IconButton(onClick = onRefreshClick) {
+                Icon(
+                    imageVector = Icons.Outlined.Refresh,
+                    contentDescription = stringResource(AppResource.String.common_refresh),
                 )
             }
         },
@@ -48,5 +58,6 @@ private fun ServicesScheduleTopAppBarLinenRoomPreview() {
     ServicesScheduleTopAppBar(
         servicesScheduleType = ServicesScheduleType.LINEN_ROOM,
         onBackClick = {},
+        onRefreshClick = {},
     )
 }

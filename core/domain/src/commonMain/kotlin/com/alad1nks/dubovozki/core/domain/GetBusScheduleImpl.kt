@@ -22,69 +22,74 @@ internal class GetBusScheduleImpl(
             when (data) {
                 is Data.Initial -> Data.Initial()
                 is Data.Error -> Data.Error(data.message)
-                is Data.Success -> Data.Success(data.value.filter(stationFilter, dayOfWeekFilter))
+                is Data.Success ->
+                    Data.Success(
+                        value =
+                            data.value.filterBusSchedule(
+                                stationFilter = stationFilter,
+                                dayOfWeekFilter = dayOfWeekFilter,
+                                currentDayOfWeek = getMoscowDayOfWeek(),
+                            ),
+                        updatedAtEpochMillis = data.updatedAtEpochMillis,
+                        isStale = data.isStale,
+                    )
             }
         }
     }
 
-    private fun List<Bus>.filter(
-        stationFilter: StationFilter,
-        dayOfWeekFilter: DayOfWeekFilter,
-    ): BusSchedule {
-        val allowedStations =
-            when (stationFilter) {
-                StationFilter.ALL -> Bus.Station.entries
-                StationFilter.ODINTSOVO -> listOf(Bus.Station.ODINTSOVO)
-                StationFilter.SLAVYANSKY_BULVAR -> listOf(Bus.Station.SLAVYANSKY_BULVAR)
-                StationFilter.MOLODYOZHNAYA -> listOf(Bus.Station.MOLODYOZHNAYA)
-            }
-
-        val allowedDay =
-            when (dayOfWeekFilter) {
-                DayOfWeekFilter.TODAY -> getMoscowDayOfWeek().toBusDayOfWeek()
-                DayOfWeekFilter.TOMORROW -> getMoscowDayOfWeek().tomorrow().toBusDayOfWeek()
-                DayOfWeekFilter.WEEKDAYS -> Bus.DayOfWeek.WEEKDAYS
-                DayOfWeekFilter.SATURDAY -> Bus.DayOfWeek.SATURDAY
-                DayOfWeekFilter.SUNDAY -> Bus.DayOfWeek.SUNDAY
-            }
-
-        val filteredBusList =
-            filter { bus ->
-                if (bus.station !in allowedStations) return@filter false
-
-                if (bus.dayOfWeek != allowedDay) return@filter false
-
-                true
-            }
-
-        return BusSchedule(
-            toMoscow = filteredBusList.filter { it.direction == Bus.Direction.MOSCOW },
-            toDubki = filteredBusList.filter { it.direction == Bus.Direction.DUBKI },
-        )
-    }
-
-    private fun DayOfWeek.toBusDayOfWeek(): Bus.DayOfWeek {
-        return when (this) {
-            DayOfWeek.MONDAY -> Bus.DayOfWeek.MONDAY
-            DayOfWeek.TUESDAY,
-            DayOfWeek.WEDNESDAY,
-            DayOfWeek.THURSDAY,
-            DayOfWeek.FRIDAY,
-            -> Bus.DayOfWeek.WEEKDAYS
-            DayOfWeek.SATURDAY -> Bus.DayOfWeek.SATURDAY
-            DayOfWeek.SUNDAY -> Bus.DayOfWeek.SUNDAY
-        }
-    }
-
-    private fun DayOfWeek.tomorrow(): DayOfWeek {
-        return when (this) {
-            DayOfWeek.MONDAY -> DayOfWeek.TUESDAY
-            DayOfWeek.TUESDAY -> DayOfWeek.WEDNESDAY
-            DayOfWeek.WEDNESDAY -> DayOfWeek.THURSDAY
-            DayOfWeek.THURSDAY -> DayOfWeek.FRIDAY
-            DayOfWeek.FRIDAY -> DayOfWeek.SATURDAY
-            DayOfWeek.SATURDAY -> DayOfWeek.SUNDAY
-            DayOfWeek.SUNDAY -> DayOfWeek.MONDAY
-        }
-    }
+    override fun refresh() = busScheduleRepository.refresh()
 }
+
+internal fun List<Bus>.filterBusSchedule(
+    stationFilter: StationFilter,
+    dayOfWeekFilter: DayOfWeekFilter,
+    currentDayOfWeek: DayOfWeek,
+): BusSchedule {
+    val allowedStations =
+        when (stationFilter) {
+            StationFilter.ALL -> Bus.Station.entries
+            StationFilter.ODINTSOVO -> listOf(Bus.Station.ODINTSOVO)
+            StationFilter.SLAVYANSKY_BULVAR -> listOf(Bus.Station.SLAVYANSKY_BULVAR)
+            StationFilter.MOLODYOZHNAYA -> listOf(Bus.Station.MOLODYOZHNAYA)
+        }
+    val allowedDay =
+        when (dayOfWeekFilter) {
+            DayOfWeekFilter.TODAY -> currentDayOfWeek.toBusDayOfWeek()
+            DayOfWeekFilter.TOMORROW -> currentDayOfWeek.tomorrow().toBusDayOfWeek()
+            DayOfWeekFilter.WEEKDAYS -> Bus.DayOfWeek.WEEKDAYS
+            DayOfWeekFilter.SATURDAY -> Bus.DayOfWeek.SATURDAY
+            DayOfWeekFilter.SUNDAY -> Bus.DayOfWeek.SUNDAY
+        }
+    val filteredBusList =
+        filter { bus ->
+            bus.station in allowedStations && bus.dayOfWeek == allowedDay
+        }
+
+    return BusSchedule(
+        toMoscow = filteredBusList.filter { it.direction == Bus.Direction.MOSCOW },
+        toDubki = filteredBusList.filter { it.direction == Bus.Direction.DUBKI },
+    )
+}
+
+private fun DayOfWeek.toBusDayOfWeek(): Bus.DayOfWeek =
+    when (this) {
+        DayOfWeek.MONDAY -> Bus.DayOfWeek.MONDAY
+        DayOfWeek.TUESDAY,
+        DayOfWeek.WEDNESDAY,
+        DayOfWeek.THURSDAY,
+        DayOfWeek.FRIDAY,
+        -> Bus.DayOfWeek.WEEKDAYS
+        DayOfWeek.SATURDAY -> Bus.DayOfWeek.SATURDAY
+        DayOfWeek.SUNDAY -> Bus.DayOfWeek.SUNDAY
+    }
+
+private fun DayOfWeek.tomorrow(): DayOfWeek =
+    when (this) {
+        DayOfWeek.MONDAY -> DayOfWeek.TUESDAY
+        DayOfWeek.TUESDAY -> DayOfWeek.WEDNESDAY
+        DayOfWeek.WEDNESDAY -> DayOfWeek.THURSDAY
+        DayOfWeek.THURSDAY -> DayOfWeek.FRIDAY
+        DayOfWeek.FRIDAY -> DayOfWeek.SATURDAY
+        DayOfWeek.SATURDAY -> DayOfWeek.SUNDAY
+        DayOfWeek.SUNDAY -> DayOfWeek.MONDAY
+    }

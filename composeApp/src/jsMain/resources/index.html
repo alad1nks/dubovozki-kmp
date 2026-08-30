@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,6 +19,15 @@
         });
 
         Object.defineProperty(Navigator.prototype, "languages", newLanguagesImplementation)
+        Object.defineProperty(window, "__customLocale", {
+            configurable: true,
+            get: function () { return window.__localeValue; },
+            set: function (value) {
+                window.__localeValue = value;
+                document.documentElement.lang = value || navigator.language || "ru";
+                document.title = value === "en" ? "Dubovozki" : value === "kk" ? "Дубовозкалар" : "Дубовозки";
+            }
+        });
     </script>
     <script src="skiko.js"></script>
 

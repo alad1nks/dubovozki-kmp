@@ -7,4 +7,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface GetServicesSchedule {
     operator fun invoke(servicesScheduleType: ServicesScheduleType): Flow<Data<ServicesSchedule>>
+
+    fun refresh(servicesScheduleType: ServicesScheduleType)
 }

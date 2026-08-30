@@ -6,4 +6,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface GetServices {
     operator fun invoke(): Flow<Data<Services>>
+
+    fun refresh()
 }

@@ -14,16 +14,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.alad1nks.dubovozki.core.model.Bus
 import com.alad1nks.dubovozki.feature.designsystem.theme.AppTheme
 import com.alad1nks.dubovozki.feature.designsystem.theme.LocalExtendedColorScheme
 import com.alad1nks.dubovozki.resources.AppResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
+import kotlin.math.abs
 
 @Composable
 internal fun BusListItem(
@@ -31,7 +33,7 @@ internal fun BusListItem(
     timeDifference: Int?,
     station: Bus.Station,
     modifier: Modifier = Modifier,
-    departedColor: Color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+    departedColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
 ) {
     val colorScheme = LocalExtendedColorScheme.current
     val stationColor =
@@ -46,7 +48,7 @@ internal fun BusListItem(
     val dividerColor = if (isDeparted) departedColor else MaterialTheme.colorScheme.outlineVariant
 
     Surface(
-        modifier = modifier,
+        modifier = modifier.semantics(mergeDescendants = true) {},
     ) {
         Column {
             Row(
@@ -93,26 +95,9 @@ private fun TimeDifference(
 ) {
     if (timeDifference == null) return
 
-    val hours = timeDifference / 1.hours
-    val minutes = timeDifference / 1.minutes % 60
-
-    val text =
-        when {
-            timeDifference >= 1.hours ->
-                stringResource(
-                    AppResource.String.bus_schedule_upcoming_time_with_hour,
-                    hours,
-                    minutes,
-                )
-            timeDifference >= 0 -> stringResource(AppResource.String.bus_schedule_upcoming_time, minutes)
-            timeDifference <= (-1).hours ->
-                stringResource(
-                    AppResource.String.bus_schedule_departed_time_with_hour,
-                    -hours,
-                    -minutes,
-                )
-            else -> stringResource(AppResource.String.bus_schedule_departed_time, -minutes)
-        }
+    val hours = abs(timeDifference) / 1.hours
+    val minutes = abs(timeDifference) / 1.minutes % 60
+    val text = timeDifferenceText(timeDifference)
 
     val soon = (hours == 0 && minutes in 0..10 && timeDifference >= 0)
 
@@ -120,7 +105,7 @@ private fun TimeDifference(
         if (soon) {
             modifier
                 .padding(vertical = 4.dp)
-                .background(color = Color.Red, shape = MaterialTheme.shapes.small)
+                .background(color = MaterialTheme.colorScheme.error, shape = MaterialTheme.shapes.small)
                 .padding(vertical = 4.dp, horizontal = 12.dp)
         } else {
             modifier.padding(vertical = 8.dp, horizontal = 12.dp)
@@ -129,7 +114,7 @@ private fun TimeDifference(
     val color =
         when {
             timeDifference < 0 -> departedColor
-            soon -> Color.White
+            soon -> MaterialTheme.colorScheme.onError
             else -> LocalExtendedColorScheme.current.busScheduleStationOdintsovo
         }
 
@@ -137,8 +122,45 @@ private fun TimeDifference(
         text = text,
         modifier = finalModifier,
         color = color,
-        fontSize = 12.sp,
+        style = MaterialTheme.typography.bodySmall,
     )
+}
+
+@Composable
+internal fun timeDifferenceText(timeDifference: Int): String {
+    if (timeDifference == 0) return stringResource(AppResource.String.bus_schedule_now)
+
+    val absoluteDifference = abs(timeDifference)
+    val hours = absoluteDifference / 1.hours
+    val minutes = absoluteDifference / 1.minutes % 60
+    val parts =
+        buildList {
+            if (hours > 0) {
+                add(
+                    pluralStringResource(
+                        AppResource.Plural.bus_schedule_duration_hours,
+                        hours,
+                        hours,
+                    ),
+                )
+            }
+            if (minutes > 0 || hours == 0) {
+                add(
+                    pluralStringResource(
+                        AppResource.Plural.bus_schedule_duration_minutes,
+                        minutes,
+                        minutes,
+                    ),
+                )
+            }
+        }
+    val duration = parts.joinToString(separator = " ")
+
+    return if (timeDifference > 0) {
+        stringResource(AppResource.String.bus_schedule_time_until, duration)
+    } else {
+        stringResource(AppResource.String.bus_schedule_time_ago, duration)
+    }
 }
 
 private val Bus.Station.text: String @Composable get() =

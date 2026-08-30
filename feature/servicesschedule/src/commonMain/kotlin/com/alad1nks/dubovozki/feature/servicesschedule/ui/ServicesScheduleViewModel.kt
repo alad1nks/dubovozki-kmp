@@ -18,7 +18,7 @@ import kotlinx.datetime.isoDayNumber
 
 internal class ServicesScheduleViewModel(
     val servicesScheduleType: ServicesScheduleType,
-    getServicesSchedule: GetServicesSchedule,
+    private val getServicesSchedule: GetServicesSchedule,
     private val getMoscowDayOfWeek: GetMoscowDayOfWeek,
 ) : ViewModel() {
     val uiState: StateFlow<ServicesScheduleUiState> =
@@ -37,11 +37,12 @@ internal class ServicesScheduleViewModel(
                             firstBuildingSchedule = firstBuildingSchedule.mapToUi(todayDayOfWeekNumber),
                             secondBuildingSchedule = secondBuildingSchedule.mapToUi(todayDayOfWeekNumber),
                             thirdBuildingSchedule = thirdBuildingSchedule.mapToUi(todayDayOfWeekNumber),
+                            updatedAtEpochMillis = servicesSchedule.updatedAtEpochMillis,
+                            isStale = servicesSchedule.isStale,
                         )
                     }
-                    is Data.Initial,
-                    is Data.Error,
-                    -> ServicesScheduleUiState.Loading
+                    is Data.Initial -> ServicesScheduleUiState.Loading
+                    is Data.Error -> ServicesScheduleUiState.Error(servicesSchedule.message)
                 }
             }
             .stateIn(
@@ -49,6 +50,10 @@ internal class ServicesScheduleViewModel(
                 started = SharingStarted.WhileSubscribed(5_000),
                 initialValue = ServicesScheduleUiState.Loading,
             )
+
+    fun refresh() {
+        getServicesSchedule.refresh(servicesScheduleType)
+    }
 
     private fun List<ServicesScheduleItem>.mapToUi(
         todayDayOfWeekNumber: Int,

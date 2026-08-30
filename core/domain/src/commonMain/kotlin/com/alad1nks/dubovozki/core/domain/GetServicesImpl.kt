@@ -11,4 +11,6 @@ internal class GetServicesImpl(
     override fun invoke(): Flow<Data<Services>> {
         return servicesRepository.getServices()
     }
+
+    override fun refresh() = servicesRepository.refresh()
 }

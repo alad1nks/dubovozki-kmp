@@ -48,9 +48,6 @@ internal class BusScheduleViewModel(
             }
         }
 
-    var firstMoscowBusIndex: Int? = null
-    var firstDubkiBusIndex: Int? = null
-
     val topAppBarUiState: StateFlow<BusScheduleTopAppBarUiState> =
         combine(
             stationFilterSpinnerExpanded,
@@ -102,18 +99,17 @@ internal class BusScheduleViewModel(
                         val moscowBusList = busSchedule.value.toMoscow.map { it.toBusUi(currentTime) }
                         val dubkiBusList = busSchedule.value.toDubki.map { it.toBusUi(currentTime) }
 
-                        firstMoscowBusIndex = moscowBusList.findFirstBusIndex()
-                        firstDubkiBusIndex = dubkiBusList.findFirstBusIndex()
-
                         BusScheduleUiState.Content(
                             moscowBusList = moscowBusList,
                             dubkiBusList = dubkiBusList,
-                            showError = false,
+                            firstMoscowBusIndex = moscowBusList.findFirstBusIndex(),
+                            firstDubkiBusIndex = dubkiBusList.findFirstBusIndex(),
+                            updatedAtEpochMillis = busSchedule.updatedAtEpochMillis,
+                            isStale = busSchedule.isStale,
                         )
                     }
-                    is Data.Initial,
-                    is Data.Error,
-                    -> BusScheduleUiState.Loading
+                    is Data.Initial -> BusScheduleUiState.Loading
+                    is Data.Error -> BusScheduleUiState.Error(busSchedule.message)
                 }
             }
             .stateIn(
@@ -148,6 +144,17 @@ internal class BusScheduleViewModel(
         dayOfWeekFilterSpinnerExpanded.value = false
     }
 
+    fun refresh() {
+        getBusSchedule.refresh()
+    }
+
+    fun resetFilters() {
+        selectedStationFilter.value = StationFilter.ALL
+        selectedDayOfWeekFilter.value = DayOfWeekFilter.TODAY
+        hideStationFilterSpinner()
+        hideDayOfWeekFilterSpinner()
+    }
+
     private fun Bus.toBusUi(currentTime: Int?): BusUi {
         return BusUi(
             id = id,
@@ -157,15 +164,14 @@ internal class BusScheduleViewModel(
         )
     }
 
-    private fun List<BusUi>.findFirstBusIndex(): Int {
-        return this.indexOfFirst {
-            val timeDifference = it.timeDifference ?: return 0
-
-            timeDifference >= 0
-        }.coerceAtLeast(0)
-    }
-
     companion object {
         private const val MINUTE = 60_000L
     }
+}
+
+internal fun List<BusUi>.findFirstBusIndex(): Int? {
+    return indexOfFirst {
+        val timeDifference = it.timeDifference ?: return 0
+        timeDifference >= 0
+    }.takeIf { it >= 0 }
 }

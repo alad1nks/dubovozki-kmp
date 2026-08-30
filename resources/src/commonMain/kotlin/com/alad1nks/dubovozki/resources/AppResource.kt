@@ -8,7 +8,16 @@ import dubovozki.resources.generated.resources.bus_schedule_day_of_week_filter_t
 import dubovozki.resources.generated.resources.bus_schedule_day_of_week_filter_weekdays
 import dubovozki.resources.generated.resources.bus_schedule_departed_time
 import dubovozki.resources.generated.resources.bus_schedule_departed_time_with_hour
+import dubovozki.resources.generated.resources.bus_schedule_duration_hours
+import dubovozki.resources.generated.resources.bus_schedule_duration_minutes
+import dubovozki.resources.generated.resources.bus_schedule_empty_supporting
+import dubovozki.resources.generated.resources.bus_schedule_empty_title
+import dubovozki.resources.generated.resources.bus_schedule_go_to_next
 import dubovozki.resources.generated.resources.bus_schedule_navigation_bar_label
+import dubovozki.resources.generated.resources.bus_schedule_next_departure
+import dubovozki.resources.generated.resources.bus_schedule_no_more_today
+import dubovozki.resources.generated.resources.bus_schedule_now
+import dubovozki.resources.generated.resources.bus_schedule_reset_filters
 import dubovozki.resources.generated.resources.bus_schedule_station_filter_all
 import dubovozki.resources.generated.resources.bus_schedule_station_filter_molodyozhnaya
 import dubovozki.resources.generated.resources.bus_schedule_station_filter_odintsovo
@@ -18,14 +27,27 @@ import dubovozki.resources.generated.resources.bus_schedule_station_odintsovo
 import dubovozki.resources.generated.resources.bus_schedule_station_slavyansky_bulvar
 import dubovozki.resources.generated.resources.bus_schedule_tab_dubki
 import dubovozki.resources.generated.resources.bus_schedule_tab_moscow
+import dubovozki.resources.generated.resources.bus_schedule_time_ago
+import dubovozki.resources.generated.resources.bus_schedule_time_until
 import dubovozki.resources.generated.resources.bus_schedule_upcoming_time
 import dubovozki.resources.generated.resources.bus_schedule_upcoming_time_with_hour
+import dubovozki.resources.generated.resources.common_back
+import dubovozki.resources.generated.resources.common_error_supporting
+import dubovozki.resources.generated.resources.common_error_title
+import dubovozki.resources.generated.resources.common_loading
+import dubovozki.resources.generated.resources.common_offline_cached
+import dubovozki.resources.generated.resources.common_offline_updated_at
+import dubovozki.resources.generated.resources.common_refresh
+import dubovozki.resources.generated.resources.common_retry
+import dubovozki.resources.generated.resources.common_updated_at
 import dubovozki.resources.generated.resources.services_contact_headline
 import dubovozki.resources.generated.resources.services_contact_supporting
 import dubovozki.resources.generated.resources.services_donut_headline
 import dubovozki.resources.generated.resources.services_donut_supporting
 import dubovozki.resources.generated.resources.services_linen_room_headline
 import dubovozki.resources.generated.resources.services_linen_room_supporting
+import dubovozki.resources.generated.resources.services_link_error
+import dubovozki.resources.generated.resources.services_links_unavailable
 import dubovozki.resources.generated.resources.services_navigation_bar_label
 import dubovozki.resources.generated.resources.services_schedule_building_1
 import dubovozki.resources.generated.resources.services_schedule_building_2
@@ -37,18 +59,40 @@ import dubovozki.resources.generated.resources.services_schedule_day_of_week_sun
 import dubovozki.resources.generated.resources.services_schedule_day_of_week_thursday
 import dubovozki.resources.generated.resources.services_schedule_day_of_week_tuesday
 import dubovozki.resources.generated.resources.services_schedule_day_of_week_wednesday
+import dubovozki.resources.generated.resources.services_schedule_empty
 import dubovozki.resources.generated.resources.services_top_app_bar
-import dubovozki.resources.generated.resources.settings_dark_theme
 import dubovozki.resources.generated.resources.settings_language
 import dubovozki.resources.generated.resources.settings_language_english
 import dubovozki.resources.generated.resources.settings_language_kazakh
 import dubovozki.resources.generated.resources.settings_language_russian
 import dubovozki.resources.generated.resources.settings_language_system
 import dubovozki.resources.generated.resources.settings_navigation_bar_label
+import dubovozki.resources.generated.resources.settings_theme
+import dubovozki.resources.generated.resources.settings_theme_dark
+import dubovozki.resources.generated.resources.settings_theme_light
+import dubovozki.resources.generated.resources.settings_theme_system
 import dubovozki.resources.generated.resources.settings_top_app_bar
 
 object AppResource {
     object String {
+        val common_back = Res.string.common_back
+        val common_error_supporting = Res.string.common_error_supporting
+        val common_error_title = Res.string.common_error_title
+        val common_loading = Res.string.common_loading
+        val common_offline_updated_at = Res.string.common_offline_updated_at
+        val common_offline_cached = Res.string.common_offline_cached
+        val common_retry = Res.string.common_retry
+        val common_refresh = Res.string.common_refresh
+        val common_updated_at = Res.string.common_updated_at
+        val bus_schedule_empty_supporting = Res.string.bus_schedule_empty_supporting
+        val bus_schedule_empty_title = Res.string.bus_schedule_empty_title
+        val bus_schedule_go_to_next = Res.string.bus_schedule_go_to_next
+        val bus_schedule_next_departure = Res.string.bus_schedule_next_departure
+        val bus_schedule_no_more_today = Res.string.bus_schedule_no_more_today
+        val bus_schedule_now = Res.string.bus_schedule_now
+        val bus_schedule_reset_filters = Res.string.bus_schedule_reset_filters
+        val bus_schedule_time_ago = Res.string.bus_schedule_time_ago
+        val bus_schedule_time_until = Res.string.bus_schedule_time_until
         val bus_schedule_day_of_week_filter_saturday = Res.string.bus_schedule_day_of_week_filter_saturday
         val bus_schedule_day_of_week_filter_sunday = Res.string.bus_schedule_day_of_week_filter_sunday
         val bus_schedule_day_of_week_filter_today = Res.string.bus_schedule_day_of_week_filter_today
@@ -86,7 +130,9 @@ object AppResource {
         val services_schedule_day_of_week_saturday = Res.string.services_schedule_day_of_week_saturday
         val services_schedule_day_of_week_sunday = Res.string.services_schedule_day_of_week_sunday
         val services_top_app_bar = Res.string.services_top_app_bar
-        val settings_dark_theme = Res.string.settings_dark_theme
+        val services_link_error = Res.string.services_link_error
+        val services_links_unavailable = Res.string.services_links_unavailable
+        val services_schedule_empty = Res.string.services_schedule_empty
         val settings_language = Res.string.settings_language
         val settings_language_english = Res.string.settings_language_english
         val settings_language_kazakh = Res.string.settings_language_kazakh
@@ -94,5 +140,14 @@ object AppResource {
         val settings_language_system = Res.string.settings_language_system
         val settings_navigation_bar_label = Res.string.settings_navigation_bar_label
         val settings_top_app_bar = Res.string.settings_top_app_bar
+        val settings_theme = Res.string.settings_theme
+        val settings_theme_dark = Res.string.settings_theme_dark
+        val settings_theme_light = Res.string.settings_theme_light
+        val settings_theme_system = Res.string.settings_theme_system
+    }
+
+    object Plural {
+        val bus_schedule_duration_hours = Res.plurals.bus_schedule_duration_hours
+        val bus_schedule_duration_minutes = Res.plurals.bus_schedule_duration_minutes
     }
 }

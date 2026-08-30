@@ -3,26 +3,35 @@ package com.alad1nks.dubovozki.feature.servicesschedule.ui
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.alad1nks.dubovozki.core.model.ServicesScheduleType
-import com.alad1nks.dubovozki.feature.designsystem.theme.AppTheme
+import com.alad1nks.dubovozki.feature.designsystem.component.LoadingState
+import com.alad1nks.dubovozki.feature.designsystem.component.MessageState
+import com.alad1nks.dubovozki.feature.designsystem.component.OfflineBanner
 import com.alad1nks.dubovozki.feature.servicesschedule.model.ServicesScheduleItemUi
 import com.alad1nks.dubovozki.feature.servicesschedule.model.ServicesScheduleUiState
+import com.alad1nks.dubovozki.resources.AppResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import org.jetbrains.compose.resources.stringResource
+import kotlin.time.Instant
 
 @Composable
 internal fun ServicesScheduleRoute(
@@ -31,12 +40,12 @@ internal fun ServicesScheduleRoute(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val servicesScheduleType = viewModel.servicesScheduleType
 
     ServiceScheduleScreen(
         uiState = uiState,
-        servicesScheduleType = servicesScheduleType,
+        servicesScheduleType = viewModel.servicesScheduleType,
         onBackClick = onBackClick,
+        onRefresh = viewModel::refresh,
         modifier = modifier,
     )
 }
@@ -46,45 +55,83 @@ private fun ServiceScheduleScreen(
     uiState: ServicesScheduleUiState,
     servicesScheduleType: ServicesScheduleType,
     onBackClick: () -> Unit,
+    onRefresh: () -> Unit,
     modifier: Modifier = Modifier,
     pagerState: PagerState = rememberPagerState { 3 },
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ) {
-    val selectedTabIndex = pagerState.currentPage
-
-    Column(
-        modifier = modifier,
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopCenter,
     ) {
-        ServicesScheduleTopAppBar(
-            servicesScheduleType = servicesScheduleType,
-            onBackClick = onBackClick,
-        )
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .widthIn(max = 720.dp),
+        ) {
+            ServicesScheduleTopAppBar(
+                servicesScheduleType = servicesScheduleType,
+                onBackClick = onBackClick,
+                onRefreshClick = onRefresh,
+            )
+            ServicesScheduleTabRow(
+                selectedTabIndex = pagerState.currentPage,
+                onSelect = { page -> coroutineScope.launch { pagerState.animateScrollToPage(page) } },
+            )
 
-        ServicesScheduleTabRow(
-            selectedTabIndex = selectedTabIndex,
-            onSelect = { page ->
-                coroutineScope.launch {
-                    pagerState.animateScrollToPage(page)
-                }
-            },
-        )
-
-        HorizontalPager(
-            state = pagerState,
-        ) { page ->
             when (uiState) {
-                is ServicesScheduleUiState.Loading -> {
-                    ServiceScheduleLoading(modifier = Modifier.fillMaxSize())
-                }
-
-                is ServicesScheduleUiState.Content -> {
-                    ServiceScheduleContent(
-                        firstBuildingSchedule = uiState.firstBuildingSchedule,
-                        secondBuildingSchedule = uiState.secondBuildingSchedule,
-                        thirdBuildingSchedule = uiState.thirdBuildingSchedule,
-                        page = page,
+                is ServicesScheduleUiState.Loading ->
+                    LoadingState(
+                        message = stringResource(AppResource.String.common_loading),
                         modifier = Modifier.fillMaxSize(),
                     )
+                is ServicesScheduleUiState.Error ->
+                    MessageState(
+                        title = stringResource(AppResource.String.common_error_title),
+                        supportingText = stringResource(AppResource.String.common_error_supporting),
+                        actionLabel = stringResource(AppResource.String.common_retry),
+                        onAction = onRefresh,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                is ServicesScheduleUiState.Content -> {
+                    if (uiState.isStale) {
+                        OfflineBanner(
+                            message =
+                                stringResource(
+                                    AppResource.String.common_offline_updated_at,
+                                    formatUpdatedAt(uiState.updatedAtEpochMillis),
+                                ),
+                            actionLabel = stringResource(AppResource.String.common_retry),
+                            onAction = onRefresh,
+                        )
+                    } else if (uiState.updatedAtEpochMillis != null) {
+                        Text(
+                            text =
+                                stringResource(
+                                    AppResource.String.common_updated_at,
+                                    formatUpdatedAt(uiState.updatedAtEpochMillis),
+                                ),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.weight(1f),
+                    ) { page ->
+                        val schedule =
+                            when (page) {
+                                0 -> uiState.firstBuildingSchedule
+                                1 -> uiState.secondBuildingSchedule
+                                else -> uiState.thirdBuildingSchedule
+                            }
+                        ServiceScheduleContent(
+                            schedule = schedule,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
                 }
             }
         }
@@ -92,35 +139,23 @@ private fun ServiceScheduleScreen(
 }
 
 @Composable
-private fun ServiceScheduleLoading(
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier = modifier,
-        contentAlignment = Alignment.Center,
-    ) {
-        CircularProgressIndicator()
-    }
-}
-
-@Composable
 private fun ServiceScheduleContent(
-    firstBuildingSchedule: List<ServicesScheduleItemUi>,
-    secondBuildingSchedule: List<ServicesScheduleItemUi>,
-    thirdBuildingSchedule: List<ServicesScheduleItemUi>,
-    page: Int,
+    schedule: List<ServicesScheduleItemUi>,
     modifier: Modifier = Modifier,
 ) {
-    val schedule =
-        when (page) {
-            0 -> firstBuildingSchedule
-            1 -> secondBuildingSchedule
-            else -> thirdBuildingSchedule
+    if (schedule.isEmpty()) {
+        Box(modifier = modifier, contentAlignment = Alignment.Center) {
+            Text(
+                text = stringResource(AppResource.String.services_schedule_empty),
+                modifier = Modifier.padding(24.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyLarge,
+            )
         }
+        return
+    }
 
-    LazyColumn(
-        modifier = modifier,
-    ) {
+    LazyColumn(modifier = modifier) {
         items(schedule) { item ->
             ServicesScheduleListItem(
                 day = item.day,
@@ -131,42 +166,10 @@ private fun ServiceScheduleContent(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun ServiceScheduleScreenLoadingPreview() {
-    AppTheme {
-        ServiceScheduleScreen(
-            uiState = ServicesScheduleUiState.Loading,
-            servicesScheduleType = ServicesScheduleType.LINEN_ROOM,
-            onBackClick = {},
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun ServiceScheduleScreenDataPreview() {
-    val serviceItemList =
-        DayOfWeek.entries.map { day ->
-            ServicesScheduleItemUi(
-                day = day,
-                time = "09:30-18:00",
-                isToday = false,
-            )
-        }
-
-    val uiState =
-        ServicesScheduleUiState.Content(
-            firstBuildingSchedule = serviceItemList,
-            secondBuildingSchedule = serviceItemList,
-            thirdBuildingSchedule = serviceItemList,
-        )
-
-    AppTheme {
-        ServiceScheduleScreen(
-            uiState = uiState,
-            servicesScheduleType = ServicesScheduleType.LINEN_ROOM,
-            onBackClick = {},
-        )
-    }
+private fun formatUpdatedAt(updatedAtEpochMillis: Long?): String {
+    if (updatedAtEpochMillis == null) return "—"
+    val dateTime =
+        Instant.fromEpochMilliseconds(updatedAtEpochMillis)
+            .toLocalDateTime(TimeZone.of("Europe/Moscow"))
+    return "${dateTime.hour.toString().padStart(2, '0')}:${dateTime.minute.toString().padStart(2, '0')}"
 }

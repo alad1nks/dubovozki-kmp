@@ -1,4 +1,13 @@
 <resources>
+    <string name="common_back">Back</string>
+    <string name="common_error_supporting">Check your internet connection and try again</string>
+    <string name="common_error_title">Couldn’t load data</string>
+    <string name="common_loading">Loading…</string>
+    <string name="common_retry">Retry</string>
+    <string name="common_refresh">Refresh</string>
+    <string name="common_offline_updated_at">Offline · data from %1$s</string>
+    <string name="common_offline_cached">Offline · showing saved data</string>
+    <string name="common_updated_at">Updated at %1$s</string>
     <string name="bus_schedule_day_of_week_filter_saturday">Saturday</string>
     <string name="bus_schedule_day_of_week_filter_sunday">Sunday</string>
     <string name="bus_schedule_day_of_week_filter_today">Today</string>
@@ -14,8 +23,25 @@
     <string name="bus_schedule_station_molodyozhnaya">Molodyozhnaya</string>
     <string name="bus_schedule_station_odintsovo">Odintsovo</string>
     <string name="bus_schedule_station_slavyansky_bulvar">Slavyansky Blvr</string>
-    <string name="bus_schedule_tab_dubki">Dubki</string>
-    <string name="bus_schedule_tab_moscow">Moscow</string>
+    <string name="bus_schedule_empty_supporting">Change the station or day to see other departures</string>
+    <string name="bus_schedule_empty_title">No departures match these filters</string>
+    <string name="bus_schedule_go_to_next">Go to next</string>
+    <string name="bus_schedule_next_departure">Next bus</string>
+    <string name="bus_schedule_no_more_today">No more departures today</string>
+    <string name="bus_schedule_now">now</string>
+    <string name="bus_schedule_reset_filters">Reset filters</string>
+    <string name="bus_schedule_tab_dubki">To Dubki</string>
+    <string name="bus_schedule_tab_moscow">To Moscow</string>
+    <string name="bus_schedule_time_ago">%1$s ago</string>
+    <string name="bus_schedule_time_until">in %1$s</string>
+    <plurals name="bus_schedule_duration_hours">
+        <item quantity="one">%1$d hour</item>
+        <item quantity="other">%1$d hours</item>
+    </plurals>
+    <plurals name="bus_schedule_duration_minutes">
+        <item quantity="one">%1$d minute</item>
+        <item quantity="other">%1$d minutes</item>
+    </plurals>
     <string name="bus_schedule_upcoming_time">in %1$d min</string>
     <string name="bus_schedule_upcoming_time_with_hour">in %1$d h %2$d min</string>
     <string name="services_contact_headline">Contact the author</string>
@@ -36,7 +62,13 @@
     <string name="services_schedule_day_of_week_saturday">SAT</string>
     <string name="services_schedule_day_of_week_sunday">SUN</string>
     <string name="services_top_app_bar">Services</string>
-    <string name="settings_dark_theme">Dark theme</string>
+    <string name="services_link_error">Couldn’t open the link</string>
+    <string name="services_links_unavailable">Contact links are temporarily unavailable</string>
+    <string name="services_schedule_empty">The schedule for this building hasn’t been published yet</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_system">Use system setting</string>
     <string name="settings_language">Language</string>
     <string name="settings_language_system">System language</string>
     <string name="settings_navigation_bar_label">Settings</string>

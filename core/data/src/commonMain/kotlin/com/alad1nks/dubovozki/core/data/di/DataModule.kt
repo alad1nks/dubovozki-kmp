@@ -8,8 +8,8 @@ import org.koin.dsl.module
 
 val DataModule =
     module {
-        single { BusScheduleRepository(get()) }
-        single { ServicesRepository(get()) }
-        single { ServicesScheduleRepository(get()) }
+        single { BusScheduleRepository(get(), get()) }
+        single { ServicesRepository(get(), get()) }
+        single { ServicesScheduleRepository(get(), get()) }
         single { SettingsRepository(get()) }
     }
