@@ -27,11 +27,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.alad1nks.dubovozki.core.model.ServicesScheduleType
 import com.alad1nks.dubovozki.feature.designsystem.component.LoadingState
 import com.alad1nks.dubovozki.feature.designsystem.component.MessageState
 import com.alad1nks.dubovozki.feature.designsystem.component.OfflineBanner
+import com.alad1nks.dubovozki.feature.designsystem.TestTags
 import com.alad1nks.dubovozki.feature.services.model.ServicesUiState
 import com.alad1nks.dubovozki.resources.AppResource
 import kotlinx.coroutines.launch
@@ -67,6 +69,8 @@ private fun ServicesScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val linkErrorMessage = stringResource(AppResource.String.services_link_error)
+    val safeContactLink = uiState.let { (it as? ServicesUiState.Content)?.contactLink }.takeIfSupported()
+    val safeDonutLink = uiState.let { (it as? ServicesUiState.Content)?.donutLink }.takeIfSupported()
 
     fun openUri(uri: String) {
         coroutineScope.launch {
@@ -132,8 +136,8 @@ private fun ServicesScreen(
                         )
                     }
                     ExternalServicesContent(
-                        contactLink = uiState.contactLink,
-                        donutLink = uiState.donutLink,
+                        contactLink = safeContactLink,
+                        donutLink = safeDonutLink,
                         onOpenUri = ::openUri,
                         modifier = Modifier.weight(1f),
                     )
@@ -156,6 +160,7 @@ private fun LinenRoomItem(
         headlineText = stringResource(AppResource.String.services_linen_room_headline),
         supportingText = stringResource(AppResource.String.services_linen_room_supporting),
         leadingImageVector = Icons.Outlined.LocalLaundryService,
+        modifier = Modifier.testTag(TestTags.SERVICES_LINEN),
     )
 }
 
@@ -174,6 +179,7 @@ private fun ExternalServicesContent(
                 supportingText = stringResource(AppResource.String.services_contact_supporting),
                 leadingImageVector = Icons.AutoMirrored.Outlined.Message,
                 opensExternalLink = true,
+                modifier = Modifier.testTag(TestTags.SERVICES_CONTACT),
             )
         }
         donutLink?.let { link ->
@@ -183,6 +189,7 @@ private fun ExternalServicesContent(
                 supportingText = stringResource(AppResource.String.services_donut_supporting),
                 leadingImageVector = Icons.Outlined.MonetizationOn,
                 opensExternalLink = true,
+                modifier = Modifier.testTag(TestTags.SERVICES_DONATE),
             )
         }
         if (contactLink == null && donutLink == null) {
@@ -191,6 +198,7 @@ private fun ExternalServicesContent(
                 modifier =
                     Modifier
                         .align(Alignment.CenterHorizontally)
+                        .testTag(TestTags.SERVICES_LINKS_UNAVAILABLE)
                         .padding(24.dp),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyLarge,
@@ -208,7 +216,10 @@ private fun ServicesTopAppBar(
     LargeTopAppBar(
         title = { Text(text = stringResource(AppResource.String.services_top_app_bar)) },
         actions = {
-            IconButton(onClick = onRefreshClick) {
+            IconButton(
+                onClick = onRefreshClick,
+                modifier = Modifier.testTag(TestTags.SERVICES_REFRESH),
+            ) {
                 Icon(
                     imageVector = Icons.Outlined.Refresh,
                     contentDescription = stringResource(AppResource.String.common_refresh),
@@ -218,6 +229,12 @@ private fun ServicesTopAppBar(
         modifier = modifier,
     )
 }
+
+private fun String?.takeIfSupported(): String? =
+    this?.takeIf { value ->
+        value.startsWith("https://") || value.startsWith("http://") || value.startsWith("mailto:") ||
+            value.startsWith("tg://")
+    }
 
 private fun formatUpdatedAt(updatedAtEpochMillis: Long?): String {
     if (updatedAtEpochMillis == null) return "—"

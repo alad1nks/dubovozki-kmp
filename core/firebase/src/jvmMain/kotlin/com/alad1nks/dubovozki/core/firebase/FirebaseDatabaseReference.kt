@@ -1,5 +1,8 @@
 package com.alad1nks.dubovozki.core.firebase
 
 internal object FirebaseDatabaseReference {
-    const val DATABASE_URL = "https://alad1nks-dubovozki-default-rtdb.europe-west1.firebasedatabase.app"
+    val databaseUrl: String =
+        System.getenv("DUBOVOZKI_FIREBASE_DATABASE_URL")
+            ?.takeIf { it.startsWith("http://127.0.0.1:") || it.startsWith("http://localhost:") }
+            ?: "https://alad1nks-dubovozki-default-rtdb.europe-west1.firebasedatabase.app"
 }

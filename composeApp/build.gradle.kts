@@ -1,4 +1,5 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.gradle.api.tasks.testing.Test
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -82,7 +83,10 @@ kotlin {
             implementation(project.dependencies.platform(libs.koin.bom))
         }
         commonTest.dependencies {
+            implementation(libs.compose.ui.test)
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.kotlinx.datetime)
         }
         iosMain.dependencies {
             implementation(projects.core.storage.datastore)
@@ -113,4 +117,10 @@ compose.desktop {
             packageVersion = "1.0.0"
         }
     }
+}
+
+tasks.withType<Test>().configureEach {
+    // Compose Navigation keeps platform lifecycle state in the process. A fresh fork guarantees
+    // that every application E2E starts from an empty lifecycle, Koin, and dispatcher state.
+    forkEvery = 1
 }

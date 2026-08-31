@@ -29,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -41,6 +42,7 @@ import com.alad1nks.dubovozki.feature.busschedule.model.BusUi
 import com.alad1nks.dubovozki.feature.designsystem.component.LoadingState
 import com.alad1nks.dubovozki.feature.designsystem.component.MessageState
 import com.alad1nks.dubovozki.feature.designsystem.component.OfflineBanner
+import com.alad1nks.dubovozki.feature.designsystem.TestTags
 import com.alad1nks.dubovozki.resources.AppResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -226,6 +228,8 @@ private fun BusSchedulePage(
             actionLabel = stringResource(AppResource.String.bus_schedule_reset_filters),
             onAction = onResetFilters,
             modifier = modifier.fillMaxSize(),
+            stateTestTag = TestTags.BUS_EMPTY,
+            actionTestTag = TestTags.BUS_RESET_FILTERS,
         )
         return
     }
@@ -254,6 +258,7 @@ private fun BusSchedulePage(
                     dayTime = bus.dayTime,
                     timeDifference = bus.timeDifference,
                     station = bus.station,
+                    modifier = Modifier.testTag(TestTags.bus(bus.id)),
                 )
             }
         }
@@ -271,6 +276,7 @@ private fun NextDepartureCard(
             modifier
                 .fillMaxWidth()
                 .padding(12.dp)
+                .testTag(TestTags.BUS_NEXT_CARD)
                 .semantics(mergeDescendants = true) {},
     ) {
         Column(
@@ -307,7 +313,10 @@ private fun NextDepartureCard(
                             )
                         }
                     }
-                    TextButton(onClick = onGoToNext) {
+                    TextButton(
+                        onClick = onGoToNext,
+                        modifier = Modifier.testTag(TestTags.BUS_NEXT_GO),
+                    ) {
                         Text(text = stringResource(AppResource.String.bus_schedule_go_to_next))
                     }
                 }

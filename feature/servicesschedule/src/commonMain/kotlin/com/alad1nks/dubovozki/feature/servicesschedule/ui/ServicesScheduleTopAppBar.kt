@@ -10,8 +10,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import com.alad1nks.dubovozki.core.model.ServicesScheduleType
+import com.alad1nks.dubovozki.feature.designsystem.TestTags
 import com.alad1nks.dubovozki.resources.AppResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -34,6 +36,7 @@ internal fun ServicesScheduleTopAppBar(
         navigationIcon = {
             IconButton(
                 onClick = onBackClick,
+                modifier = Modifier.testTag(TestTags.SERVICE_SCHEDULE_BACK),
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Default.ArrowBack,
@@ -42,7 +45,10 @@ internal fun ServicesScheduleTopAppBar(
             }
         },
         actions = {
-            IconButton(onClick = onRefreshClick) {
+            IconButton(
+                onClick = onRefreshClick,
+                modifier = Modifier.testTag(TestTags.SERVICE_SCHEDULE_REFRESH),
+            ) {
                 Icon(
                     imageVector = Icons.Outlined.Refresh,
                     contentDescription = stringResource(AppResource.String.common_refresh),
