@@ -29,7 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
+import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -258,7 +258,7 @@ private fun BusSchedulePage(
                     dayTime = bus.dayTime,
                     timeDifference = bus.timeDifference,
                     station = bus.station,
-                    modifier = Modifier.testTag(TestTags.bus(bus.id)),
+                    modifier = Modifier.e2eTestTag(TestTags.bus(bus.id)),
                 )
             }
         }
@@ -276,7 +276,7 @@ private fun NextDepartureCard(
             modifier
                 .fillMaxWidth()
                 .padding(12.dp)
-                .testTag(TestTags.BUS_NEXT_CARD)
+                .e2eTestTag(TestTags.BUS_NEXT_CARD)
                 .semantics(mergeDescendants = true) {},
     ) {
         Column(
@@ -315,7 +315,7 @@ private fun NextDepartureCard(
                     }
                     TextButton(
                         onClick = onGoToNext,
-                        modifier = Modifier.testTag(TestTags.BUS_NEXT_GO),
+                        modifier = Modifier.e2eTestTag(TestTags.BUS_NEXT_GO),
                     ) {
                         Text(text = stringResource(AppResource.String.bus_schedule_go_to_next))
                     }
@@ -338,7 +338,9 @@ private val Bus.Station.text: String
 private fun formatUpdatedAt(updatedAtEpochMillis: Long?): String {
     if (updatedAtEpochMillis == null) return "—"
     val dateTime =
-        Instant.fromEpochMilliseconds(updatedAtEpochMillis)
-            .toLocalDateTime(TimeZone.of("Europe/Moscow"))
+        Instant.fromEpochMilliseconds(updatedAtEpochMillis + MOSCOW_OFFSET_MILLIS)
+            .toLocalDateTime(TimeZone.UTC)
     return "${dateTime.hour.toString().padStart(2, '0')}:${dateTime.minute.toString().padStart(2, '0')}"
 }
+
+private const val MOSCOW_OFFSET_MILLIS = 3 * 60 * 60 * 1_000L

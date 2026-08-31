@@ -77,5 +77,5 @@ dependencies {
     androidTestImplementation(libs.compose.ui.test.junit4)
     androidTestImplementation(platform(libs.firebase.bom))
     androidTestImplementation(libs.firebase.database)
-    debugImplementation(libs.compose.ui.test.manifest)
+    androidTestImplementation(projects.core.designsystem)
 }

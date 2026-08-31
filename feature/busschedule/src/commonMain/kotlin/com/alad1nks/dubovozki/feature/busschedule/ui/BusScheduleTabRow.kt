@@ -9,7 +9,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
+import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
 import androidx.compose.ui.tooling.preview.Preview
 import com.alad1nks.dubovozki.feature.designsystem.theme.AppTheme
 import com.alad1nks.dubovozki.feature.designsystem.TestTags
@@ -35,7 +35,7 @@ internal fun BusScheduleTabRow(
             Tab(
                 selected = selectedTabIndex == index,
                 onClick = { onSelect(index) },
-                modifier = Modifier.testTag(if (index == 0) TestTags.BUS_TAB_MOSCOW else TestTags.BUS_TAB_DUBKI),
+                modifier = Modifier.e2eTestTag(if (index == 0) TestTags.BUS_TAB_MOSCOW else TestTags.BUS_TAB_DUBKI),
                 text = { Text(text = direction) },
             )
         }

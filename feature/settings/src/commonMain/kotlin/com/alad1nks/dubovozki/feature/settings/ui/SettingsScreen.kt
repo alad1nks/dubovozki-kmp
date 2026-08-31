@@ -21,7 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
+import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.alad1nks.dubovozki.core.model.Language
@@ -146,7 +146,7 @@ private fun <T> SettingsSpinner(
     var expanded by remember { mutableStateOf(false) }
 
     ListItem(
-        modifier = modifier.testTag(testTag).clickable { expanded = true },
+        modifier = modifier.e2eTestTag(testTag).clickable { expanded = true },
         headlineContent = { Text(text = title) },
         trailingContent = {
             Spinner(
@@ -168,7 +168,7 @@ private fun <T> SettingsSpinner(
                                 expanded = false
                                 onSelect(item)
                             },
-                            modifier = Modifier.testTag(itemTestTag(item)),
+                            modifier = Modifier.e2eTestTag(itemTestTag(item)),
                         )
                     }
                 },

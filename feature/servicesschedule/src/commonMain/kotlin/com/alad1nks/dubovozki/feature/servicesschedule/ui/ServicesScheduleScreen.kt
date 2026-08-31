@@ -185,7 +185,9 @@ private fun ServiceScheduleContent(
 private fun formatUpdatedAt(updatedAtEpochMillis: Long?): String {
     if (updatedAtEpochMillis == null) return "—"
     val dateTime =
-        Instant.fromEpochMilliseconds(updatedAtEpochMillis)
-            .toLocalDateTime(TimeZone.of("Europe/Moscow"))
+        Instant.fromEpochMilliseconds(updatedAtEpochMillis + MOSCOW_OFFSET_MILLIS)
+            .toLocalDateTime(TimeZone.UTC)
     return "${dateTime.hour.toString().padStart(2, '0')}:${dateTime.minute.toString().padStart(2, '0')}"
 }
+
+private const val MOSCOW_OFFSET_MILLIS = 3 * 60 * 60 * 1_000L

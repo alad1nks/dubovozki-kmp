@@ -1,0 +1,13 @@
+{
+  "name": "dubovozki-web-e2e",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:chromium": "playwright test --project=chromium",
+    "test:nightly": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.55.0",
+    "firebase-tools": "14.15.2"
+  }
+}

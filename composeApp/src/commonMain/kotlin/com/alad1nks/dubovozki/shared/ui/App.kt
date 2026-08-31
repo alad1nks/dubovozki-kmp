@@ -17,7 +17,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
+import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
 import com.alad1nks.dubovozki.core.model.ThemeMode
 import com.alad1nks.dubovozki.feature.designsystem.isTablet
 import com.alad1nks.dubovozki.feature.designsystem.TestTags
@@ -89,7 +89,7 @@ private fun AppContent(
 ) {
     val isTablet = isTablet()
     Scaffold(
-        modifier = modifier.testTag(TestTags.APP_CONTENT),
+        modifier = modifier.e2eTestTag(TestTags.APP_CONTENT),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar =
             {

@@ -20,7 +20,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
+import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
 import androidx.compose.ui.unit.dp
 import com.alad1nks.dubovozki.feature.designsystem.TestTags
 
@@ -30,7 +30,7 @@ fun LoadingState(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.testTag(TestTags.COMMON_LOADING),
+        modifier = modifier.e2eTestTag(TestTags.COMMON_LOADING),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
     ) {
@@ -50,7 +50,7 @@ fun MessageState(
     actionTestTag: String = TestTags.COMMON_RETRY,
 ) {
     Column(
-        modifier = modifier.testTag(stateTestTag).padding(24.dp),
+        modifier = modifier.e2eTestTag(stateTestTag).padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
     ) {
@@ -62,7 +62,7 @@ fun MessageState(
         )
         Button(
             onClick = onAction,
-            modifier = Modifier.testTag(actionTestTag),
+            modifier = Modifier.e2eTestTag(actionTestTag),
         ) {
             Text(text = actionLabel)
         }
@@ -77,7 +77,7 @@ fun OfflineBanner(
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = modifier.testTag(TestTags.COMMON_OFFLINE).fillMaxWidth(),
+        modifier = modifier.e2eTestTag(TestTags.COMMON_OFFLINE).fillMaxWidth(),
         color = MaterialTheme.colorScheme.errorContainer,
         contentColor = MaterialTheme.colorScheme.onErrorContainer,
     ) {

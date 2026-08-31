@@ -7,8 +7,10 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.runtime.CompositionLocalProvider
@@ -17,6 +19,7 @@ import com.alad1nks.dubovozki.core.domain.MoscowTimeProvider
 import com.alad1nks.dubovozki.core.firebase.BusScheduleApi
 import com.alad1nks.dubovozki.core.firebase.ServicesApi
 import com.alad1nks.dubovozki.core.firebase.ServicesScheduleApi
+import com.alad1nks.dubovozki.core.firebase.model.BusScheduleResponse
 import com.alad1nks.dubovozki.core.model.Data
 import com.alad1nks.dubovozki.core.storage.common.AppPreferences
 import com.alad1nks.dubovozki.feature.designsystem.TestTags
@@ -24,6 +27,8 @@ import com.alad1nks.dubovozki.shared.CommonModules
 import com.alad1nks.dubovozki.shared.ui.App
 import org.koin.dsl.module
 import org.koin.dsl.koinApplication
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -60,6 +65,17 @@ class AppE2ETest {
     }
 
     @Test
+    fun repeatedTopLevelNavigationKeepsSingleDestination() = runAppTest { _, _ ->
+        repeat(3) {
+            click(TestTags.NAV_SERVICES)
+            click(TestTags.NAV_SCHEDULE)
+            click(TestTags.NAV_SETTINGS)
+        }
+        onAllNodesWithTag(TestTags.SETTINGS_LANGUAGE).assertCountEquals(1)
+        onNodeWithTag(TestTags.NAV_SETTINGS).assertIsSelected()
+    }
+
+    @Test
     fun directionsAndCombinedFiltersUseStableDomainSelectors() = runAppTest { _, _ ->
         onNodeWithTag(TestTags.bus(1)).assertIsDisplayed()
         click(TestTags.BUS_TAB_DUBKI)
@@ -73,6 +89,40 @@ class AppE2ETest {
 
         onNodeWithTag(TestTags.bus(8)).assertIsDisplayed()
         onAllNodesWithTag(TestTags.bus(2)).assertCountEquals(0)
+    }
+
+    @Test
+    fun everyStationAndDayFilterUsesTheExpectedDomainData() = runAppTest { _, _ ->
+        selectStation("ODINTSOVO")
+        onNodeWithTag(TestTags.bus(1)).assertIsDisplayed()
+        selectStation("SLAVYANSKY_BULVAR")
+        onNodeWithTag(TestTags.bus(3)).assertIsDisplayed()
+        selectStation("MOLODYOZHNAYA")
+        click(TestTags.BUS_TAB_DUBKI)
+        onNodeWithTag(TestTags.bus(4)).assertIsDisplayed()
+
+        selectStation("ALL")
+        click(TestTags.BUS_TAB_MOSCOW)
+        selectDay("TODAY")
+        onNodeWithTag(TestTags.bus(1)).assertIsDisplayed()
+        selectDay("TOMORROW")
+        onNodeWithTag(TestTags.bus(5)).assertIsDisplayed()
+        selectDay("WEEKDAYS")
+        onNodeWithTag(TestTags.bus(3)).assertIsDisplayed()
+        selectDay("SATURDAY")
+        onNodeWithTag(TestTags.bus(7)).assertIsDisplayed()
+        selectDay("SUNDAY")
+        onNodeWithTag(TestTags.bus(9)).assertIsDisplayed()
+    }
+
+    @Test
+    fun tomorrowOnSundayUsesMondaySchedule() {
+        val driver = E2ETestDriver()
+        driver.time.set(E2EClockFixtures.sundayBeforeMidnight)
+        runAppTest(driver) { _, _ ->
+            selectDay("TOMORROW")
+            onNodeWithTag(TestTags.bus(1)).assertIsDisplayed()
+        }
     }
 
     @Test
@@ -102,6 +152,72 @@ class AppE2ETest {
     }
 
     @Test
+    fun cachedBusDataStaysVisibleOfflineThenRealtimeFreshDataReplacesIt() {
+        val driver = E2ETestDriver(initialBus = Data.Error("offline"))
+        driver.preferences.seedString("language", "en")
+        driver.preferences.seedString("bus_schedule_cache_v1", cache(E2EFixtures.happyBusSchedule))
+        val fresh =
+            E2EFixtures.happyBusSchedule.copy(
+                revision = "fresh-v2",
+                busList =
+                    listOf(
+                        BusScheduleResponse.Bus(
+                            id = 201,
+                            dayOfWeek = 2,
+                            dayTime = 34_200_000,
+                            dayTimeString = "09:30",
+                            direction = "msk",
+                            station = "odn",
+                        ),
+                    ),
+            )
+
+        runAppTest(driver) { _, _ ->
+            waitUntilTag(TestTags.COMMON_OFFLINE)
+            onNodeWithTag(TestTags.bus(1)).assertIsDisplayed()
+            driver.busApi.emit(Data.Success(fresh))
+            waitUntilTag(TestTags.bus(201))
+            onAllNodesWithTag(TestTags.bus(1)).assertCountEquals(0)
+        }
+    }
+
+    @Test
+    fun refreshKeepsCombinedFiltersAndGoToNextRemainsActionable() {
+        val driver = E2ETestDriver()
+        driver.busApi.onRefresh(Data.Success(E2EFixtures.happyBusSchedule.copy(revision = "refreshed-v2")))
+
+        runAppTest(driver) { _, _ ->
+            selectStation("MOLODYOZHNAYA")
+            selectDay("SATURDAY")
+            click(TestTags.BUS_TAB_DUBKI)
+            onNodeWithTag(TestTags.bus(8)).assertIsDisplayed()
+            click(TestTags.BUS_REFRESH)
+            waitUntil(timeoutMillis = 2_000) { driver.busApi.refreshCount == 1 }
+            onNodeWithTag(TestTags.bus(8)).assertIsDisplayed()
+            click(TestTags.BUS_NEXT_GO)
+            onNodeWithTag(TestTags.bus(8)).assertIsDisplayed()
+        }
+    }
+
+    @Test
+    fun controlledClockCoversBeforeAtAfterAndEndOfDay() {
+        val driver = E2ETestDriver()
+        driver.preferences.seedString("language", "en")
+        runAppTest(driver) { _, _ ->
+            onNodeWithTag(TestTags.BUS_NEXT_CARD).assertTextContains("in 5 minutes")
+            driver.time.set(E2EClockFixtures.atDeparture)
+            mainClock.advanceTimeBy(60_000)
+            onNodeWithTag(TestTags.BUS_NEXT_CARD).assertTextContains("now")
+            driver.time.set(E2EClockFixtures.afterDeparture)
+            mainClock.advanceTimeBy(60_000)
+            onNodeWithTag(TestTags.BUS_NEXT_CARD).assertTextContains("1 minute ago")
+            driver.time.set(E2EClockFixtures.afterLastDeparture)
+            mainClock.advanceTimeBy(60_000)
+            onNodeWithTag(TestTags.BUS_NEXT_CARD).assertTextContains("No more departures today")
+        }
+    }
+
+    @Test
     fun partialInvalidDataDoesNotCrash() {
         val driver = E2ETestDriver(initialBus = Data.Success(E2EFixtures.partialInvalidBusSchedule))
 
@@ -124,6 +240,17 @@ class AppE2ETest {
             listOf("https://t.me/dubki_contact", "https://example.test/donate"),
             uriHandler.openedUris,
         )
+    }
+
+    @Test
+    fun uriHandlerFailureShowsAnErrorWithoutOpeningExternalApps() {
+        val driver = E2ETestDriver()
+        driver.preferences.seedString("language", "en")
+        runAppTest(driver, RecordingUriHandler(shouldFail = true)) { _, _ ->
+            click(TestTags.NAV_SERVICES)
+            click(TestTags.SERVICES_CONTACT)
+            onNodeWithText("Couldn’t open the link").assertIsDisplayed()
+        }
     }
 
     @Test
@@ -169,6 +296,32 @@ class AppE2ETest {
     }
 
     @Test
+    fun cachedServicesAndScheduleStayAvailableOfflineAndUpdateRealtime() {
+        val driver =
+            E2ETestDriver(
+                initialServices = Data.Error("offline"),
+                initialServiceSchedule = Data.Error("offline"),
+            )
+        driver.preferences.seedString("services_cache_v1", cache(E2EFixtures.happyServices))
+        driver.preferences.seedString("services_schedule_cache_v1", cache(E2EFixtures.happyServiceSchedule))
+
+        runAppTest(driver) { _, _ ->
+            click(TestTags.NAV_SERVICES)
+            waitUntilTag(TestTags.COMMON_OFFLINE)
+            onNodeWithTag(TestTags.SERVICES_CONTACT).assertIsDisplayed()
+            driver.servicesApi.emit(Data.Success(E2EFixtures.emptyServices))
+            waitUntilTag(TestTags.SERVICES_LINKS_UNAVAILABLE)
+
+            click(TestTags.SERVICES_LINEN)
+            waitUntilTag(TestTags.COMMON_OFFLINE)
+            click(TestTags.SERVICE_SCHEDULE_BUILDING_2)
+            driver.serviceScheduleApi.emit(Data.Success(E2EFixtures.oneEmptyBuildingServiceSchedule))
+            waitUntilTag(TestTags.COMMON_ERROR)
+            onNodeWithTag(TestTags.SERVICE_SCHEDULE_BUILDING_2).assertIsSelected()
+        }
+    }
+
+    @Test
     fun allServiceScheduleBuildingsRemainSelectable() = runAppTest { _, _ ->
         click(TestTags.NAV_SERVICES)
         click(TestTags.SERVICES_LINEN)
@@ -197,6 +350,24 @@ class AppE2ETest {
     }
 
     @Test
+    fun everyThemeAndLocaleOptionUpdatesWithoutLeavingSettings() = runAppTest { driver, _ ->
+        click(TestTags.NAV_SETTINGS)
+        listOf("LIGHT", "DARK", "SYSTEM").forEach { theme ->
+            click(TestTags.SETTINGS_THEME)
+            click(TestTags.theme(theme))
+        }
+        listOf("RUSSIAN", "ENGLISH", "KAZAKH", "SYSTEM").forEach { language ->
+            click(TestTags.SETTINGS_LANGUAGE)
+            click(TestTags.language(language))
+            onNodeWithTag(TestTags.NAV_SETTINGS).assertIsSelected()
+        }
+        waitUntil(timeoutMillis = 2_000) {
+            driver.preferences.stringValue("theme_mode") == "system" &&
+                driver.preferences.stringValue("language") == "system"
+        }
+    }
+
+    @Test
     fun initialBackendStateShowsDeterministicLoading() {
         val driver =
             E2ETestDriver(
@@ -215,9 +386,9 @@ class AppE2ETest {
 
     private fun runAppTest(
         driver: E2ETestDriver = E2ETestDriver(),
+        uriHandler: RecordingUriHandler = RecordingUriHandler(),
         block: androidx.compose.ui.test.ComposeUiTest.(E2ETestDriver, RecordingUriHandler) -> Unit,
     ) = runComposeUiTest {
-        val uriHandler = RecordingUriHandler()
         val showContent = mutableStateOf(true)
         val overrides =
             module {
@@ -261,12 +432,28 @@ class AppE2ETest {
         runOnUiThread { node.performClick() }
         waitForIdle()
     }
+
+    private fun androidx.compose.ui.test.ComposeUiTest.selectStation(value: String) {
+        click(TestTags.BUS_FILTER_STATION)
+        click(TestTags.stationFilter(value))
+    }
+
+    private fun androidx.compose.ui.test.ComposeUiTest.selectDay(value: String) {
+        click(TestTags.BUS_FILTER_DAY)
+        click(TestTags.dayFilter(value))
+    }
+
+    private inline fun <reified T> cache(value: T): String =
+        """{"value":${Json.encodeToString(value)},"updatedAtEpochMillis":1788163200000}"""
 }
 
-private class RecordingUriHandler : UriHandler {
+private class RecordingUriHandler(
+    private val shouldFail: Boolean = false,
+) : UriHandler {
     val openedUris = mutableListOf<String>()
 
     override fun openUri(uri: String) {
+        if (shouldFail) error("intercepted URI failure")
         openedUris += uri
     }
 }

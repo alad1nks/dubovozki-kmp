@@ -106,6 +106,13 @@ internal class InMemoryAppPreferences : AppPreferences {
         booleans.values.forEach { it.value = null }
     }
 
+    fun seedString(
+        key: String,
+        value: String,
+    ) {
+        strings.getOrPut(key) { MutableStateFlow(null) }.value = value
+    }
+
     fun stringValue(key: String): String? = strings[key]?.value
 }
 
