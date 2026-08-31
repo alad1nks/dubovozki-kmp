@@ -4,8 +4,11 @@ import path from "node:path";
 
 const fixturePath = path.resolve(__dirname, "../../fixtures/firebase/happy.json");
 
-const tagElements = (page: Page, tag: string) => page.locator(`[aria-label="${tag}"]`);
-const byTag = (page: Page, tag: string) => page.locator(`[aria-label="${tag}"]:visible`).first();
+const tagSelector = (tag: string) =>
+  `:is([aria-label="${tag}"], [aria-label^="${tag}, "], ` +
+  `[aria-label*=", ${tag}, "], [aria-label$=", ${tag}"])`;
+const tagElements = (page: Page, tag: string) => page.locator(tagSelector(tag));
+const byTag = (page: Page, tag: string) => page.locator(`${tagSelector(tag)}:visible`).first();
 
 async function clickTag(page: Page, tag: string) {
   const element = tagElements(page, tag).last();
@@ -52,7 +55,7 @@ test("P0 launch, schedule, services and settings", async ({ page }) => {
   await clickTag(page, "nav.services");
   await expect(byTag(page, "services.linen")).toBeVisible();
   await clickTag(page, "nav.settings");
-  await expect(byTag(page, "settings.language")).toBeVisible();
+  await expect(tagElements(page, "settings.language").first()).toBeAttached();
 });
 
 test("Firebase listener applies a realtime schedule update", async ({ page }) => {

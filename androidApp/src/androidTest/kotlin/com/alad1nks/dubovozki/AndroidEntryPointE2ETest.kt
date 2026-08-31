@@ -1,7 +1,6 @@
 package com.alad1nks.dubovozki
 
 import android.content.Context
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createEmptyComposeRule

@@ -2,7 +2,7 @@ import { createReadStream, existsSync } from "node:fs";
 import { createServer } from "node:http";
 import { extname, join, normalize } from "node:path";
 
-const root = normalize(process.argv[2]);
+const roots = [process.argv[2], process.argv[4]].filter(Boolean).map((root) => normalize(root));
 const port = Number(process.argv[3] ?? 9080);
 const contentTypes = {
   ".html": "text/html; charset=utf-8",
@@ -15,8 +15,17 @@ const contentTypes = {
 createServer((request, response) => {
   const requestedPath = decodeURIComponent(new URL(request.url ?? "/", "http://localhost").pathname);
   const relativePath = requestedPath === "/" ? "index.html" : requestedPath.replace(/^\/+/, "");
-  const candidate = normalize(join(root, relativePath));
-  const filePath = candidate.startsWith(root) && existsSync(candidate) ? candidate : join(root, "index.html");
+  const resolveFile = (path) =>
+    roots
+      .map((root) => normalize(join(root, path)))
+      .find((candidate, index) => candidate.startsWith(roots[index]) && existsSync(candidate));
+  const filePath = resolveFile(relativePath) ?? resolveFile("index.html");
+
+  if (!filePath) {
+    response.statusCode = 404;
+    response.end("Not found");
+    return;
+  }
 
   response.setHeader("Content-Type", contentTypes[extname(filePath)] ?? "application/octet-stream");
   createReadStream(filePath)
@@ -26,5 +35,5 @@ createServer((request, response) => {
     })
     .pipe(response);
 }).listen(port, "127.0.0.1", () => {
-  console.log(`Serving ${root} on http://127.0.0.1:${port}`);
+  console.log(`Serving ${roots.join(", ")} on http://127.0.0.1:${port}`);
 });
