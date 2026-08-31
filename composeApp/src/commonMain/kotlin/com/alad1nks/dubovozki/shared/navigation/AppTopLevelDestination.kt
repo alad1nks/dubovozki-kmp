@@ -11,9 +11,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.alad1nks.dubovozki.core.navigation.Destination
 import com.alad1nks.dubovozki.core.navigation.serialName
 import com.alad1nks.dubovozki.feature.busschedule.navigation.BusScheduleRoute
+import com.alad1nks.dubovozki.feature.designsystem.TestTags
 import com.alad1nks.dubovozki.feature.services.navigation.ServicesRoute
 import com.alad1nks.dubovozki.feature.settings.navigation.SettingsRoute
-import com.alad1nks.dubovozki.feature.designsystem.TestTags
 import com.alad1nks.dubovozki.resources.AppResource
 import org.jetbrains.compose.resources.StringResource
 

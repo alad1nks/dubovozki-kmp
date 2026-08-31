@@ -17,10 +17,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
-import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
 import com.alad1nks.dubovozki.core.model.ThemeMode
-import com.alad1nks.dubovozki.feature.designsystem.isTablet
 import com.alad1nks.dubovozki.feature.designsystem.TestTags
+import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
+import com.alad1nks.dubovozki.feature.designsystem.isTablet
 import com.alad1nks.dubovozki.feature.designsystem.theme.AppTheme
 import com.alad1nks.dubovozki.shared.CommonModules
 import com.alad1nks.dubovozki.shared.PlatformModules
@@ -28,10 +28,10 @@ import com.alad1nks.dubovozki.shared.navigation.AppNavHost
 import org.koin.compose.KoinApplication
 import org.koin.compose.KoinIsolatedContext
 import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.parameter.parametersOf
 import org.koin.core.module.Module
-import org.koin.core.KoinApplication as CoreKoinApplication
+import org.koin.core.parameter.parametersOf
 import org.koin.dsl.koinConfiguration
+import org.koin.core.KoinApplication as CoreKoinApplication
 
 @Composable
 fun App(
@@ -76,7 +76,10 @@ private fun AppWithDependencies(appState: AppState) {
     AppTheme(darkTheme = darkTheme) {
         CompositionLocalProvider(LocalAppLocale provides language?.code) {
             key(language) {
-                AppContent(appState = appState)
+                AppContent(
+                    appState = appState,
+                    darkTheme = darkTheme,
+                )
             }
         }
     }
@@ -85,6 +88,7 @@ private fun AppWithDependencies(appState: AppState) {
 @Composable
 private fun AppContent(
     appState: AppState,
+    darkTheme: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val isTablet = isTablet()
@@ -106,6 +110,7 @@ private fun AppContent(
             modifier =
                 Modifier
                     .fillMaxSize()
+                    .e2eTestTag(TestTags.appTheme(darkTheme))
                     .padding(padding)
                     .consumeWindowInsets(padding)
                     .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),

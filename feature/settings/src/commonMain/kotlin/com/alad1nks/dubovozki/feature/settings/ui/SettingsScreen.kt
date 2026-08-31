@@ -21,14 +21,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.alad1nks.dubovozki.core.model.Language
 import com.alad1nks.dubovozki.core.model.ThemeMode
+import com.alad1nks.dubovozki.feature.designsystem.TestTags
 import com.alad1nks.dubovozki.feature.designsystem.component.LoadingState
 import com.alad1nks.dubovozki.feature.designsystem.component.Spinner
-import com.alad1nks.dubovozki.feature.designsystem.TestTags
+import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
 import com.alad1nks.dubovozki.feature.designsystem.theme.AppTheme
 import com.alad1nks.dubovozki.feature.settings.model.SettingsUiState
 import com.alad1nks.dubovozki.resources.AppResource
@@ -117,6 +117,7 @@ private fun SettingsContent(
             onSelect = onThemeModeSelect,
             testTag = TestTags.SETTINGS_THEME,
             itemTestTag = { TestTags.theme(it.name) },
+            selectedTestTag = TestTags.currentTheme(themeMode.name),
         )
         SettingsSpinner(
             title = stringResource(AppResource.String.settings_language),
@@ -127,6 +128,7 @@ private fun SettingsContent(
             onSelect = onLanguageSelect,
             testTag = TestTags.SETTINGS_LANGUAGE,
             itemTestTag = { TestTags.language(it.name) },
+            selectedTestTag = TestTags.currentLanguage(language.name),
         )
     }
 }
@@ -141,6 +143,7 @@ private fun <T> SettingsSpinner(
     onSelect: (T) -> Unit,
     testTag: String,
     itemTestTag: (T) -> String,
+    selectedTestTag: String,
     modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -174,6 +177,7 @@ private fun <T> SettingsSpinner(
                 },
                 onClick = { expanded = true },
                 onDismissRequest = { expanded = false },
+                modifier = Modifier.e2eTestTag(selectedTestTag),
                 fillMaxWidth = false,
             )
         },

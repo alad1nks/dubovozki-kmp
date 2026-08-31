@@ -121,6 +121,8 @@ internal class MutableMoscowTimeProvider(initial: LocalDateTime) : MoscowTimePro
 
     override fun now(): LocalDateTime = current.value
 
+    override fun observe(): Flow<LocalDateTime> = current
+
     fun set(value: LocalDateTime) {
         current.value = value
     }

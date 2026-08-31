@@ -10,10 +10,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
 import androidx.compose.ui.tooling.preview.Preview
 import com.alad1nks.dubovozki.core.model.ServicesScheduleType
 import com.alad1nks.dubovozki.feature.designsystem.TestTags
+import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
 import com.alad1nks.dubovozki.resources.AppResource
 import org.jetbrains.compose.resources.stringResource
 

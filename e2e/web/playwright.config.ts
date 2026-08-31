@@ -3,6 +3,10 @@ import path from "node:path";
 
 const repositoryRoot = path.resolve(__dirname, "../..");
 const gradleCommand = process.platform === "win32" ? "gradlew.bat" : "./gradlew";
+const managedWebPort = "9080";
+const webCommand = process.env.E2E_WEB_RELEASE
+  ? `${gradleCommand} :composeApp:jsBrowserProductionWebpack && node e2e/web/static-server.mjs composeApp/build/dist/js/productionExecutable ${managedWebPort}`
+  : `${gradleCommand} :composeApp:jsBrowserDevelopmentRun --no-configuration-cache`;
 const managedWebServers = process.env.E2E_EXTERNAL_SERVERS
   ? undefined
   : [
@@ -14,9 +18,10 @@ const managedWebServers = process.env.E2E_EXTERNAL_SERVERS
         timeout: 120_000,
       },
       {
-        command: `${gradleCommand} :composeApp:jsBrowserDevelopmentRun --no-configuration-cache`,
+        command: webCommand,
         cwd: repositoryRoot,
-        url: "http://127.0.0.1:8080",
+        env: { DUBOVOZKI_E2E_WEB_PORT: managedWebPort },
+        url: `http://127.0.0.1:${managedWebPort}`,
         reuseExistingServer: !process.env.CI,
         timeout: 180_000,
       },
@@ -31,7 +36,7 @@ export default defineConfig({
   reporter: process.env.CI ? [["line"], ["html", { open: "never" }]] : "list",
   outputDir: "test-results",
   use: {
-    baseURL: process.env.E2E_BASE_URL ?? "http://127.0.0.1:8080",
+    baseURL: process.env.E2E_BASE_URL ?? `http://127.0.0.1:${managedWebPort}`,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "retain-on-failure",

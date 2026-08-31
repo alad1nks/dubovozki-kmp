@@ -20,9 +20,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
 import androidx.compose.ui.unit.dp
 import com.alad1nks.dubovozki.feature.designsystem.TestTags
+import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
 
 @Composable
 fun LoadingState(

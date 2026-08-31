@@ -1,61 +1,51 @@
 # E2E implementation handoff
 
-This is a temporary checkpoint for continuing after context compaction. Keep one active writer only.
-Delete this file together with `docs/e2e-testing-plan.md` before the final pull request.
+Temporary recovery checkpoint. Keep one active writer only. Delete this file and `docs/e2e-testing-plan.md`
+before the final PR.
 
-## Goal
+## Goal and Git
 
-Complete `docs/e2e-testing-plan.md`, verify the implementation, remove the plan and this handoff, push
-`codex/e2e-testing`, and create a pull request into `main`. Do not finish before the PR URL exists.
-
-## Repository state
-
-- Branch: `codex/e2e-testing`.
-- Baseline: `b759095 docs: add e2e testing plan (#51)`.
-- First checkpoint: `399da15 test: checkpoint multiplatform e2e foundation`.
-- Local Gradle needs `JAVA_HOME=C:\Users\al1ks\.jdks\corretto-18.0.2` and
-  `ANDROID_HOME=C:\Users\al1ks\AppData\Local\Android\Sdk`.
-- Gradle, Git writes, push, and PR creation need sandbox escalation here.
+- Complete the plan, push `codex/e2e-testing`, and create a PR into `main`; do not finish before the PR URL exists.
+- Baseline: `b759095`.
+- Checkpoints: `399da15` (shared foundation), `41345cf` (platform runners).
+- Windows JDK: `C:\Users\al1ks\.jdks\corretto-18.0.2`; Android SDK:
+  `C:\Users\al1ks\AppData\Local\Android\Sdk`.
 
 ## Implemented
 
-- Production composition supports isolated Koin module overrides; centralized stable test selectors cover the app.
-- Injectable Moscow clock, fake Firebase/storage/URI boundaries, versioned fixtures, and 22 shared Compose E2E tests.
-- Android actual-`MainActivity` instrumented smoke and Firebase emulator switching.
-- Web Playwright project with Chromium/Firefox/WebKit/mobile profiles, exact 599/600 viewports, artifacts,
-  Firebase Emulator seeding, storage reset/reload, URI interception, and accessibility-label selectors.
-- JS runtime fixes for Firebase initialization and Moscow time formatting. Chromium P0 smoke passes locally.
-- iOS Firebase emulator launch mode, XCUITest target/scheme, and shell navigation smoke.
-- Desktop actual platform entry test with localhost REST and real DataStore; it passes locally.
-- Firebase emulator config and emulator-only open rules under `e2e/`.
+- Testable Koin composition root, fake API/storage/URI boundaries, observable Moscow clock, centralized selectors.
+- Shared Compose suite now has 23 tests covering P0/P1 navigation, bus filters/click/swipe/time/cache/errors,
+  services, service schedule, themes, locales, loading and accessibility semantics.
+- Android actual `MainActivity` test: emulator seed, realtime mutation, detail/Back, settings and DataStore relaunch.
+- Web Playwright: Firebase Emulator, accessibility actions, realtime, localStorage reload, System theme, exact
+  599/600 widths, long kk strings, Chromium/Firefox/WebKit/mobile projects and release-bundle server.
+- iOS emulator mode, XCUITest target/scheme, realtime mutation, detail Back/gesture, settings relaunch.
+- Desktop actual platform test verifies one REST read, refresh second read, and real DataStore writes.
+- CI rewritten/extended for PR, main, nightly, release P0, and weekly read-only production schema smoke.
+- Permanent guide added at `docs/e2e-testing.md` and linked from README.
 
 ## Latest verification
 
-The latest `:composeApp:jvmTest` ran 22 tests. The Desktop entry test passed; three shared tests fail:
-
-1. `everyStationAndDayFilterUsesTheExpectedDomainData`: selection assertion races; wait for the filtered card.
-2. `controlledClockCoversBeforeAtAfterAndEndOfDay`: the fake clock is not observable, so changing it does not
-   update the ViewModel immediately. Add an observable clock flow/use case and consume it in the ViewModel.
-3. `cachedServicesAndScheduleStayAvailableOfflineAndUpdateRealtime`: empty service schedule has no stable tag.
-   Add a dedicated empty-state tag and assert that instead of `COMMON_ERROR`.
-
-Android compilation originally found a missing test dependency; `projects.core.designsystem` has now been added but
-must be rechecked. A full Android build remains blocked locally by the intentionally absent private
-`androidApp/google-services.json`; do not create a placeholder. iOS must be validated on macOS CI.
+- `:composeApp:jvmTest` passed all 22 tests before the last coverage expansion.
+- After adding swipe/current-theme/localization coverage it ran 23 tests with two assertion-only failures:
+  current tags were in the unmerged tree and Russian title matched two nodes. Both assertions are now fixed but
+  the suite has not yet been rerun.
+- Android instrumented source compiled successfully before the latest realtime/persistence expansion.
+- Playwright Chromium settings persistence passed before the latest theme/realtime/locale cases.
+- `ktlintFormat` completed successfully after the large edit.
+- iOS cannot run on this Windows host and must be validated by macOS CI.
 
 ## Remaining work
 
-1. Fix the three JVM failures and rerun the suite.
-2. Recheck Android test compilation without the private Google Services processing task.
-3. Run the full local Playwright Chromium suite and fix any remaining navigation/persistence failures.
-4. Add/finish PR, main, nightly, and release-smoke CI jobs with emulator seeding and artifact uploads.
-5. Add permanent E2E documentation and README link; map all required P0/P1 cases honestly.
-6. Run formatting, unit/JVM/JS/Android checks available on Windows.
-7. Remove generated debug logs, `docs/e2e-testing-plan.md`, and this handoff.
-8. Final commit, push, create the PR into `main`, then mark the goal complete.
+1. Rerun full JVM suite; fix only real failures.
+2. Compile expanded Android test and run full Chromium suite.
+3. Validate workflow YAML and production Web bundle/static server; fix CI syntax/path issues.
+4. Run `ktlintCheck`, `test`, JVM, JS production webpack, and Android compile checks.
+5. Review diff/security: no secrets, generated reports/logs, or node_modules.
+6. Delete the plan and this handoff, final commit, push, create PR into `main`, then mark the goal complete.
 
 ## Guardrails
 
-- Do not create or commit Firebase secret/config placeholders.
+- Never create Firebase config placeholders or commit secrets.
+- Generated Firebase/Playwright logs and reports are ignored and must stay uncommitted.
 - Do not run another task against this worktree concurrently.
-- Generated `firebase-debug.log` and `database-debug.log` must not be committed.

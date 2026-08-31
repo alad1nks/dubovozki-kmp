@@ -29,7 +29,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -39,10 +38,11 @@ import com.alad1nks.dubovozki.core.model.StationFilter
 import com.alad1nks.dubovozki.feature.busschedule.model.BusScheduleTopAppBarUiState
 import com.alad1nks.dubovozki.feature.busschedule.model.BusScheduleUiState
 import com.alad1nks.dubovozki.feature.busschedule.model.BusUi
+import com.alad1nks.dubovozki.feature.designsystem.TestTags
 import com.alad1nks.dubovozki.feature.designsystem.component.LoadingState
 import com.alad1nks.dubovozki.feature.designsystem.component.MessageState
 import com.alad1nks.dubovozki.feature.designsystem.component.OfflineBanner
-import com.alad1nks.dubovozki.feature.designsystem.TestTags
+import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
 import com.alad1nks.dubovozki.resources.AppResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -147,7 +147,7 @@ private fun BusScheduleScreen(
                     )
                     HorizontalPager(
                         state = pagerState,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).e2eTestTag(TestTags.BUS_PAGER),
                     ) { page ->
                         val busList = if (page == 0) uiState.moscowBusList else uiState.dubkiBusList
                         val firstBusIndex =

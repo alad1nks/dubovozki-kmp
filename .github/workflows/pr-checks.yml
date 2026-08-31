@@ -2,107 +2,124 @@ name: PR checks
 
 on:
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
-  build-android:
-    runs-on: macos-latest
+  shared:
+    name: Lint, unit and shared E2E
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           java-version: '17'
-          distribution: 'temurin'
+          distribution: temurin
+          cache: gradle
+      - run: chmod +x ./gradlew
+      - run: ./gradlew ktlintCheck test :composeApp:jvmTest
+      - name: Upload JVM test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-jvm-test-reports
+          path: '**/build/reports/tests/'
+          if-no-files-found: ignore
 
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
-
-      - name: Decode Firebase config
-        run: |
-          echo "${{ secrets.FIREBASE_CONFIG_ANDROID }}" | base64 -d > androidApp/google-services.json
-
-      - name: Build Android
-        run: ./gradlew assembleDebug
-
-  build-ios:
-    runs-on: macos-latest
+  web-chromium:
+    name: Web Chromium P0/P1
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           java-version: '17'
-          distribution: 'temurin'
+          distribution: temurin
+          cache: gradle
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: e2e/web/package-lock.json
+      - run: chmod +x ./gradlew
+      - run: npm ci
+        working-directory: e2e/web
+      - run: npx playwright install --with-deps chromium
+        working-directory: e2e/web
+      - run: npm run test:chromium
+        working-directory: e2e/web
+      - name: Upload Web diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-web-chromium
+          path: |
+            e2e/web/test-results/
+            e2e/web/playwright-report/
+            firebase-debug.log
+            database-debug.log
+          if-no-files-found: ignore
 
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
-
-      - name: Decode Firebase config
-        run: |
-          echo "${{ secrets.FIREBASE_CONFIG_IOS }}" | base64 -d > iosApp/iosApp/GoogleService-Info.plist
-
-      - name: Build iOS
-        run: ./gradlew linkReleaseFrameworkIosArm64
-
-  build-js:
-    runs-on: macos-latest
+  android-p0:
+    name: Android API 24 P0
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           java-version: '17'
-          distribution: 'temurin'
+          distribution: temurin
+          cache: gradle
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: e2e/web/package-lock.json
+      - run: chmod +x ./gradlew
+      - name: Decode Android Firebase config
+        run: echo "${{ secrets.FIREBASE_CONFIG_ANDROID }}" | base64 --decode > androidApp/google-services.json
+      - run: npm ci
+        working-directory: e2e/web
+      - name: Run actual MainActivity against Firebase Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 24
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: |
+            PROJECT_ID=$(jq -r '.project_info.project_id' androidApp/google-services.json)
+            e2e/web/node_modules/.bin/firebase emulators:start --project "$PROJECT_ID" --only database > firebase-emulator.log 2>&1 &
+            for attempt in {1..60}; do curl --fail --silent http://127.0.0.1:4400/emulators && break; sleep 1; done
+            curl --fail --silent http://127.0.0.1:4400/emulators
+            ./gradlew :androidApp:connectedDebugAndroidTest
+      - name: Upload Android diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-android-api24
+          path: |
+            androidApp/build/reports/androidTests/
+            androidApp/build/outputs/androidTest-results/
+            firebase-emulator.log
+            firebase-debug.log
+            database-debug.log
+          if-no-files-found: ignore
 
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
-
-      - name: Decode Firebase config
-        run: |
-          echo "${{ secrets.FIREBASE_CONFIG_JS }}" | base64 -d > composeApp/src/jsMain/resources/firebaseConfig.js
-
-      - name: Build js
-        run: ./gradlew jsBrowserProductionWebpack
-
-  build-jvm:
+  ios-build:
+    name: iOS compile
     runs-on: macos-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           java-version: '17'
-          distribution: 'temurin'
-
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
-
-      - name: Build jvm
-        run: ./gradlew jvmJar
-
-  lint:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
-
-      - name: Run ktlint
-        run: ./gradlew ktlintCheck
+          distribution: temurin
+          cache: gradle
+      - run: chmod +x ./gradlew
+      - name: Decode iOS Firebase config
+        run: echo "${{ secrets.FIREBASE_CONFIG_IOS }}" | base64 --decode > iosApp/iosApp/GoogleService-Info.plist
+      - run: ./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64

@@ -1,0 +1,21 @@
+name: Production schema smoke
+
+on:
+  schedule:
+    - cron: '30 5 * * 1'
+  workflow_dispatch:
+
+jobs:
+  read-only-schema:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Read public production paths and validate schema
+        run: node e2e/production-smoke.mjs
+        env:
+          DUBOVOZKI_PRODUCTION_DATABASE_URL: https://alad1nks-dubovozki-default-rtdb.europe-west1.firebasedatabase.app

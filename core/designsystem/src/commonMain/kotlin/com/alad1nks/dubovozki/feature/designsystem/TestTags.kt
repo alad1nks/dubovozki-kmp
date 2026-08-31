@@ -13,6 +13,7 @@ object TestTags {
     const val BUS_REFRESH = "bus.refresh"
     const val BUS_TAB_MOSCOW = "bus.tab.moscow"
     const val BUS_TAB_DUBKI = "bus.tab.dubki"
+    const val BUS_PAGER = "bus.pager"
     const val BUS_NEXT_CARD = "bus.next.card"
     const val BUS_NEXT_GO = "bus.next.go"
     const val BUS_EMPTY = "bus.empty"
@@ -29,6 +30,7 @@ object TestTags {
     const val SERVICE_SCHEDULE_BUILDING_1 = "service_schedule.building.1"
     const val SERVICE_SCHEDULE_BUILDING_2 = "service_schedule.building.2"
     const val SERVICE_SCHEDULE_BUILDING_3 = "service_schedule.building.3"
+    const val SERVICE_SCHEDULE_EMPTY = "service_schedule.empty"
 
     const val SETTINGS_THEME = "settings.theme"
     const val SETTINGS_LANGUAGE = "settings.language"
@@ -47,4 +49,15 @@ object TestTags {
     fun theme(value: String) = "settings.theme.${value.lowercase()}"
 
     fun language(value: String) = "settings.language.${value.lowercase()}"
+
+    fun currentTheme(value: String) = "settings.theme.current.${value.lowercase()}"
+
+    fun currentLanguage(value: String) = "settings.language.current.${value.lowercase()}"
+
+    fun appTheme(isDark: Boolean) = "app.theme.${if (isDark) "dark" else "light"}"
+
+    fun serviceScheduleDay(
+        day: Int,
+        isToday: Boolean,
+    ) = "service_schedule.day.$day.${if (isToday) "today" else "regular"}"
 }
