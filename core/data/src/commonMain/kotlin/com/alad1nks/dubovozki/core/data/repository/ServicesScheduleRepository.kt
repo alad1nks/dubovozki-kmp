@@ -24,7 +24,7 @@ class ServicesScheduleRepository(
             var cached =
                 storage.getServicesScheduleCache().first()?.decodeCacheEntry<ServicesScheduleResponse>()
             cached?.let {
-                emit(Data.Success(it.value.toDomainServicesSchedule(), it.updatedAtEpochMillis, isStale = true))
+                emit(Data.Success(it.value.toDomainServicesSchedule(), it.updatedAtEpochMillis))
             }
 
             servicesScheduleApi.getLinenRoomSchedule().collect { data ->

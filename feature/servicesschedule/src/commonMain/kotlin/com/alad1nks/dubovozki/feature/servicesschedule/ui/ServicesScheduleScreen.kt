@@ -6,13 +6,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -142,6 +145,7 @@ private fun ServiceScheduleScreen(
 private fun ServiceScheduleContent(
     schedule: List<ServicesScheduleItemUi>,
     modifier: Modifier = Modifier,
+    listState: LazyListState = rememberLazyListState(),
 ) {
     if (schedule.isEmpty()) {
         Box(modifier = modifier, contentAlignment = Alignment.Center) {
@@ -155,8 +159,20 @@ private fun ServiceScheduleContent(
         return
     }
 
-    LazyColumn(modifier = modifier) {
-        items(schedule) { item ->
+    LaunchedEffect(schedule) {
+        schedule.indexOfFirst { it.isToday }
+            .takeIf { it > 0 }
+            ?.let { listState.scrollToItem(it) }
+    }
+
+    LazyColumn(
+        modifier = modifier,
+        state = listState,
+    ) {
+        items(
+            items = schedule,
+            key = { item -> "${item.day}:${item.time}" },
+        ) { item ->
             ServicesScheduleListItem(
                 day = item.day,
                 time = item.time,

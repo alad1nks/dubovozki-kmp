@@ -25,7 +25,6 @@ class BusScheduleRepository(
                     Data.Success(
                         value = it.value.toDomainBusList(),
                         updatedAtEpochMillis = it.updatedAtEpochMillis,
-                        isStale = true,
                     ),
                 )
             }

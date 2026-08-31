@@ -15,6 +15,8 @@ import com.alad1nks.dubovozki.core.domain.GetServicesSchedule
 import com.alad1nks.dubovozki.core.domain.GetServicesScheduleImpl
 import com.alad1nks.dubovozki.core.domain.GetThemeMode
 import com.alad1nks.dubovozki.core.domain.GetThemeModeImpl
+import com.alad1nks.dubovozki.core.domain.ObserveMoscowDayOfWeek
+import com.alad1nks.dubovozki.core.domain.ObserveMoscowDayOfWeekImpl
 import com.alad1nks.dubovozki.core.domain.SetLanguage
 import com.alad1nks.dubovozki.core.domain.SetLanguageImpl
 import com.alad1nks.dubovozki.core.domain.SetThemeMode
@@ -27,6 +29,7 @@ val DomainModule =
         factory<GetLanguage> { GetLanguageImpl(get()) }
         factory<GetThemeMode> { GetThemeModeImpl(get()) }
         factory<GetMoscowDayOfWeek> { GetMoscowDayOfWeekImpl(get()) }
+        factory<ObserveMoscowDayOfWeek> { ObserveMoscowDayOfWeekImpl(get()) }
         factory { GetMoscowLocalDateTime() }
         factory<GetMoscowLocalTime> { GetMoscowLocalTimeImpl(get()) }
         factory<GetServices> { GetServicesImpl(get()) }
