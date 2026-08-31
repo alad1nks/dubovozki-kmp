@@ -1,6 +1,6 @@
 package com.alad1nks.dubovozki.core.firebase
 
-import com.alad1nks.dubovozki.core.firebase.FirebaseDatabaseReference.DATABASE_URL
+import com.alad1nks.dubovozki.core.firebase.FirebaseDatabaseReference.databaseUrl
 import com.alad1nks.dubovozki.core.model.Data
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -21,7 +21,7 @@ internal actual inline fun <reified T> MutableStateFlow<Data<T>>.addValueEventLi
         firebaseScope.launch {
             try {
                 val data: T =
-                    client.get("$DATABASE_URL/$pathString.json")
+                    client.get("$databaseUrl/$pathString.json")
                         .body()
 
                 value = Data.Success(data)

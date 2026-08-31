@@ -38,9 +38,11 @@ import com.alad1nks.dubovozki.core.model.StationFilter
 import com.alad1nks.dubovozki.feature.busschedule.model.BusScheduleTopAppBarUiState
 import com.alad1nks.dubovozki.feature.busschedule.model.BusScheduleUiState
 import com.alad1nks.dubovozki.feature.busschedule.model.BusUi
+import com.alad1nks.dubovozki.feature.designsystem.TestTags
 import com.alad1nks.dubovozki.feature.designsystem.component.LoadingState
 import com.alad1nks.dubovozki.feature.designsystem.component.MessageState
 import com.alad1nks.dubovozki.feature.designsystem.component.OfflineBanner
+import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
 import com.alad1nks.dubovozki.resources.AppResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -145,7 +147,7 @@ private fun BusScheduleScreen(
                     )
                     HorizontalPager(
                         state = pagerState,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).e2eTestTag(TestTags.BUS_PAGER),
                     ) { page ->
                         val busList = if (page == 0) uiState.moscowBusList else uiState.dubkiBusList
                         val firstBusIndex =
@@ -226,6 +228,8 @@ private fun BusSchedulePage(
             actionLabel = stringResource(AppResource.String.bus_schedule_reset_filters),
             onAction = onResetFilters,
             modifier = modifier.fillMaxSize(),
+            stateTestTag = TestTags.BUS_EMPTY,
+            actionTestTag = TestTags.BUS_RESET_FILTERS,
         )
         return
     }
@@ -254,6 +258,7 @@ private fun BusSchedulePage(
                     dayTime = bus.dayTime,
                     timeDifference = bus.timeDifference,
                     station = bus.station,
+                    modifier = Modifier.e2eTestTag(TestTags.bus(bus.id)),
                 )
             }
         }
@@ -271,6 +276,7 @@ private fun NextDepartureCard(
             modifier
                 .fillMaxWidth()
                 .padding(12.dp)
+                .e2eTestTag(TestTags.BUS_NEXT_CARD)
                 .semantics(mergeDescendants = true) {},
     ) {
         Column(
@@ -307,7 +313,10 @@ private fun NextDepartureCard(
                             )
                         }
                     }
-                    TextButton(onClick = onGoToNext) {
+                    TextButton(
+                        onClick = onGoToNext,
+                        modifier = Modifier.e2eTestTag(TestTags.BUS_NEXT_GO),
+                    ) {
                         Text(text = stringResource(AppResource.String.bus_schedule_go_to_next))
                     }
                 }
@@ -329,7 +338,9 @@ private val Bus.Station.text: String
 private fun formatUpdatedAt(updatedAtEpochMillis: Long?): String {
     if (updatedAtEpochMillis == null) return "—"
     val dateTime =
-        Instant.fromEpochMilliseconds(updatedAtEpochMillis)
-            .toLocalDateTime(TimeZone.of("Europe/Moscow"))
+        Instant.fromEpochMilliseconds(updatedAtEpochMillis + MOSCOW_OFFSET_MILLIS)
+            .toLocalDateTime(TimeZone.UTC)
     return "${dateTime.hour.toString().padStart(2, '0')}:${dateTime.minute.toString().padStart(2, '0')}"
 }
+
+private const val MOSCOW_OFFSET_MILLIS = 3 * 60 * 60 * 1_000L

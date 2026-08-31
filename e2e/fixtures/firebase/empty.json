@@ -1,0 +1,7 @@
+{
+  "busSchedule": { "revision": "e2e-empty-v1", "busList": [] },
+  "services": {},
+  "servicesSchedule": {
+    "linenRoom": { "firstBuilding": [], "secondBuilding": [], "thirdBuilding": [] }
+  }
+}

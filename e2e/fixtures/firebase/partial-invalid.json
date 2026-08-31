@@ -1,0 +1,13 @@
+{
+  "busSchedule": {
+    "revision": "e2e-partial-invalid-v1",
+    "busList": [
+      { "id": 101, "dayOfWeek": 2, "dayTime": 32400000, "dayTimeString": "09:00", "direction": "msk", "station": "odn" },
+      { "dayOfWeek": 2, "dayTime": 32400000, "dayTimeString": "09:00", "direction": "msk", "station": "odn" },
+      { "id": 102, "dayOfWeek": 2, "direction": "msk", "station": "odn" },
+      { "id": 103, "dayOfWeek": 2, "dayTime": 32400000, "dayTimeString": "09:00", "direction": "bad", "station": "odn" }
+    ]
+  },
+  "services": {},
+  "servicesSchedule": { "linenRoom": {} }
+}

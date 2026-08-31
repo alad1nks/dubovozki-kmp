@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.alad1nks.dubovozki.core.navigation.Destination
 import com.alad1nks.dubovozki.core.navigation.serialName
 import com.alad1nks.dubovozki.feature.busschedule.navigation.BusScheduleRoute
+import com.alad1nks.dubovozki.feature.designsystem.TestTags
 import com.alad1nks.dubovozki.feature.services.navigation.ServicesRoute
 import com.alad1nks.dubovozki.feature.settings.navigation.SettingsRoute
 import com.alad1nks.dubovozki.resources.AppResource
@@ -21,24 +22,28 @@ internal enum class AppTopLevelDestination(
     val unselectedIcon: ImageVector,
     val labelStringResource: StringResource,
     val route: Destination,
+    val testTag: String,
 ) {
     SERVICES(
         selectedIcon = Icons.Filled.HolidayVillage,
         unselectedIcon = Icons.Outlined.HolidayVillage,
         labelStringResource = AppResource.String.services_navigation_bar_label,
         route = ServicesRoute,
+        testTag = TestTags.NAV_SERVICES,
     ),
     BUS_SCHEDULE(
         selectedIcon = Icons.Filled.DirectionsBus,
         unselectedIcon = Icons.Outlined.DirectionsBus,
         labelStringResource = AppResource.String.bus_schedule_navigation_bar_label,
         route = BusScheduleRoute,
+        testTag = TestTags.NAV_SCHEDULE,
     ),
     SETTINGS(
         selectedIcon = Icons.Filled.Settings,
         unselectedIcon = Icons.Outlined.Settings,
         labelStringResource = AppResource.String.settings_navigation_bar_label,
         route = SettingsRoute,
+        testTag = TestTags.NAV_SETTINGS,
     ),
 }
 

@@ -15,12 +15,14 @@ import com.alad1nks.dubovozki.core.domain.GetServicesSchedule
 import com.alad1nks.dubovozki.core.domain.GetServicesScheduleImpl
 import com.alad1nks.dubovozki.core.domain.GetThemeMode
 import com.alad1nks.dubovozki.core.domain.GetThemeModeImpl
+import com.alad1nks.dubovozki.core.domain.MoscowTimeProvider
 import com.alad1nks.dubovozki.core.domain.ObserveMoscowDayOfWeek
 import com.alad1nks.dubovozki.core.domain.ObserveMoscowDayOfWeekImpl
 import com.alad1nks.dubovozki.core.domain.SetLanguage
 import com.alad1nks.dubovozki.core.domain.SetLanguageImpl
 import com.alad1nks.dubovozki.core.domain.SetThemeMode
 import com.alad1nks.dubovozki.core.domain.SetThemeModeImpl
+import com.alad1nks.dubovozki.core.domain.SystemMoscowTimeProvider
 import org.koin.dsl.module
 
 val DomainModule =
@@ -30,7 +32,8 @@ val DomainModule =
         factory<GetThemeMode> { GetThemeModeImpl(get()) }
         factory<GetMoscowDayOfWeek> { GetMoscowDayOfWeekImpl(get()) }
         factory<ObserveMoscowDayOfWeek> { ObserveMoscowDayOfWeekImpl(get()) }
-        factory { GetMoscowLocalDateTime() }
+        single<MoscowTimeProvider> { SystemMoscowTimeProvider() }
+        factory { GetMoscowLocalDateTime(get()) }
         factory<GetMoscowLocalTime> { GetMoscowLocalTimeImpl(get()) }
         factory<GetServices> { GetServicesImpl(get()) }
         factory<GetServicesSchedule> { GetServicesScheduleImpl(get()) }

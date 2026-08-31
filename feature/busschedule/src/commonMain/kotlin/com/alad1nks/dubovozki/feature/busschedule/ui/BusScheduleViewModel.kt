@@ -13,13 +13,11 @@ import com.alad1nks.dubovozki.feature.busschedule.model.BusScheduleTopAppBarUiSt
 import com.alad1nks.dubovozki.feature.busschedule.model.BusScheduleUiState
 import com.alad1nks.dubovozki.feature.busschedule.model.BusUi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
@@ -36,19 +34,7 @@ internal class BusScheduleViewModel(
     private val dayOfWeekFilterSpinnerExpanded = MutableStateFlow(false)
     private val selectedDayOfWeekFilter = MutableStateFlow(DayOfWeekFilter.TODAY)
 
-    private val currentTime =
-        flow {
-            val startTime = getMoscowLocalTime().toMillisecondOfDay()
-            emit(startTime)
-
-            val startDelay = MINUTE - (startTime % MINUTE)
-            delay(startDelay)
-
-            while (true) {
-                emit(getMoscowLocalTime().toMillisecondOfDay())
-                delay(MINUTE)
-            }
-        }
+    private val currentTime = getMoscowLocalTime.observe().map { it.toMillisecondOfDay() }
 
     val topAppBarUiState: StateFlow<BusScheduleTopAppBarUiState> =
         combine(
@@ -165,10 +151,6 @@ internal class BusScheduleViewModel(
             timeDifference = currentTime?.let { dayTime - it },
             station = station,
         )
-    }
-
-    companion object {
-        private const val MINUTE = 60_000L
     }
 }
 

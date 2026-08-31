@@ -11,6 +11,8 @@ the right cell in the old schedule file Just open it and instantly find out the 
 
 This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop (JVM).
 
+E2E architecture, local commands and CI matrices are documented in [docs/e2e-testing.md](./docs/e2e-testing.md).
+
 * [/composeApp](./composeApp) is for code that will be shared across your Compose Multiplatform applications.
   It contains several subfolders:
   - [commonMain](./composeApp/src/commonMain) is for code that’s common for all targets.

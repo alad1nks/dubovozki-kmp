@@ -26,7 +26,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.alad1nks.dubovozki.core.model.DayOfWeekFilter
 import com.alad1nks.dubovozki.core.model.StationFilter
+import com.alad1nks.dubovozki.feature.designsystem.TestTags
 import com.alad1nks.dubovozki.feature.designsystem.component.Spinner
+import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
 import com.alad1nks.dubovozki.resources.AppResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -68,7 +70,10 @@ internal fun BusScheduleTopAppBar(
             )
         },
         actions = {
-            IconButton(onClick = onRefreshClick) {
+            IconButton(
+                onClick = onRefreshClick,
+                modifier = Modifier.e2eTestTag(TestTags.BUS_REFRESH),
+            ) {
                 Icon(
                     imageVector = Icons.Outlined.Refresh,
                     contentDescription = stringResource(AppResource.String.common_refresh),
@@ -119,12 +124,13 @@ private fun BusScheduleTopAppBarSpinnerRow(
                     DropdownMenuItem(
                         text = { Text(text = station.text) },
                         onClick = { onStationFilterSelect(station) },
+                        modifier = Modifier.e2eTestTag(TestTags.stationFilter(station.name)),
                     )
                 }
             },
             onClick = onStationFilterSpinnerClick,
             onDismissRequest = onStationFilterSpinnerDismissRequest,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).e2eTestTag(TestTags.BUS_FILTER_STATION),
         )
 
         Spacer(modifier = Modifier.width(16.dp))
@@ -144,12 +150,13 @@ private fun BusScheduleTopAppBarSpinnerRow(
                     DropdownMenuItem(
                         text = { Text(text = day.text) },
                         onClick = { onDayOfWeekFilterSelect(day) },
+                        modifier = Modifier.e2eTestTag(TestTags.dayFilter(day.name)),
                     )
                 }
             },
             onClick = onDayOfWeekFilterSpinnerClick,
             onDismissRequest = onDayOfWeekFilterSpinnerDismissRequest,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).e2eTestTag(TestTags.BUS_FILTER_DAY),
         )
     }
 }

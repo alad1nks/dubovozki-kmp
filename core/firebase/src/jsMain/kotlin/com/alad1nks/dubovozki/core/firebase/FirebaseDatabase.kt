@@ -5,6 +5,12 @@ package com.alad1nks.dubovozki.core.firebase
 internal external object FirebaseDatabase {
     fun getDatabase(app: dynamic): dynamic
 
+    fun connectDatabaseEmulator(
+        db: dynamic,
+        host: String,
+        port: Int,
+    )
+
     fun ref(db: dynamic, path: String): dynamic
 
     fun onValue(

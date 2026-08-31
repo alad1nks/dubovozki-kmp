@@ -1,0 +1,189 @@
+name: E2E nightly
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-nightly
+  cancel-in-progress: false
+
+jobs:
+  web:
+    name: Web ${{ matrix.project }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, firefox, webkit, mobile-chromium]
+        include:
+          - project: chromium
+            browser: chromium
+          - project: firefox
+            browser: firefox
+          - project: webkit
+            browser: webkit
+          - project: mobile-chromium
+            browser: chromium
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: gradle
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: e2e/web/package-lock.json
+      - run: chmod +x ./gradlew
+      - run: npm ci
+        working-directory: e2e/web
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+        working-directory: e2e/web
+      - run: npm test -- --project=${{ matrix.project }}
+        working-directory: e2e/web
+      - name: Upload Web diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-web-${{ matrix.project }}
+          path: |
+            e2e/web/test-results/
+            e2e/web/playwright-report/
+            firebase-debug.log
+            database-debug.log
+          if-no-files-found: ignore
+
+  android:
+    name: Android API ${{ matrix.api }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [24, 35]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: gradle
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: e2e/web/package-lock.json
+      - run: chmod +x ./gradlew
+      - name: Decode Android Firebase config
+        run: echo "${{ secrets.FIREBASE_CONFIG_ANDROID }}" | base64 --decode > androidApp/google-services.json
+      - name: Export Firebase project ID
+        run: echo "E2E_FIREBASE_PROJECT_ID=$(jq -r '.project_info.project_id' androidApp/google-services.json)" >> "$GITHUB_ENV"
+      - run: npm ci
+        working-directory: e2e/web
+      - name: Run actual Android app
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: |
+            nohup e2e/web/node_modules/.bin/firebase emulators:start --project "$E2E_FIREBASE_PROJECT_ID" --only database > firebase-emulator.log 2>&1 &
+            timeout 60 sh -c 'until curl --fail --silent http://127.0.0.1:4400/emulators; do sleep 1; done'
+            curl --fail --silent http://127.0.0.1:4400/emulators
+            ./gradlew :androidApp:connectedDebugAndroidTest
+      - name: Upload Android diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-android-api${{ matrix.api }}
+          path: |
+            androidApp/build/reports/androidTests/
+            androidApp/build/outputs/androidTest-results/
+            firebase-emulator.log
+          if-no-files-found: ignore
+
+  desktop:
+    name: Desktop ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: gradle
+      - name: Run Desktop entry test
+        if: runner.os != 'Windows'
+        run: |
+          chmod +x ./gradlew
+          ./gradlew :composeApp:jvmTest --tests '*DesktopEntryPointE2ETest*'
+      - name: Run Desktop entry test on Windows
+        if: runner.os == 'Windows'
+        run: .\gradlew.bat :composeApp:jvmTest --tests '*DesktopEntryPointE2ETest*'
+      - name: Upload Desktop reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-desktop-${{ matrix.os }}
+          path: composeApp/build/reports/tests/jvmTest/
+          if-no-files-found: ignore
+
+  ios:
+    name: iOS Simulator shared and shell
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: gradle
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: e2e/web/package-lock.json
+      - run: chmod +x ./gradlew
+      - name: Decode iOS Firebase config
+        run: echo "${{ secrets.FIREBASE_CONFIG_IOS }}" | base64 --decode > iosApp/iosApp/GoogleService-Info.plist
+      - run: npm ci
+        working-directory: e2e/web
+      - name: Start Firebase Emulator and seed fixture
+        run: |
+          PROJECT_ID=$(/usr/libexec/PlistBuddy -c 'Print :PROJECT_ID' iosApp/iosApp/GoogleService-Info.plist)
+          echo "E2E_FIREBASE_PROJECT_ID=$PROJECT_ID" >> "$GITHUB_ENV"
+          e2e/web/node_modules/.bin/firebase emulators:start --project "$PROJECT_ID" --only database > firebase-emulator.log 2>&1 &
+          for attempt in {1..60}; do curl --fail --silent http://127.0.0.1:4400/emulators && break; sleep 1; done
+          curl --fail --silent --request PUT --header 'Content-Type: application/json' --data-binary @e2e/fixtures/firebase/happy.json "http://127.0.0.1:9000/.json?ns=$PROJECT_ID"
+      - name: Run shared iOS suite
+        run: ./gradlew :composeApp:iosSimulatorArm64Test
+      - name: Select and boot simulator
+        run: |
+          UDID=$(xcrun simctl list devices available -j | jq -r '[.devices[][] | select(.name | startswith("iPhone"))][0].udid')
+          xcrun simctl boot "$UDID" || true
+          echo "SIMULATOR_UDID=$UDID" >> "$GITHUB_ENV"
+      - name: Run SwiftUI shell XCUITest
+        run: xcodebuild test -project iosApp/iosApp.xcodeproj -scheme iosApp -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" -resultBundlePath iosApp/TestResults.xcresult
+      - name: Upload iOS diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-ios
+          path: |
+            iosApp/TestResults.xcresult/
+            composeApp/build/reports/tests/
+            firebase-emulator.log
+          if-no-files-found: ignore

@@ -18,49 +18,68 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import com.alad1nks.dubovozki.core.model.ThemeMode
+import com.alad1nks.dubovozki.feature.designsystem.TestTags
+import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
 import com.alad1nks.dubovozki.feature.designsystem.isTablet
 import com.alad1nks.dubovozki.feature.designsystem.theme.AppTheme
 import com.alad1nks.dubovozki.shared.CommonModules
 import com.alad1nks.dubovozki.shared.PlatformModules
 import com.alad1nks.dubovozki.shared.navigation.AppNavHost
 import org.koin.compose.KoinApplication
+import org.koin.compose.KoinIsolatedContext
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.module.Module
 import org.koin.core.parameter.parametersOf
 import org.koin.dsl.koinConfiguration
+import org.koin.core.KoinApplication as CoreKoinApplication
 
 @Composable
-fun App() {
+fun App(
+    modules: List<Module> = CommonModules + PlatformModules,
+    isolatedKoinApplication: CoreKoinApplication? = null,
+) {
     val appState = rememberAppState()
 
-    KoinApplication(
-        configuration =
-            koinConfiguration {
-                modules(CommonModules + PlatformModules)
-            },
-    ) {
-        val viewModel =
-            koinViewModel<MainViewModel>(
-                parameters = { parametersOf() },
-            )
-        val themeMode by viewModel.themeMode.collectAsState(ThemeMode.SYSTEM)
-        val language by viewModel.language.collectAsState(null)
-        val systemInDarkTheme = isSystemInDarkTheme()
-        val darkTheme =
-            when (themeMode) {
-                ThemeMode.SYSTEM -> systemInDarkTheme
-                ThemeMode.LIGHT -> false
-                ThemeMode.DARK -> true
-            }
-
-        AppTheme(
-            darkTheme = darkTheme,
+    if (isolatedKoinApplication == null) {
+        KoinApplication(
+            configuration =
+                koinConfiguration {
+                    allowOverride(true)
+                    modules(modules)
+                },
         ) {
-            CompositionLocalProvider(
-                LocalAppLocale provides language?.code,
-            ) {
-                key(language) {
-                    AppContent(appState = appState)
-                }
+            AppWithDependencies(appState)
+        }
+    } else {
+        KoinIsolatedContext(context = isolatedKoinApplication) {
+            AppWithDependencies(appState)
+        }
+    }
+}
+
+@Composable
+private fun AppWithDependencies(appState: AppState) {
+    val viewModel =
+        koinViewModel<MainViewModel>(
+            parameters = { parametersOf() },
+        )
+    val themeMode by viewModel.themeMode.collectAsState(ThemeMode.SYSTEM)
+    val language by viewModel.language.collectAsState(null)
+    val systemInDarkTheme = isSystemInDarkTheme()
+    val darkTheme =
+        when (themeMode) {
+            ThemeMode.SYSTEM -> systemInDarkTheme
+            ThemeMode.LIGHT -> false
+            ThemeMode.DARK -> true
+        }
+
+    AppTheme(darkTheme = darkTheme) {
+        CompositionLocalProvider(LocalAppLocale provides language?.code) {
+            key(language) {
+                AppContent(
+                    appState = appState,
+                    darkTheme = darkTheme,
+                )
             }
         }
     }
@@ -69,11 +88,12 @@ fun App() {
 @Composable
 private fun AppContent(
     appState: AppState,
+    darkTheme: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val isTablet = isTablet()
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.e2eTestTag(TestTags.APP_CONTENT),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar =
             {
@@ -90,6 +110,7 @@ private fun AppContent(
             modifier =
                 Modifier
                     .fillMaxSize()
+                    .e2eTestTag(TestTags.appTheme(darkTheme))
                     .padding(padding)
                     .consumeWindowInsets(padding)
                     .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),

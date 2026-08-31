@@ -5,11 +5,15 @@ android-minSdk = "24"
 android-targetSdk = "37"
 androidx-activity = "1.13.0"
 androidx-lifecycle = "2.11.0"
+androidx-test-core = "1.6.1"
+androidx-test-ext-junit = "1.2.1"
+androidx-test-runner = "1.6.2"
 compose = "1.11.1"
 compose-material-icons = "1.7.3"
 compose-material3 = "1.9.0"
 composeHotReload = "1.2.0"
 datastore = "1.2.1"
+desugar-jdk-libs = "2.1.5"
 firebase-bom = "34.18.0"
 google-services = "4.5.0"
 koin-bom = "4.2.2"
@@ -31,10 +35,16 @@ compose-material-icons-extended = { module = "org.jetbrains.compose.material:mat
 compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "compose-material3" }
 compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose" }
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "compose" }
+compose-ui-test = { module = "org.jetbrains.compose.ui:ui-test", version.ref = "compose" }
+compose-ui-test-junit4 = { module = "org.jetbrains.compose.ui:ui-test-junit4", version.ref = "compose" }
+androidx-test-core = { module = "androidx.test:core", version.ref = "androidx-test-core" }
+androidx-test-ext-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-test-ext-junit" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidx-test-runner" }
 compose-ui-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "compose" }
 datastore = { module = "androidx.datastore:datastore", version.ref = "datastore" }
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
+desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar-jdk-libs" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
 firebase-database = { module = "com.google.firebase:firebase-database" }
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }

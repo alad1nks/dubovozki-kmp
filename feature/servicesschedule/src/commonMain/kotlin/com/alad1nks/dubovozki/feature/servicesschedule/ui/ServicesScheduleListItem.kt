@@ -12,8 +12,11 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.alad1nks.dubovozki.feature.designsystem.TestTags
+import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
 import com.alad1nks.dubovozki.resources.AppResource
 import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.isoDayNumber
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -29,7 +32,7 @@ internal fun ServicesScheduleListItem(
 ) {
     ListItem(
         headlineContent = { Text(text = time) },
-        modifier = modifier,
+        modifier = modifier.e2eTestTag(TestTags.serviceScheduleDay(day.isoDayNumber, isToday)),
         leadingContent = {
             Box(
                 modifier =

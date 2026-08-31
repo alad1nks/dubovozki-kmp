@@ -6,6 +6,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.alad1nks.dubovozki.feature.designsystem.TestTags
+import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
 import com.alad1nks.dubovozki.resources.AppResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -29,6 +31,14 @@ internal fun ServicesScheduleTabRow(
             Tab(
                 selected = selectedTabIndex == index,
                 onClick = { onSelect(index) },
+                modifier =
+                    Modifier.e2eTestTag(
+                        when (index) {
+                            0 -> TestTags.SERVICE_SCHEDULE_BUILDING_1
+                            1 -> TestTags.SERVICE_SCHEDULE_BUILDING_2
+                            else -> TestTags.SERVICE_SCHEDULE_BUILDING_3
+                        },
+                    ),
                 text = { Text(text = building) },
             )
         }

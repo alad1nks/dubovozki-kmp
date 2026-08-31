@@ -32,6 +32,7 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 8
         versionName = "2.3"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     packaging {
         resources {
@@ -63,7 +64,20 @@ android {
         }
     }
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    sourceSets.getByName("androidTest").assets.srcDir(rootProject.file("e2e/fixtures/firebase"))
+}
+
+dependencies {
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
+    androidTestImplementation(libs.androidx.test.core)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.compose.ui.test.junit4)
+    androidTestImplementation(platform(libs.firebase.bom))
+    androidTestImplementation(libs.firebase.database)
+    androidTestImplementation(projects.core.designsystem)
 }

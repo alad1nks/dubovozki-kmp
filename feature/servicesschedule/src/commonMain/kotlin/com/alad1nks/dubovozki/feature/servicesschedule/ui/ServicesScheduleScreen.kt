@@ -23,9 +23,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.alad1nks.dubovozki.core.model.ServicesScheduleType
+import com.alad1nks.dubovozki.feature.designsystem.TestTags
 import com.alad1nks.dubovozki.feature.designsystem.component.LoadingState
 import com.alad1nks.dubovozki.feature.designsystem.component.MessageState
 import com.alad1nks.dubovozki.feature.designsystem.component.OfflineBanner
+import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
 import com.alad1nks.dubovozki.feature.servicesschedule.model.ServicesScheduleItemUi
 import com.alad1nks.dubovozki.feature.servicesschedule.model.ServicesScheduleUiState
 import com.alad1nks.dubovozki.resources.AppResource
@@ -148,7 +150,10 @@ private fun ServiceScheduleContent(
     listState: LazyListState = rememberLazyListState(),
 ) {
     if (schedule.isEmpty()) {
-        Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        Box(
+            modifier = modifier.e2eTestTag(TestTags.SERVICE_SCHEDULE_EMPTY),
+            contentAlignment = Alignment.Center,
+        ) {
             Text(
                 text = stringResource(AppResource.String.services_schedule_empty),
                 modifier = Modifier.padding(24.dp),
@@ -185,7 +190,9 @@ private fun ServiceScheduleContent(
 private fun formatUpdatedAt(updatedAtEpochMillis: Long?): String {
     if (updatedAtEpochMillis == null) return "—"
     val dateTime =
-        Instant.fromEpochMilliseconds(updatedAtEpochMillis)
-            .toLocalDateTime(TimeZone.of("Europe/Moscow"))
+        Instant.fromEpochMilliseconds(updatedAtEpochMillis + MOSCOW_OFFSET_MILLIS)
+            .toLocalDateTime(TimeZone.UTC)
     return "${dateTime.hour.toString().padStart(2, '0')}:${dateTime.minute.toString().padStart(2, '0')}"
 }
+
+private const val MOSCOW_OFFSET_MILLIS = 3 * 60 * 60 * 1_000L

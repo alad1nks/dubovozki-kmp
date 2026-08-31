@@ -1,0 +1,23 @@
+{
+  "busSchedule": {
+    "revision": "e2e-happy-v1",
+    "busList": [
+      { "id": 1, "dayOfWeek": 2, "dayTime": 32400000, "dayTimeString": "09:00", "direction": "msk", "station": "odn" },
+      { "id": 2, "dayOfWeek": 2, "dayTime": 33000000, "dayTimeString": "09:10", "direction": "dbk", "station": "odn" },
+      { "id": 3, "dayOfWeek": 3, "dayTime": 36000000, "dayTimeString": "10:00", "direction": "msk", "station": "slv" },
+      { "id": 4, "dayOfWeek": 7, "dayTime": 39600000, "dayTimeString": "11:00", "direction": "dbk", "station": "mld" },
+      { "id": 5, "dayOfWeek": 1, "dayTime": 43200000, "dayTimeString": "12:00", "direction": "msk", "station": "odn" }
+    ]
+  },
+  "services": {
+    "contactLink": "https://t.me/dubki_contact",
+    "donutLink": "https://example.test/donate"
+  },
+  "servicesSchedule": {
+    "linenRoom": {
+      "firstBuilding": [{ "day": 1, "time": "10:00–12:00" }],
+      "secondBuilding": [{ "day": 2, "time": "11:00–13:00" }],
+      "thirdBuilding": [{ "day": 5, "time": "17:00–19:00" }]
+    }
+  }
+}

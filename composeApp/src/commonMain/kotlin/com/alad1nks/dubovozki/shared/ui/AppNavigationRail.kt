@@ -7,6 +7,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavDestination
+import com.alad1nks.dubovozki.feature.designsystem.TestTags
+import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
 import com.alad1nks.dubovozki.shared.navigation.AppTopLevelDestination
 import com.alad1nks.dubovozki.shared.navigation.routeSerialName
 import org.jetbrains.compose.resources.stringResource
@@ -19,7 +21,7 @@ internal fun AppNavigationRail(
     modifier: Modifier = Modifier,
 ) {
     NavigationRail(
-        modifier = modifier,
+        modifier = modifier.e2eTestTag(TestTags.NAVIGATION_RAIL),
     ) {
         appTopLevelDestinations.forEach { topLevelDestination ->
             val selected = currentDestination.isTopLevelDestinationInHierarchy(topLevelDestination)
@@ -27,6 +29,7 @@ internal fun AppNavigationRail(
             AppNavigationRailItem(
                 selected = selected,
                 onClick = { onNavigateToDestination(topLevelDestination) },
+                modifier = Modifier.e2eTestTag(topLevelDestination.testTag),
                 icon = {
                     Icon(
                         imageVector = topLevelDestination.unselectedIcon,
