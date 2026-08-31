@@ -20,7 +20,7 @@ jobs:
           distribution: temurin
           cache: gradle
       - run: chmod +x ./gradlew
-      - run: ./gradlew ktlintCheck test :composeApp:jvmTest
+      - run: ./gradlew ktlintCheck test :composeApp:jvmTest -x :androidApp:processDebugGoogleServices
       - name: Upload JVM test reports
         if: always()
         uses: actions/upload-artifact@v4

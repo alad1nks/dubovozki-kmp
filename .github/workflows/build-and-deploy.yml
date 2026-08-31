@@ -22,7 +22,7 @@ jobs:
           cache: npm
           cache-dependency-path: e2e/web/package-lock.json
       - run: chmod +x ./gradlew
-      - run: ./gradlew ktlintCheck test :composeApp:jvmTest
+      - run: ./gradlew ktlintCheck test :composeApp:jvmTest -x :androidApp:processDebugGoogleServices
       - run: npm ci
         working-directory: e2e/web
       - run: npx playwright install --with-deps chromium
