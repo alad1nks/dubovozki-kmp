@@ -38,7 +38,9 @@ class AndroidEntryPointE2ETest {
 
     @After
     fun tearDown() {
-        scenario.close()
+        if (::scenario.isInitialized) {
+            scenario.close()
+        }
         System.clearProperty("dubovozki.e2e.firebase.host")
         System.clearProperty("dubovozki.e2e.firebase.port")
     }
