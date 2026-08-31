@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -34,7 +36,7 @@ class RepositoryStateTest {
         }
 
     @Test
-    fun cachedScheduleIsReturnedAsStaleWhileOffline() =
+    fun cachedScheduleIsOnlyMarkedStaleAfterNetworkFailure() =
         runTest {
             val response = BusScheduleResponse(busList = listOf(validBusResponse()))
             val storage =
@@ -47,12 +49,16 @@ class RepositoryStateTest {
                     storage = storage,
                 )
 
-            val result =
-                assertIs<Data.Success<List<com.alad1nks.dubovozki.core.model.Bus>>>(repository.getBusList().first())
+            val results = repository.getBusList().take(2).toList()
+            val validatingCache =
+                assertIs<Data.Success<List<com.alad1nks.dubovozki.core.model.Bus>>>(results.first())
+            val offlineCache =
+                assertIs<Data.Success<List<com.alad1nks.dubovozki.core.model.Bus>>>(results.last())
 
-            assertTrue(result.isStale)
-            assertEquals(123L, result.updatedAtEpochMillis)
-            assertEquals(1, result.value.size)
+            assertFalse(validatingCache.isStale)
+            assertTrue(offlineCache.isStale)
+            assertEquals(123L, offlineCache.updatedAtEpochMillis)
+            assertEquals(1, offlineCache.value.size)
         }
 
     @Test

@@ -2,8 +2,8 @@ package com.alad1nks.dubovozki.feature.servicesschedule.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.alad1nks.dubovozki.core.domain.GetMoscowDayOfWeek
 import com.alad1nks.dubovozki.core.domain.GetServicesSchedule
+import com.alad1nks.dubovozki.core.domain.ObserveMoscowDayOfWeek
 import com.alad1nks.dubovozki.core.model.Data
 import com.alad1nks.dubovozki.core.model.ServicesScheduleItem
 import com.alad1nks.dubovozki.core.model.ServicesScheduleType
@@ -11,7 +11,7 @@ import com.alad1nks.dubovozki.feature.servicesschedule.model.ServicesScheduleIte
 import com.alad1nks.dubovozki.feature.servicesschedule.model.ServicesScheduleUiState
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.isoDayNumber
@@ -19,32 +19,34 @@ import kotlinx.datetime.isoDayNumber
 internal class ServicesScheduleViewModel(
     val servicesScheduleType: ServicesScheduleType,
     private val getServicesSchedule: GetServicesSchedule,
-    private val getMoscowDayOfWeek: GetMoscowDayOfWeek,
+    private val observeMoscowDayOfWeek: ObserveMoscowDayOfWeek,
 ) : ViewModel() {
     val uiState: StateFlow<ServicesScheduleUiState> =
-        getServicesSchedule(servicesScheduleType)
-            .map { servicesSchedule ->
-                when (servicesSchedule) {
-                    is Data.Success -> {
-                        val servicesScheduleValue = servicesSchedule.value
-                        val firstBuildingSchedule = servicesScheduleValue.firstBuildingSchedule
-                        val secondBuildingSchedule = servicesScheduleValue.secondBuildingSchedule
-                        val thirdBuildingSchedule = servicesScheduleValue.thirdBuildingSchedule
+        combine(
+            getServicesSchedule(servicesScheduleType),
+            observeMoscowDayOfWeek(),
+        ) { servicesSchedule, todayDayOfWeek ->
+            when (servicesSchedule) {
+                is Data.Success -> {
+                    val servicesScheduleValue = servicesSchedule.value
+                    val firstBuildingSchedule = servicesScheduleValue.firstBuildingSchedule
+                    val secondBuildingSchedule = servicesScheduleValue.secondBuildingSchedule
+                    val thirdBuildingSchedule = servicesScheduleValue.thirdBuildingSchedule
 
-                        val todayDayOfWeekNumber = getMoscowDayOfWeek().isoDayNumber
+                    val todayDayOfWeekNumber = todayDayOfWeek.isoDayNumber
 
-                        ServicesScheduleUiState.Content(
-                            firstBuildingSchedule = firstBuildingSchedule.mapToUi(todayDayOfWeekNumber),
-                            secondBuildingSchedule = secondBuildingSchedule.mapToUi(todayDayOfWeekNumber),
-                            thirdBuildingSchedule = thirdBuildingSchedule.mapToUi(todayDayOfWeekNumber),
-                            updatedAtEpochMillis = servicesSchedule.updatedAtEpochMillis,
-                            isStale = servicesSchedule.isStale,
-                        )
-                    }
-                    is Data.Initial -> ServicesScheduleUiState.Loading
-                    is Data.Error -> ServicesScheduleUiState.Error(servicesSchedule.message)
+                    ServicesScheduleUiState.Content(
+                        firstBuildingSchedule = firstBuildingSchedule.mapToUi(todayDayOfWeekNumber),
+                        secondBuildingSchedule = secondBuildingSchedule.mapToUi(todayDayOfWeekNumber),
+                        thirdBuildingSchedule = thirdBuildingSchedule.mapToUi(todayDayOfWeekNumber),
+                        updatedAtEpochMillis = servicesSchedule.updatedAtEpochMillis,
+                        isStale = servicesSchedule.isStale,
+                    )
                 }
+                is Data.Initial -> ServicesScheduleUiState.Loading
+                is Data.Error -> ServicesScheduleUiState.Error(servicesSchedule.message)
             }
+        }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),

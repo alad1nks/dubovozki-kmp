@@ -1,11 +1,15 @@
 package com.alad1nks.dubovozki.feature.settings.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
@@ -104,6 +108,7 @@ private fun SettingsContent(
     Column(modifier = modifier) {
         SettingsSpinner(
             title = stringResource(AppResource.String.settings_theme),
+            selectedItem = themeMode,
             selectedText = stringResource(themeMode.stringResource),
             items = ThemeMode.entries,
             itemText = { stringResource(it.stringResource) },
@@ -111,6 +116,7 @@ private fun SettingsContent(
         )
         SettingsSpinner(
             title = stringResource(AppResource.String.settings_language),
+            selectedItem = language,
             selectedText = stringResource(language.stringResource),
             items = Language.entries,
             itemText = { stringResource(it.stringResource) },
@@ -122,6 +128,7 @@ private fun SettingsContent(
 @Composable
 private fun <T> SettingsSpinner(
     title: String,
+    selectedItem: T,
     selectedText: String,
     items: List<T>,
     itemText: @Composable (T) -> String,
@@ -131,7 +138,7 @@ private fun <T> SettingsSpinner(
     var expanded by remember { mutableStateOf(false) }
 
     ListItem(
-        modifier = modifier,
+        modifier = modifier.clickable { expanded = true },
         headlineContent = { Text(text = title) },
         trailingContent = {
             Spinner(
@@ -141,6 +148,14 @@ private fun <T> SettingsSpinner(
                     items.forEach { item ->
                         DropdownMenuItem(
                             text = { Text(text = itemText(item)) },
+                            trailingIcon = {
+                                if (item == selectedItem) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Check,
+                                        contentDescription = null,
+                                    )
+                                }
+                            },
                             onClick = {
                                 expanded = false
                                 onSelect(item)

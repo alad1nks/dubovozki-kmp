@@ -11,7 +11,7 @@ val ServicesScheduleModule =
             ServicesScheduleViewModel(
                 servicesScheduleType = servicesScheduleType,
                 getServicesSchedule = get(),
-                getMoscowDayOfWeek = get(),
+                observeMoscowDayOfWeek = get(),
             )
         }
     }

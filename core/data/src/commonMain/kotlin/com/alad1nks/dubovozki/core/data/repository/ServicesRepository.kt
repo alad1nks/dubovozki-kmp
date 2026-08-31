@@ -21,7 +21,7 @@ class ServicesRepository(
         return flow {
             var cached = storage.getServicesCache().first()?.decodeCacheEntry<ServicesResponse>()
             cached?.let {
-                emit(Data.Success(it.value.toDomainServices(), it.updatedAtEpochMillis, isStale = true))
+                emit(Data.Success(it.value.toDomainServices(), it.updatedAtEpochMillis))
             }
 
             servicesApi.getServices().collect { data ->

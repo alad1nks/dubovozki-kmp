@@ -7,6 +7,6 @@ import org.koin.dsl.module
 val BusScheduleModule =
     module {
         viewModel {
-            BusScheduleViewModel(get(), get())
+            BusScheduleViewModel(get(), get(), get())
         }
     }

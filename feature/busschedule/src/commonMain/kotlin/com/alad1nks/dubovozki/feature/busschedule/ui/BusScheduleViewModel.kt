@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alad1nks.dubovozki.core.domain.GetBusSchedule
 import com.alad1nks.dubovozki.core.domain.GetMoscowLocalTime
+import com.alad1nks.dubovozki.core.domain.ObserveMoscowDayOfWeek
 import com.alad1nks.dubovozki.core.model.Bus
 import com.alad1nks.dubovozki.core.model.Data
 import com.alad1nks.dubovozki.core.model.DayOfWeekFilter
@@ -28,6 +29,7 @@ import kotlin.time.ExperimentalTime
 internal class BusScheduleViewModel(
     private val getBusSchedule: GetBusSchedule,
     private val getMoscowLocalTime: GetMoscowLocalTime,
+    private val observeMoscowDayOfWeek: ObserveMoscowDayOfWeek,
 ) : ViewModel() {
     private val stationFilterSpinnerExpanded = MutableStateFlow(false)
     private val selectedStationFilter = MutableStateFlow(StationFilter.ALL)
@@ -76,7 +78,8 @@ internal class BusScheduleViewModel(
         combine(
             selectedStationFilter,
             selectedDayOfWeekFilter,
-        ) { stationFilter, dayOfWeekFilter ->
+            observeMoscowDayOfWeek(),
+        ) { stationFilter, dayOfWeekFilter, _ ->
             stationFilter to dayOfWeekFilter
         }
             .flatMapLatest { (stationFilter, dayOfWeekFilter) ->
