@@ -96,10 +96,11 @@ class AndroidEntryPointE2ETest {
         path: String,
         value: String,
     ) {
-        val projectId = Firebase.app.options.projectId
+        val databaseUrl = checkNotNull(Firebase.app.options.databaseUrl)
+        val namespace = URL(databaseUrl).host.substringBefore('.')
         val firebasePath = if (path.isEmpty()) "/.json" else "/$path.json"
         val connection =
-            URL("http://10.0.2.2:9000$firebasePath?ns=$projectId").openConnection() as HttpURLConnection
+            URL("http://10.0.2.2:9000$firebasePath?ns=$namespace").openConnection() as HttpURLConnection
         connection.requestMethod = "PUT"
         connection.doOutput = true
         connection.setRequestProperty("Content-Type", "application/json")
