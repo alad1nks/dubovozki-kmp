@@ -1,6 +1,5 @@
 package com.alad1nks.dubovozki
 
-import android.content.Context
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
@@ -8,8 +7,8 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ActivityScenario
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import com.alad1nks.dubovozki.feature.designsystem.TestTags
 import com.google.firebase.Firebase
 import com.google.firebase.app
@@ -88,7 +87,7 @@ class AndroidEntryPointE2ETest {
     }
 
     private fun seedFirebaseEmulator() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
+        val context = InstrumentationRegistry.getInstrumentation().context
         val fixture = context.assets.open("happy.json").bufferedReader().use { it.readText() }
         writeFirebaseEmulator(path = "", value = fixture)
     }
