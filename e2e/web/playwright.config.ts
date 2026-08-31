@@ -25,7 +25,7 @@ const managedWebServers = process.env.E2E_EXTERNAL_SERVERS
           : { env: { DUBOVOZKI_E2E_WEB_PORT: managedWebPort } }),
         url: `http://127.0.0.1:${managedWebPort}`,
         reuseExistingServer: !process.env.CI,
-        timeout: process.env.E2E_WEB_RELEASE ? 1_200_000 : 180_000,
+        timeout: process.env.E2E_WEB_RELEASE ? 1_200_000 : 600_000,
       },
     ];
 

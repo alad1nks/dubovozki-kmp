@@ -81,6 +81,8 @@ jobs:
       - run: chmod +x ./gradlew
       - name: Decode Android Firebase config
         run: echo "${{ secrets.FIREBASE_CONFIG_ANDROID }}" | base64 --decode > androidApp/google-services.json
+      - name: Export Firebase project ID
+        run: echo "E2E_FIREBASE_PROJECT_ID=$(jq -r '.project_info.project_id' androidApp/google-services.json)" >> "$GITHUB_ENV"
       - run: npm ci
         working-directory: e2e/web
       - name: Run actual MainActivity against Firebase Emulator
@@ -91,9 +93,8 @@ jobs:
           arch: x86_64
           disable-animations: true
           script: |
-            PROJECT_ID=$(jq -r '.project_info.project_id' androidApp/google-services.json)
-            e2e/web/node_modules/.bin/firebase emulators:start --project "$PROJECT_ID" --only database > firebase-emulator.log 2>&1 &
-            for attempt in {1..60}; do curl --fail --silent http://127.0.0.1:4400/emulators && break; sleep 1; done
+            nohup e2e/web/node_modules/.bin/firebase emulators:start --project "$E2E_FIREBASE_PROJECT_ID" --only database > firebase-emulator.log 2>&1 &
+            timeout 60 sh -c 'until curl --fail --silent http://127.0.0.1:4400/emulators; do sleep 1; done'
             curl --fail --silent http://127.0.0.1:4400/emulators
             ./gradlew :androidApp:connectedDebugAndroidTest
       - name: Upload Android diagnostics
