@@ -63,7 +63,7 @@ signal_screen_recording_ready() {
     fi
     if adb shell run-as "$app_package" mkdir -p cache >/dev/null 2>&1 &&
       adb shell run-as "$app_package" touch "$recording_ready_file" >/dev/null 2>&1 &&
-      adb shell run-as "$app_package" test -f "$recording_ready_file" >/dev/null 2>&1; then
+      adb shell run-as "$app_package" /system/bin/ls "$recording_ready_file" >/dev/null 2>&1; then
       return 0
     fi
     sleep 0.25
