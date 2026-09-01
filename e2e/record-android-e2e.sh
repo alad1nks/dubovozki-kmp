@@ -20,6 +20,7 @@ video_stem="${video_name%.mp4}"
 app_package="com.alad1nks.dubovozki"
 test_package="$app_package.test"
 recording_ready_file="cache/e2e-screen-recording-ready"
+recording_test_argument="-Pandroid.testInstrumentationRunnerArguments.e2eScreenRecording=true"
 recording_pid=""
 current_device_video=""
 test_pid=""
@@ -354,7 +355,7 @@ if ! uninstall_if_present "$test_package" || ! uninstall_if_present "$app_packag
   exit 1
 fi
 
-"$@" &
+"$@" "$recording_test_argument" &
 test_pid=$!
 
 if wait_for_test_package; then
