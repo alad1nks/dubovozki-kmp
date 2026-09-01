@@ -51,7 +51,7 @@ jobs:
         working-directory: e2e/web
       - run: npm run test:chromium
         working-directory: e2e/web
-      - name: Upload Web diagnostics
+      - name: Upload Web videos and diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -101,8 +101,8 @@ jobs:
             nohup e2e/web/node_modules/.bin/firebase emulators:start --project "$E2E_FIREBASE_PROJECT_ID" --only database > firebase-emulator.log 2>&1 &
             timeout 60 sh -c 'until curl --fail --silent http://127.0.0.1:4400/emulators; do sleep 1; done'
             curl --fail --silent http://127.0.0.1:4400/emulators
-            ./gradlew :androidApp:connectedDebugAndroidTest
-      - name: Upload Android diagnostics
+            bash e2e/record-android-e2e.sh android-api24.mp4 ./gradlew :androidApp:connectedDebugAndroidTest
+      - name: Upload Android video and diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -110,6 +110,7 @@ jobs:
           path: |
             androidApp/build/reports/androidTests/
             androidApp/build/outputs/androidTest-results/
+            ${{ runner.temp }}/e2e-recordings/
             firebase-emulator.log
             firebase-debug.log
             database-debug.log

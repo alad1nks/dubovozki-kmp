@@ -45,7 +45,7 @@ jobs:
         working-directory: e2e/web
       - run: npm test -- --project=${{ matrix.project }}
         working-directory: e2e/web
-      - name: Upload Web diagnostics
+      - name: Upload Web videos and diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -99,8 +99,9 @@ jobs:
             nohup e2e/web/node_modules/.bin/firebase emulators:start --project "$E2E_FIREBASE_PROJECT_ID" --only database > firebase-emulator.log 2>&1 &
             timeout 60 sh -c 'until curl --fail --silent http://127.0.0.1:4400/emulators; do sleep 1; done'
             curl --fail --silent http://127.0.0.1:4400/emulators
-            ./gradlew :androidApp:connectedDebugAndroidTest
-      - name: Upload Android diagnostics
+            bash e2e/record-android-e2e.sh "android-api${{ matrix.api }}.mp4" \
+              ./gradlew :androidApp:connectedDebugAndroidTest
+      - name: Upload Android video and diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -108,6 +109,7 @@ jobs:
           path: |
             androidApp/build/reports/androidTests/
             androidApp/build/outputs/androidTest-results/
+            ${{ runner.temp }}/e2e-recordings/
             firebase-emulator.log
           if-no-files-found: ignore
 
@@ -174,10 +176,15 @@ jobs:
         run: |
           UDID=$(xcrun simctl list devices available -j | jq -r '[.devices[][] | select(.name | startswith("iPhone"))][0].udid')
           xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
           echo "SIMULATOR_UDID=$UDID" >> "$GITHUB_ENV"
-      - name: Run SwiftUI shell XCUITest
-        run: xcodebuild test -project iosApp/iosApp.xcodeproj -scheme iosApp -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" -resultBundlePath iosApp/TestResults.xcresult
-      - name: Upload iOS diagnostics
+      - name: Run SwiftUI shell XCUITest with screen recording
+        run: |
+          bash e2e/record-ios-e2e.sh "$SIMULATOR_UDID" ios-xcuitest.mp4 \
+            xcodebuild test -project iosApp/iosApp.xcodeproj -scheme iosApp \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
+            -resultBundlePath iosApp/TestResults.xcresult
+      - name: Upload iOS video and diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -185,5 +192,6 @@ jobs:
           path: |
             iosApp/TestResults.xcresult/
             composeApp/build/reports/tests/
+            ${{ runner.temp }}/e2e-recordings/
             firebase-emulator.log
           if-no-files-found: ignore

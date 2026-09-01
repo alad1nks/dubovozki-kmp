@@ -4,6 +4,7 @@ import path from "node:path";
 const repositoryRoot = path.resolve(__dirname, "../..");
 const gradleCommand = process.platform === "win32" ? "gradlew.bat" : "./gradlew";
 const managedWebPort = "9080";
+const isCi = Boolean(process.env.CI);
 const webCommand = process.env.E2E_WEB_RELEASE
   ? `${gradleCommand} :composeApp:jsBrowserProductionWebpack && node e2e/web/static-server.mjs composeApp/build/kotlin-webpack/js/productionExecutable ${managedWebPort} composeApp/build/processedResources/js/main`
   : `${gradleCommand} :composeApp:jsBrowserDevelopmentRun --no-configuration-cache`;
@@ -32,16 +33,16 @@ const managedWebServers = process.env.E2E_EXTERNAL_SERVERS
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: false,
-  forbidOnly: Boolean(process.env.CI),
-  failOnFlakyTests: Boolean(process.env.CI),
-  retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? [["line"], ["html", { open: "never" }]] : "list",
+  forbidOnly: isCi,
+  failOnFlakyTests: isCi,
+  retries: isCi ? 1 : 0,
+  reporter: isCi ? [["line"], ["html", { open: "never" }]] : "list",
   outputDir: "test-results",
   use: {
     baseURL: process.env.E2E_BASE_URL ?? `http://127.0.0.1:${managedWebPort}`,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
-    video: "retain-on-failure",
+    video: isCi ? "on" : "retain-on-failure",
   },
   webServer: managedWebServers,
   projects: [
