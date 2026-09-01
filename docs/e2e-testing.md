@@ -102,8 +102,9 @@ xcodebuild test -project iosApp/iosApp.xcodeproj -scheme iosApp \
 | E2E-064–066 | Desktop REST refresh, platform persistence и keyboard/accessibility actions без координат |
 | E2E-067 | Отдельный weekly read-only production schema workflow |
 
-P2 visual baseline snapshots не блокируют PR: Playwright сохраняет screenshot/video/trace при сбое, а
-функциональные assertions остаются источником результата.
+P2 visual baseline snapshots не блокируют PR: Playwright сохраняет screenshot/trace при сбое, а функциональные
+assertions остаются источником результата. Локально видео сохраняется только для упавших browser tests, в CI — для
+каждого запуска теста.
 
 ## CI
 
@@ -115,9 +116,19 @@ P2 visual baseline snapshots не блокируют PR: Playwright сохран
 | `release/*` | Shared P0 и Chromium против production Web bundle до release build/publish jobs |
 | Weekly/manual | Read-only проверка трёх production Firebase paths и schema |
 
-При падении jobs загружают test reports, screenshots, video, Playwright trace и emulator logs. В PR нет
-безусловного retry. В CI Playwright допускает один retry, включает `failOnFlakyTests`, поэтому прошедший только со
-второй попытки тест всё равно делает job красным.
+Web jobs записывают каждый Playwright test, Android jobs — фактический instrumentation-прогон на emulator, а nightly
+iOS job — XCUITest на Simulator. Android recorder синхронизируется со стартом instrumentation, чтобы не записывать
+Gradle/install-подготовку, а готовые части нормализуются в H.264 MP4 с постоянными 30 FPS и регулярными keyframes.
+Длинная Android-запись автоматически разбивается на части по 180 секунд. Shared JVM, Desktop и shared iOS suite
+тестируют Compose-сцену in-process, поэтому отдельный экран для них не записывается.
+
+После любого результата UI-прогона jobs загружают видео вместе с доступной диагностикой. Архив можно скачать в
+`Actions → <workflow run> → Artifacts` и открыть видео локально; он не коммитится в репозиторий. Web-файлы находятся
+в игнорируемом `test-results`, а Android/iOS пишут во временную директорию GitHub runner. Срок хранения определяется
+настройками Actions в репозитории.
+
+В PR нет безусловного retry. В CI Playwright допускает один retry, включает `failOnFlakyTests`, поэтому прошедший
+только со второй попытки тест всё равно делает job красным.
 
 ## Ограничения локального окружения
 

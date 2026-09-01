@@ -1,5 +1,6 @@
 package com.alad1nks.dubovozki
 
+import android.os.SystemClock
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
@@ -29,6 +30,7 @@ class AndroidEntryPointE2ETest {
 
     @Before
     fun setUp() {
+        awaitCiScreenRecorder()
         System.setProperty("dubovozki.e2e.firebase.host", "10.0.2.2")
         System.setProperty("dubovozki.e2e.firebase.port", "9000")
         seedFirebaseEmulator()
@@ -84,6 +86,20 @@ class AndroidEntryPointE2ETest {
         compose.onNodeWithTag(TestTags.NAV_SETTINGS).performClick().assertIsSelected()
         compose.onNodeWithTag(TestTags.currentTheme("DARK"), useUnmergedTree = true).assertIsDisplayed()
         compose.onNodeWithTag(TestTags.currentLanguage("ENGLISH"), useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    private fun awaitCiScreenRecorder() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        if (InstrumentationRegistry.getArguments().getString("e2eScreenRecording") != "true") {
+            return
+        }
+
+        val readyFile = instrumentation.targetContext.cacheDir.resolve("e2e-screen-recording-ready")
+        val timeoutAt = SystemClock.elapsedRealtime() + 30_000
+        while (!readyFile.isFile && SystemClock.elapsedRealtime() < timeoutAt) {
+            SystemClock.sleep(100)
+        }
+        check(readyFile.isFile) { "CI screen recorder did not become ready" }
     }
 
     private fun seedFirebaseEmulator() {
