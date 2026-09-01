@@ -17,6 +17,9 @@ fi
 
 recordings_dir="${RUNNER_TEMP:?RUNNER_TEMP must be set}/e2e-recordings"
 video_stem="${video_name%.mp4}"
+app_package="com.alad1nks.dubovozki"
+test_package="$app_package.test"
+recording_ready_file="cache/e2e-screen-recording-ready"
 recording_pid=""
 current_device_video=""
 test_pid=""
@@ -28,6 +31,69 @@ declare -a host_segments=()
 
 is_test_running() {
   jobs -pr | grep -qx "$test_pid"
+}
+
+wait_for_test_package() {
+  local app_path
+  local package_path
+
+  for _ in {1..720}; do
+    if ! is_test_running; then
+      return 1
+    fi
+
+    app_path=$(adb shell pm path "$app_package" 2>/dev/null) || true
+    app_path="${app_path//$'\r'/}"
+    package_path=$(adb shell pm path "$test_package" 2>/dev/null) || true
+    package_path="${package_path//$'\r'/}"
+    if [[ "$app_path" == package:* && "$package_path" == package:* ]]; then
+      return 0
+    fi
+    sleep 0.25
+  done
+
+  return 1
+}
+
+signal_screen_recording_ready() {
+  for _ in {1..20}; do
+    if ! is_test_running; then
+      return 1
+    fi
+    if adb shell run-as "$app_package" mkdir -p cache >/dev/null 2>&1 &&
+      adb shell run-as "$app_package" touch "$recording_ready_file" >/dev/null 2>&1 &&
+      adb shell run-as "$app_package" test -f "$recording_ready_file" >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 0.25
+  done
+
+  return 1
+}
+
+uninstall_if_present() {
+  local package_name="$1"
+  local package_path
+
+  package_path=$(adb shell pm path "$package_name" 2>/dev/null) || true
+  package_path="${package_path//$'\r'/}"
+  if [[ "$package_path" != package:* ]]; then
+    return 0
+  fi
+
+  if ! adb uninstall "$package_name" >/dev/null 2>&1; then
+    echo "::error::Could not uninstall stale Android package $package_name"
+    return 1
+  fi
+
+  package_path=$(adb shell pm path "$package_name" 2>/dev/null) || true
+  package_path="${package_path//$'\r'/}"
+  if [[ "$package_path" == package:* ]]; then
+    echo "::error::Stale Android package $package_name is still installed"
+    return 1
+  fi
+
+  return 0
 }
 
 recording_status() {
@@ -191,12 +257,48 @@ download_segments() {
   for index in "${!device_segments[@]}"; do
     device_segment="${device_segments[$index]}"
     host_segment="${host_segments[$index]}"
-    if ! adb pull "$device_segment" "$host_segment"; then
+    raw_segment="${host_segment%.mp4}-raw.mp4"
+    if ! adb pull "$device_segment" "$raw_segment"; then
       echo "::error::Android E2E screen recording segment could not be downloaded"
       segment_error=1
-    elif [[ ! -s "$host_segment" ]]; then
+    elif [[ ! -s "$raw_segment" ]]; then
       echo "::error::Android E2E screen recording segment is empty"
       segment_error=1
+    elif ! ffmpeg \
+      -hide_banner \
+      -loglevel error \
+      -nostdin \
+      -xerror \
+      -err_detect explode \
+      -abort_on empty_output_stream \
+      -y \
+      -i "$raw_segment" \
+      -map 0:v:0 \
+      -an \
+      -vf fps=30 \
+      -c:v libx264 \
+      -preset veryfast \
+      -crf 23 \
+      -pix_fmt yuv420p \
+      -g 60 \
+      -movflags +faststart \
+      "$host_segment"; then
+      echo "::error::Android E2E screen recording segment could not be normalized"
+      segment_error=1
+    elif ! ffmpeg \
+      -hide_banner \
+      -loglevel error \
+      -nostdin \
+      -xerror \
+      -err_detect explode \
+      -abort_on empty_output_stream \
+      -i "$host_segment" \
+      -map 0:v:0 \
+      -f null -; then
+      echo "::error::Android E2E screen recording segment failed decode validation"
+      segment_error=1
+    else
+      rm -f "$raw_segment"
     fi
   done
 
@@ -234,6 +336,11 @@ finish_on_exit() {
 
 mkdir -p "$recordings_dir"
 
+if ! command -v ffmpeg >/dev/null 2>&1; then
+  echo "::error::ffmpeg is required to normalize Android E2E recordings"
+  exit 2
+fi
+
 # Keep compilation outside each device recorder segment's 180-second hard limit.
 ./gradlew :androidApp:assembleDebug :androidApp:assembleDebugAndroidTest
 prebuild_exit=$?
@@ -242,12 +349,26 @@ if (( prebuild_exit != 0 )); then
 fi
 
 trap finish_on_exit EXIT
-if ! start_current_recording; then
-  recording_error=1
+
+if ! uninstall_if_present "$test_package" || ! uninstall_if_present "$app_package"; then
+  exit 1
 fi
 
 "$@" &
 test_pid=$!
+
+if wait_for_test_package; then
+  if ! start_current_recording; then
+    recording_error=1
+  fi
+  if ! signal_screen_recording_ready; then
+    echo "::error::Android E2E test could not be released after recorder setup"
+    recording_error=1
+  fi
+else
+  echo "::error::Android E2E test package was not installed before the test command completed"
+  recording_error=1
+fi
 
 while is_test_running && [[ -n "$recording_pid" ]]; do
   recording_status

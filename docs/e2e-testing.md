@@ -117,8 +117,10 @@ assertions остаются источником результата. Лока�
 | Weekly/manual | Read-only проверка трёх production Firebase paths и schema |
 
 Web jobs записывают каждый Playwright test, Android jobs — фактический instrumentation-прогон на emulator, а nightly
-iOS job — XCUITest на Simulator. Длинная Android-запись автоматически разбивается на части по 180 секунд. Shared JVM,
-Desktop и shared iOS suite тестируют Compose-сцену in-process, поэтому отдельный экран для них не записывается.
+iOS job — XCUITest на Simulator. Android recorder синхронизируется со стартом instrumentation, чтобы не записывать
+Gradle/install-подготовку, а готовые части нормализуются в H.264 MP4 с постоянными 30 FPS и регулярными keyframes.
+Длинная Android-запись автоматически разбивается на части по 180 секунд. Shared JVM, Desktop и shared iOS suite
+тестируют Compose-сцену in-process, поэтому отдельный экран для них не записывается.
 
 После любого результата UI-прогона jobs загружают видео вместе с доступной диагностикой. Архив можно скачать в
 `Actions → <workflow run> → Artifacts` и открыть видео локально; он не коммитится в репозиторий. Web-файлы находятся
