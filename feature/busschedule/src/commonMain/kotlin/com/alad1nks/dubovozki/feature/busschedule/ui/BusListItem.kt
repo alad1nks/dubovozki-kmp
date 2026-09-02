@@ -1,6 +1,7 @@
 package com.alad1nks.dubovozki.feature.busschedule.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,6 +35,7 @@ internal fun BusListItem(
     station: Bus.Station,
     modifier: Modifier = Modifier,
     departedColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    onLongClick: (() -> Unit)? = null,
 ) {
     val colorScheme = LocalExtendedColorScheme.current
     val stationColor =
@@ -46,9 +48,23 @@ internal fun BusListItem(
 
     val color = if (isDeparted) departedColor else stationColor
     val dividerColor = if (isDeparted) departedColor else MaterialTheme.colorScheme.outlineVariant
+    val reminderActionLabel = stringResource(AppResource.String.bus_reminder_long_press_action)
 
     Surface(
-        modifier = modifier.semantics(mergeDescendants = true) {},
+        modifier =
+            modifier
+                .then(
+                    if (onLongClick != null) {
+                        Modifier.combinedClickable(
+                            onClick = {},
+                            onLongClickLabel = reminderActionLabel,
+                            onLongClick = onLongClick,
+                        )
+                    } else {
+                        Modifier
+                    },
+                )
+                .semantics(mergeDescendants = true) {},
     ) {
         Column {
             Row(

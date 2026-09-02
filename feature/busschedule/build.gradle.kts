@@ -39,6 +39,9 @@ kotlin {
     }
 
     sourceSets {
+        androidMain.dependencies {
+            implementation(libs.androidx.activity.compose)
+        }
         commonMain.dependencies {
             implementation(libs.compose.components.resources)
             implementation(libs.compose.foundation)

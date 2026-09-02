@@ -1,6 +1,28 @@
 package com.alad1nks.dubovozki.resources
 
 import dubovozki.resources.generated.resources.Res
+import dubovozki.resources.generated.resources.bus_reminder_alarm_label
+import dubovozki.resources.generated.resources.bus_reminder_cancel
+import dubovozki.resources.generated.resources.bus_reminder_departed
+import dubovozki.resources.generated.resources.bus_reminder_departure
+import dubovozki.resources.generated.resources.bus_reminder_dialog_title
+import dubovozki.resources.generated.resources.bus_reminder_failed
+import dubovozki.resources.generated.resources.bus_reminder_long_press_action
+import dubovozki.resources.generated.resources.bus_reminder_method_alarm
+import dubovozki.resources.generated.resources.bus_reminder_method_notification
+import dubovozki.resources.generated.resources.bus_reminder_method_title
+import dubovozki.resources.generated.resources.bus_reminder_method_unavailable
+import dubovozki.resources.generated.resources.bus_reminder_minutes_error
+import dubovozki.resources.generated.resources.bus_reminder_minutes_label
+import dubovozki.resources.generated.resources.bus_reminder_minutes_supporting
+import dubovozki.resources.generated.resources.bus_reminder_notification_body
+import dubovozki.resources.generated.resources.bus_reminder_notification_title
+import dubovozki.resources.generated.resources.bus_reminder_permission_denied
+import dubovozki.resources.generated.resources.bus_reminder_set
+import dubovozki.resources.generated.resources.bus_reminder_success_alarm
+import dubovozki.resources.generated.resources.bus_reminder_success_notification
+import dubovozki.resources.generated.resources.bus_reminder_too_late
+import dubovozki.resources.generated.resources.bus_reminder_unsupported
 import dubovozki.resources.generated.resources.bus_schedule_day_of_week_filter_saturday
 import dubovozki.resources.generated.resources.bus_schedule_day_of_week_filter_sunday
 import dubovozki.resources.generated.resources.bus_schedule_day_of_week_filter_today
@@ -80,6 +102,28 @@ object AppResource {
     }
 
     object String {
+        val bus_reminder_alarm_label = Res.string.bus_reminder_alarm_label
+        val bus_reminder_cancel = Res.string.bus_reminder_cancel
+        val bus_reminder_departed = Res.string.bus_reminder_departed
+        val bus_reminder_departure = Res.string.bus_reminder_departure
+        val bus_reminder_dialog_title = Res.string.bus_reminder_dialog_title
+        val bus_reminder_failed = Res.string.bus_reminder_failed
+        val bus_reminder_long_press_action = Res.string.bus_reminder_long_press_action
+        val bus_reminder_method_alarm = Res.string.bus_reminder_method_alarm
+        val bus_reminder_method_notification = Res.string.bus_reminder_method_notification
+        val bus_reminder_method_title = Res.string.bus_reminder_method_title
+        val bus_reminder_method_unavailable = Res.string.bus_reminder_method_unavailable
+        val bus_reminder_minutes_error = Res.string.bus_reminder_minutes_error
+        val bus_reminder_minutes_label = Res.string.bus_reminder_minutes_label
+        val bus_reminder_minutes_supporting = Res.string.bus_reminder_minutes_supporting
+        val bus_reminder_notification_body = Res.string.bus_reminder_notification_body
+        val bus_reminder_notification_title = Res.string.bus_reminder_notification_title
+        val bus_reminder_permission_denied = Res.string.bus_reminder_permission_denied
+        val bus_reminder_set = Res.string.bus_reminder_set
+        val bus_reminder_success_alarm = Res.string.bus_reminder_success_alarm
+        val bus_reminder_success_notification = Res.string.bus_reminder_success_notification
+        val bus_reminder_too_late = Res.string.bus_reminder_too_late
+        val bus_reminder_unsupported = Res.string.bus_reminder_unsupported
         val common_back = Res.string.common_back
         val common_error_supporting = Res.string.common_error_supporting
         val common_error_title = Res.string.common_error_title

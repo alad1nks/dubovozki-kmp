@@ -18,6 +18,9 @@ object TestTags {
     const val BUS_NEXT_GO = "bus.next.go"
     const val BUS_EMPTY = "bus.empty"
     const val BUS_RESET_FILTERS = "bus.reset_filters"
+    const val BUS_REMINDER_DIALOG = "bus.reminder.dialog"
+    const val BUS_REMINDER_MINUTES = "bus.reminder.minutes"
+    const val BUS_REMINDER_SET = "bus.reminder.set"
 
     const val SERVICES_REFRESH = "services.refresh"
     const val SERVICES_LINEN = "services.linen"

@@ -7,4 +7,5 @@ internal data class BusUi(
     val dayTime: String,
     val timeDifference: Int?,
     val station: Bus.Station,
+    val departureEpochMillis: Long? = null,
 )
