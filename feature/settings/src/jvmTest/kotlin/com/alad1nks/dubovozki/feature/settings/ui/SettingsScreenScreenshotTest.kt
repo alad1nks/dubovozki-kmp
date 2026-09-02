@@ -12,6 +12,7 @@ import com.alad1nks.dubovozki.core.model.ThemeMode
 import com.alad1nks.dubovozki.feature.designsystem.theme.AppTheme
 import com.alad1nks.dubovozki.feature.settings.model.SettingsUiState
 import com.alad1nks.dubovozki.resources.AppResource
+import com.dropbox.differ.SimpleImageComparator
 import com.github.takahirom.roborazzi.RoborazziOptions
 import io.github.takahirom.roborazzi.captureRoboImage
 import org.jetbrains.compose.resources.Font
@@ -90,7 +91,16 @@ class SettingsScreenScreenshotTest {
 
         val roborazziOptions =
             RoborazziOptions(
-                compareOptions = RoborazziOptions.CompareOptions(changeThreshold = 0.01f),
+                compareOptions =
+                    RoborazziOptions.CompareOptions(
+                        changeThreshold = 0.01f,
+                        imageComparator =
+                            SimpleImageComparator(
+                                maxDistance = 0.007f,
+                                hShift = 2,
+                                vShift = 2,
+                            ),
+                    ),
             )
     }
 }

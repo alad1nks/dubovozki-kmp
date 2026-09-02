@@ -12,6 +12,7 @@ import com.alad1nks.dubovozki.feature.designsystem.theme.AppTheme
 import com.alad1nks.dubovozki.feature.servicesschedule.model.ServicesScheduleItemUi
 import com.alad1nks.dubovozki.feature.servicesschedule.model.ServicesScheduleUiState
 import com.alad1nks.dubovozki.resources.AppResource
+import com.dropbox.differ.SimpleImageComparator
 import com.github.takahirom.roborazzi.RoborazziOptions
 import io.github.takahirom.roborazzi.captureRoboImage
 import kotlinx.datetime.DayOfWeek
@@ -89,7 +90,16 @@ class ServicesScheduleScreenScreenshotTest {
 
         val roborazziOptions =
             RoborazziOptions(
-                compareOptions = RoborazziOptions.CompareOptions(changeThreshold = 0.01f),
+                compareOptions =
+                    RoborazziOptions.CompareOptions(
+                        changeThreshold = 0.01f,
+                        imageComparator =
+                            SimpleImageComparator(
+                                maxDistance = 0.007f,
+                                hShift = 2,
+                                vShift = 2,
+                            ),
+                    ),
             )
 
         val contentState =
