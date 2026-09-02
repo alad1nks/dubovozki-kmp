@@ -59,7 +59,7 @@ internal fun ServicesRoute(
 }
 
 @Composable
-private fun ServicesScreen(
+internal fun ServicesScreen(
     uiState: ServicesUiState,
     onLinenRoomClick: () -> Unit,
     onRefresh: () -> Unit,

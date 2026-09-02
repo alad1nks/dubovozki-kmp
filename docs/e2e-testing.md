@@ -20,6 +20,11 @@ domain и data layers. Через override-модули Koin заменяютс�
 | Web | Playwright | Browser entry, accessibility bridge, realtime, reload/localStorage и 599/600 px |
 | Desktop | JVM application test | Actual platform module, первое/повторное REST-чтение и DataStore |
 
+В `feature/*/jvmTest` находятся Roborazzi screenshot-тесты экранов. Они рендерят Compose Desktop в фиксированном
+viewport `390×844`, используют английскую locale и сравнивают результат с PNG-эталонами из
+`feature/*/src/jvmTest/snapshots`. Покрыты loading, error, content, empty/unavailable, offline/stale и выбранные
+theme/language состояния.
+
 `TestTags` — единый каталог селекторов. Android/JVM используют Compose test tags; iOS и JS включают
 accessibility bridge только при `--e2e` или `?e2e=true`. Playwright и XCUITest взаимодействуют с accessibility
 actions, а не с координатами. Production accessibility tree не получает тестовые labels.
@@ -44,6 +49,18 @@ Android, iOS и Web направляются на Emulator только явно
 ```shell
 ./gradlew ktlintCheck test :composeApp:jvmTest
 ```
+
+Проверка всех визуальных эталонов:
+
+```shell
+./gradlew :feature:busschedule:verifyRoborazziJvm \
+  :feature:services:verifyRoborazziJvm \
+  :feature:servicesschedule:verifyRoborazziJvm \
+  :feature:settings:verifyRoborazziJvm
+```
+
+После осознанного изменения UI эталоны обновляются соответствующими `recordRoborazziJvm` tasks. Перед коммитом
+обязательно просмотрите изменённые PNG и снова запустите `verifyRoborazziJvm`.
 
 На Windows используйте `gradlew.bat`. Desktop entry test входит в `:composeApp:jvmTest`; отдельно его можно
 запустить так:
@@ -101,17 +118,18 @@ xcodebuild test -project iosApp/iosApp.xcodeproj -scheme iosApp \
 | E2E-060–063 | Actual Android/iOS/Web entry points и nightly Firefox/WebKit/mobile projects |
 | E2E-064–066 | Desktop REST refresh, platform persistence и keyboard/accessibility actions без координат |
 | E2E-067 | Отдельный weekly read-only production schema workflow |
+| Visual | Roborazzi baselines всех четырёх экранов и их loading/error/content/empty/stale/theme состояний |
 
-P2 visual baseline snapshots не блокируют PR: Playwright сохраняет screenshot/trace при сбое, а функциональные
-assertions остаются источником результата. Локально видео сохраняется только для упавших browser tests, в CI — для
-каждого запуска теста.
+Roborazzi visual baselines блокируют PR при значимом изменении изображения. Playwright дополнительно сохраняет
+screenshot/trace при сбое. Локально видео сохраняется только для упавших browser tests, в CI — для каждого запуска
+теста.
 
 ## CI
 
 | Trigger | Набор |
 |---|---|
-| Pull request | ktlint, unit, shared JVM, Chromium, Android API 24 P0, iOS compile |
-| Push в `main` | PR-набор, Android API 24/35 и существующая release APK-сборка |
+| Pull request | ktlint, unit, shared JVM, Roborazzi verify, Chromium, Android API 24 P0, iOS compile |
+| Push в `main` | PR-набор с Roborazzi verify, Android API 24/35 и существующая release APK-сборка |
 | Nightly | Android API 24/35, iOS shared/XCUITest, все Web projects, Desktop Windows/macOS/Linux |
 | `release/*` | Shared P0 и Chromium против production Web bundle до release build/publish jobs |
 | Weekly/manual | Read-only проверка трёх production Firebase paths и schema |
@@ -122,7 +140,8 @@ Gradle/install-подготовку, а готовые части нормали
 Длинная Android-запись автоматически разбивается на части по 180 секунд. Shared JVM, Desktop и shared iOS suite
 тестируют Compose-сцену in-process, поэтому отдельный экран для них не записывается.
 
-После любого результата UI-прогона jobs загружают видео вместе с доступной диагностикой. Архив можно скачать в
+После любого результата UI-прогона jobs загружают видео вместе с доступной диагностикой. Roborazzi job также
+публикует HTML-report, JSON result и actual/diff PNG. Архив можно скачать в
 `Actions → <workflow run> → Artifacts` и открыть видео локально; он не коммитится в репозиторий. Web-файлы находятся
 в игнорируемом `test-results`, а Android/iOS пишут во временную директорию GitHub runner. Срок хранения определяется
 настройками Actions в репозитории.
