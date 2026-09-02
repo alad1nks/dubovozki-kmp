@@ -22,7 +22,14 @@ jobs:
           cache: npm
           cache-dependency-path: e2e/web/package-lock.json
       - run: chmod +x ./gradlew
-      - run: ./gradlew ktlintCheck test :composeApp:jvmTest -x :androidApp:processDebugGoogleServices
+      - name: Run lint, unit, shared E2E and screenshot verification
+        run: |
+          ./gradlew ktlintCheck test :composeApp:jvmTest \
+            :feature:busschedule:verifyRoborazziJvm \
+            :feature:services:verifyRoborazziJvm \
+            :feature:servicesschedule:verifyRoborazziJvm \
+            :feature:settings:verifyRoborazziJvm \
+            -x :androidApp:processDebugGoogleServices
       - run: npm ci
         working-directory: e2e/web
       - run: npx playwright install --with-deps chromium
@@ -38,6 +45,9 @@ jobs:
             e2e/web/test-results/
             e2e/web/playwright-report/
             **/build/reports/tests/
+            **/build/reports/roborazzi/
+            **/build/test-results/roborazzi/
+            **/build/outputs/roborazzi/
           if-no-files-found: ignore
 
   android-e2e:

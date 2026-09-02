@@ -56,7 +56,7 @@ internal fun ServicesScheduleRoute(
 }
 
 @Composable
-private fun ServiceScheduleScreen(
+internal fun ServiceScheduleScreen(
     uiState: ServicesScheduleUiState,
     servicesScheduleType: ServicesScheduleType,
     onBackClick: () -> Unit,

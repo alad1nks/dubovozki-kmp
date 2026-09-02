@@ -1,3 +1,5 @@
+@file:OptIn(com.github.takahirom.roborazzi.ExperimentalRoborazziApi::class)
+
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -6,6 +8,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinxSerialization)
+    alias(libs.plugins.roborazzi)
 }
 
 kotlin {
@@ -61,9 +64,21 @@ kotlin {
             implementation(projects.core.navigation)
             implementation(projects.resources)
         }
+        jvmTest.dependencies {
+            implementation(compose.desktop.currentOs)
+            implementation(libs.kotlin.test)
+            implementation(libs.roborazzi.compose.desktop)
+        }
     }
 }
 
 dependencies {
     androidRuntimeClasspath(libs.compose.ui.tooling)
+}
+
+roborazzi {
+    outputDir.set(file("src/jvmTest/snapshots"))
+    compare {
+        outputDir.set(layout.buildDirectory.dir("outputs/roborazzi"))
+    }
 }

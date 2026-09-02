@@ -51,7 +51,7 @@ internal fun SettingsRoute(
 }
 
 @Composable
-private fun SettingsScreen(
+internal fun SettingsScreen(
     uiState: SettingsUiState,
     onThemeModeSelect: (ThemeMode) -> Unit,
     onLanguageSelect: (Language) -> Unit,

@@ -20,13 +20,24 @@ jobs:
           distribution: temurin
           cache: gradle
       - run: chmod +x ./gradlew
-      - run: ./gradlew ktlintCheck test :composeApp:jvmTest -x :androidApp:processDebugGoogleServices
-      - name: Upload JVM test reports
+      - name: Run lint, unit, shared E2E and screenshot verification
+        run: |
+          ./gradlew ktlintCheck test :composeApp:jvmTest \
+            :feature:busschedule:verifyRoborazziJvm \
+            :feature:services:verifyRoborazziJvm \
+            :feature:servicesschedule:verifyRoborazziJvm \
+            :feature:settings:verifyRoborazziJvm \
+            -x :androidApp:processDebugGoogleServices
+      - name: Upload JVM and Roborazzi diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pr-jvm-test-reports
-          path: '**/build/reports/tests/'
+          name: pr-jvm-and-roborazzi-reports
+          path: |
+            **/build/reports/tests/
+            **/build/reports/roborazzi/
+            **/build/test-results/roborazzi/
+            **/build/outputs/roborazzi/
           if-no-files-found: ignore
 
   web-chromium:

@@ -77,7 +77,7 @@ internal fun BusScheduleRoute(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun BusScheduleScreen(
+internal fun BusScheduleScreen(
     topAppBarUiState: BusScheduleTopAppBarUiState,
     uiState: BusScheduleUiState,
     onStationFilterSelect: (StationFilter) -> Unit,
