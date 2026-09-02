@@ -6,10 +6,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
+import androidx.compose.ui.text.font.FontFamily
 import com.alad1nks.dubovozki.feature.designsystem.theme.AppTheme
 import com.alad1nks.dubovozki.feature.services.model.ServicesUiState
+import com.alad1nks.dubovozki.resources.AppResource
 import com.github.takahirom.roborazzi.RoborazziOptions
 import io.github.takahirom.roborazzi.captureRoboImage
+import org.jetbrains.compose.resources.Font
 import java.util.Locale
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -58,7 +61,10 @@ class ServicesScreenScreenshotTest {
         uiState: ServicesUiState,
     ) = runDesktopComposeUiTest(width = SCREEN_WIDTH, height = SCREEN_HEIGHT) {
         setContent {
-            AppTheme(darkTheme = false) {
+            AppTheme(
+                darkTheme = false,
+                fontFamily = FontFamily(Font(AppResource.Font.roboto_variable)),
+            ) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     ServicesScreen(
                         uiState = uiState,

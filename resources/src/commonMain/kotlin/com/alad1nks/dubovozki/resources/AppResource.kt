@@ -40,6 +40,7 @@ import dubovozki.resources.generated.resources.common_offline_updated_at
 import dubovozki.resources.generated.resources.common_refresh
 import dubovozki.resources.generated.resources.common_retry
 import dubovozki.resources.generated.resources.common_updated_at
+import dubovozki.resources.generated.resources.roboto_variable
 import dubovozki.resources.generated.resources.services_contact_headline
 import dubovozki.resources.generated.resources.services_contact_supporting
 import dubovozki.resources.generated.resources.services_donut_headline
@@ -74,6 +75,10 @@ import dubovozki.resources.generated.resources.settings_theme_system
 import dubovozki.resources.generated.resources.settings_top_app_bar
 
 object AppResource {
+    object Font {
+        val roboto_variable = Res.font.roboto_variable
+    }
+
     object String {
         val common_back = Res.string.common_back
         val common_error_supporting = Res.string.common_error_supporting
