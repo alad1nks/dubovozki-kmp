@@ -1,11 +1,8 @@
 package com.alad1nks.dubovozki.feature.busschedule.ui
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,13 +12,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -35,7 +28,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.alad1nks.dubovozki.core.model.Bus
 import com.alad1nks.dubovozki.core.model.DayOfWeekFilter
@@ -183,11 +175,17 @@ internal fun BusScheduleScreen(
                         modifier = Modifier.fillMaxSize(),
                     )
                 is BusScheduleUiState.Content -> {
-                    FreshnessStatus(
-                        updatedAtEpochMillis = uiState.updatedAtEpochMillis,
-                        isStale = uiState.isStale,
-                        onRefresh = onRefresh,
-                    )
+                    if (uiState.isStale) {
+                        OfflineBanner(
+                            message =
+                                stringResource(
+                                    AppResource.String.common_offline_updated_at,
+                                    formatUpdatedAt(uiState.updatedAtEpochMillis),
+                                ),
+                            actionLabel = stringResource(AppResource.String.common_retry),
+                            onAction = onRefresh,
+                        )
+                    }
                     HorizontalPager(
                         state = pagerState,
                         modifier = Modifier.weight(1f).e2eTestTag(TestTags.BUS_PAGER),
@@ -246,39 +244,6 @@ internal fun BusScheduleScreen(
     }
 }
 
-@Composable
-private fun FreshnessStatus(
-    updatedAtEpochMillis: Long?,
-    isStale: Boolean,
-    onRefresh: () -> Unit,
-) {
-    if (isStale) {
-        OfflineBanner(
-            message =
-                stringResource(
-                    AppResource.String.common_offline_updated_at,
-                    formatUpdatedAt(updatedAtEpochMillis),
-                ),
-            actionLabel = stringResource(AppResource.String.common_retry),
-            onAction = onRefresh,
-        )
-    } else if (updatedAtEpochMillis != null) {
-        Text(
-            text =
-                stringResource(
-                    AppResource.String.common_updated_at,
-                    formatUpdatedAt(updatedAtEpochMillis),
-                ),
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.labelSmall,
-        )
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BusSchedulePage(
@@ -291,7 +256,6 @@ private fun BusSchedulePage(
     onBusLongClick: (BusUi) -> Unit,
     scrollBehavior: TopAppBarScrollBehavior,
     modifier: Modifier = Modifier,
-    coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ) {
     LaunchedEffect(positionKey) {
         firstBusIndex?.let { listState.scrollToItem(it) }
@@ -310,39 +274,29 @@ private fun BusSchedulePage(
         return
     }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        NextDepartureCard(
-            bus = firstBusIndex?.let(busList::getOrNull),
-            onGoToNext = {
-                firstBusIndex?.let { index ->
-                    coroutineScope.launch { listState.animateScrollToItem(index) }
-                }
-            },
-        )
-        LazyColumn(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .nestedScroll(scrollBehavior.nestedScrollConnection),
-            state = listState,
-        ) {
-            items(
-                items = busList,
-                key = { bus -> bus.id },
-            ) { bus ->
-                BusListItem(
-                    dayTime = bus.dayTime,
-                    timeDifference = bus.timeDifference,
-                    station = bus.station,
-                    onLongClick =
-                        if (remindersEnabled && bus.timeDifference?.let { it > 0 } == true) {
-                            { onBusLongClick(bus) }
-                        } else {
-                            null
-                        },
-                    modifier = Modifier.e2eTestTag(TestTags.bus(bus.id)),
-                )
-            }
+    LazyColumn(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+        state = listState,
+    ) {
+        items(
+            items = busList,
+            key = { bus -> bus.id },
+        ) { bus ->
+            BusListItem(
+                dayTime = bus.dayTime,
+                timeDifference = bus.timeDifference,
+                station = bus.station,
+                onLongClick =
+                    if (remindersEnabled && bus.timeDifference?.let { it > 0 } == true) {
+                        { onBusLongClick(bus) }
+                    } else {
+                        null
+                    },
+                modifier = Modifier.e2eTestTag(TestTags.bus(bus.id)),
+            )
         }
     }
 }
@@ -351,66 +305,6 @@ private data class SelectedBusReminder(
     val bus: BusUi,
     val departureEpochMillis: Long,
 )
-
-@Composable
-private fun NextDepartureCard(
-    bus: BusUi?,
-    onGoToNext: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Card(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .padding(12.dp)
-                .e2eTestTag(TestTags.BUS_NEXT_CARD)
-                .semantics(mergeDescendants = true) {},
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                text = stringResource(AppResource.String.bus_schedule_next_departure),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.labelLarge,
-            )
-            if (bus == null) {
-                Text(
-                    text = stringResource(AppResource.String.bus_schedule_no_more_today),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            } else {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(text = bus.dayTime, style = MaterialTheme.typography.headlineMedium)
-                        Text(
-                            text = bus.station.text,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                        bus.timeDifference?.let {
-                            Text(
-                                text = timeDifferenceText(it),
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                        }
-                    }
-                    TextButton(
-                        onClick = onGoToNext,
-                        modifier = Modifier.e2eTestTag(TestTags.BUS_NEXT_GO),
-                    ) {
-                        Text(text = stringResource(AppResource.String.bus_schedule_go_to_next))
-                    }
-                }
-            }
-        }
-    }
-}
 
 private val Bus.Station.text: String
     @Composable get() =

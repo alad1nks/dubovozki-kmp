@@ -34,10 +34,7 @@ import dubovozki.resources.generated.resources.bus_schedule_duration_hours
 import dubovozki.resources.generated.resources.bus_schedule_duration_minutes
 import dubovozki.resources.generated.resources.bus_schedule_empty_supporting
 import dubovozki.resources.generated.resources.bus_schedule_empty_title
-import dubovozki.resources.generated.resources.bus_schedule_go_to_next
 import dubovozki.resources.generated.resources.bus_schedule_navigation_bar_label
-import dubovozki.resources.generated.resources.bus_schedule_next_departure
-import dubovozki.resources.generated.resources.bus_schedule_no_more_today
 import dubovozki.resources.generated.resources.bus_schedule_now
 import dubovozki.resources.generated.resources.bus_schedule_reset_filters
 import dubovozki.resources.generated.resources.bus_schedule_station_filter_all
@@ -135,9 +132,6 @@ object AppResource {
         val common_updated_at = Res.string.common_updated_at
         val bus_schedule_empty_supporting = Res.string.bus_schedule_empty_supporting
         val bus_schedule_empty_title = Res.string.bus_schedule_empty_title
-        val bus_schedule_go_to_next = Res.string.bus_schedule_go_to_next
-        val bus_schedule_next_departure = Res.string.bus_schedule_next_departure
-        val bus_schedule_no_more_today = Res.string.bus_schedule_no_more_today
         val bus_schedule_now = Res.string.bus_schedule_now
         val bus_schedule_reset_filters = Res.string.bus_schedule_reset_filters
         val bus_schedule_time_ago = Res.string.bus_schedule_time_ago

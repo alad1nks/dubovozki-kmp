@@ -14,8 +14,6 @@ object TestTags {
     const val BUS_TAB_MOSCOW = "bus.tab.moscow"
     const val BUS_TAB_DUBKI = "bus.tab.dubki"
     const val BUS_PAGER = "bus.pager"
-    const val BUS_NEXT_CARD = "bus.next.card"
-    const val BUS_NEXT_GO = "bus.next.go"
     const val BUS_EMPTY = "bus.empty"
     const val BUS_RESET_FILTERS = "bus.reset_filters"
     const val BUS_REMINDER_DIALOG = "bus.reminder.dialog"

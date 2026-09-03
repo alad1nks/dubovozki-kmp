@@ -25,9 +25,6 @@
     <string name="bus_schedule_station_slavyansky_bulvar">Славянский б-р</string>
     <string name="bus_schedule_empty_supporting">Измените станцию или день, чтобы увидеть другие рейсы</string>
     <string name="bus_schedule_empty_title">Рейсов по выбранным условиям нет</string>
-    <string name="bus_schedule_go_to_next">К ближайшему</string>
-    <string name="bus_schedule_next_departure">Ближайший автобус</string>
-    <string name="bus_schedule_no_more_today">На сегодня рейсов больше нет</string>
     <string name="bus_schedule_now">сейчас</string>
     <string name="bus_schedule_reset_filters">Сбросить фильтры</string>
     <string name="bus_schedule_tab_dubki">В Дубки</string>
