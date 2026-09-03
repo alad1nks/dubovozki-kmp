@@ -42,7 +42,7 @@ class AppE2ETest {
         runAppTest { driver, uriHandler ->
             onNodeWithTag(TestTags.APP_CONTENT).assertIsDisplayed()
             onNodeWithTag(TestTags.NAV_SCHEDULE).assertIsSelected()
-            onNodeWithTag(TestTags.BUS_NEXT_CARD).assertIsDisplayed()
+            onNodeWithTag(TestTags.bus(1)).assertIsDisplayed()
 
             click(TestTags.NAV_SERVICES)
             onNodeWithTag(TestTags.NAV_SERVICES).assertIsSelected()
@@ -177,8 +177,8 @@ class AppE2ETest {
         runAppTest(driver) { _, _ ->
             onNodeWithTag(TestTags.COMMON_ERROR).assertIsDisplayed()
             click(TestTags.COMMON_RETRY)
-            waitUntilTag(TestTags.BUS_NEXT_CARD)
-            onNodeWithTag(TestTags.BUS_NEXT_CARD).assertIsDisplayed()
+            waitUntilTag(TestTags.bus(1))
+            onNodeWithTag(TestTags.bus(1)).assertIsDisplayed()
             assertEquals(1, driver.busApi.refreshCount)
         }
     }
@@ -214,7 +214,7 @@ class AppE2ETest {
     }
 
     @Test
-    fun refreshKeepsCombinedFiltersAndGoToNextRemainsActionable() {
+    fun refreshKeepsCombinedFilters() {
         val driver = E2ETestDriver()
         driver.busApi.onRefresh(Data.Success(E2EFixtures.happyBusSchedule.copy(revision = "refreshed-v2")))
 
@@ -226,23 +226,19 @@ class AppE2ETest {
             click(TestTags.BUS_REFRESH)
             waitUntil(timeoutMillis = 2_000) { driver.busApi.refreshCount == 1 }
             onNodeWithTag(TestTags.bus(8)).assertIsDisplayed()
-            click(TestTags.BUS_NEXT_GO)
-            onNodeWithTag(TestTags.bus(8)).assertIsDisplayed()
         }
     }
 
     @Test
-    fun controlledClockCoversBeforeAtAfterAndEndOfDay() {
+    fun controlledClockUpdatesBusTimeDifference() {
         val driver = E2ETestDriver()
         driver.preferences.seedString("language", "en")
         runAppTest(driver) { _, _ ->
-            onNodeWithTag(TestTags.BUS_NEXT_CARD).assertTextContains("in 5 minutes")
+            onNodeWithTag(TestTags.bus(1)).assertTextContains("in 5 minutes")
             driver.time.set(E2EClockFixtures.atDeparture)
-            waitUntilText(TestTags.BUS_NEXT_CARD, "now")
+            waitUntilText(TestTags.bus(1), "now")
             driver.time.set(E2EClockFixtures.afterDeparture)
             waitUntilText(TestTags.bus(1), "1 minute ago")
-            driver.time.set(E2EClockFixtures.afterLastDeparture)
-            waitUntilText(TestTags.BUS_NEXT_CARD, "No more departures today")
         }
     }
 
@@ -429,7 +425,7 @@ class AppE2ETest {
             waitUntilTag(TestTags.COMMON_LOADING)
             onNodeWithTag(TestTags.COMMON_LOADING).assertIsDisplayed()
             driver.busApi.emit(Data.Success(E2EFixtures.happyBusSchedule))
-            waitUntilTag(TestTags.BUS_NEXT_CARD)
+            waitUntilTag(TestTags.bus(1))
         }
     }
 

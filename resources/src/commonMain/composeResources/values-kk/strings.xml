@@ -25,9 +25,6 @@
     <string name="bus_schedule_station_slavyansky_bulvar">Славянский б-р</string>
     <string name="bus_schedule_empty_supporting">Басқа рейстерді көру үшін станцияны немесе күнді өзгертіңіз</string>
     <string name="bus_schedule_empty_title">Таңдалған шарттарға сәйкес рейстер жоқ</string>
-    <string name="bus_schedule_go_to_next">Жақын рейске</string>
-    <string name="bus_schedule_next_departure">Жақын автобус</string>
-    <string name="bus_schedule_no_more_today">Бүгін басқа рейстер жоқ</string>
     <string name="bus_schedule_now">қазір</string>
     <string name="bus_schedule_reset_filters">Сүзгілерді қалпына келтіру</string>
     <string name="bus_schedule_tab_dubki">Дубкиге</string>

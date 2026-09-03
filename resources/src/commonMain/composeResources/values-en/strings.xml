@@ -25,9 +25,6 @@
     <string name="bus_schedule_station_slavyansky_bulvar">Slavyansky Blvr</string>
     <string name="bus_schedule_empty_supporting">Change the station or day to see other departures</string>
     <string name="bus_schedule_empty_title">No departures match these filters</string>
-    <string name="bus_schedule_go_to_next">Go to next</string>
-    <string name="bus_schedule_next_departure">Next bus</string>
-    <string name="bus_schedule_no_more_today">No more departures today</string>
     <string name="bus_schedule_now">now</string>
     <string name="bus_schedule_reset_filters">Reset filters</string>
     <string name="bus_schedule_tab_dubki">To Dubki</string>
