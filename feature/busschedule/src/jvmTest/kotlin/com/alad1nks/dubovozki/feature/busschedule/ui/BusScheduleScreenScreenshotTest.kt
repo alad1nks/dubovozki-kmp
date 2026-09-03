@@ -7,9 +7,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import androidx.compose.ui.text.font.FontFamily
 import com.alad1nks.dubovozki.core.model.Bus
@@ -72,8 +74,35 @@ class BusScheduleScreenScreenshotTest {
         )
 
     @Test
-    fun longPressOnUpcomingBusOpensReminderDialog() =
+    fun reminderDialog() = captureReminderDialog("bus_reminder_dialog.png")
+
+    @Test
+    fun reminderDialogRejectsExcessLeadTime() =
+        captureReminderDialog(
+            fileName = "bus_reminder_dialog_invalid_minutes.png",
+            minutesText = "11",
+        )
+
+    private fun captureReminderDialog(
+        fileName: String,
+        minutesText: String? = null,
+    ) =
         runDesktopComposeUiTest(width = SCREEN_WIDTH, height = SCREEN_HEIGHT) {
+            val departureEpochMillis = Clock.System.now().toEpochMilliseconds() + REMINDER_REMAINING_MILLIS
+            val reminderContentState =
+                contentState.copy(
+                    moscowBusList =
+                        contentState.moscowBusList.map { bus ->
+                            if (bus.id == REMINDER_BUS_ID) {
+                                bus.copy(
+                                    timeDifference = REMINDER_REMAINING_MILLIS.toInt(),
+                                    departureEpochMillis = departureEpochMillis,
+                                )
+                            } else {
+                                bus
+                            }
+                        },
+                )
             setContent {
                 AppTheme(
                     darkTheme = false,
@@ -82,7 +111,7 @@ class BusScheduleScreenScreenshotTest {
                     Surface(modifier = Modifier.fillMaxSize()) {
                         BusScheduleScreen(
                             topAppBarUiState = BusScheduleTopAppBarUiState(),
-                            uiState = contentState,
+                            uiState = reminderContentState,
                             onStationFilterSelect = {},
                             onStationFilterSpinnerClick = {},
                             onStationFilterSpinnerDismissRequest = {},
@@ -91,16 +120,25 @@ class BusScheduleScreenScreenshotTest {
                             onDayOfWeekFilterSpinnerDismissRequest = {},
                             onResetFilters = {},
                             onRefresh = {},
-                            supportedReminderMethods = setOf(BusReminderMethod.NOTIFICATION),
+                            supportedReminderMethods = BusReminderMethod.entries.toSet(),
                             onScheduleReminder = {},
                         )
                     }
                 }
             }
 
-            onNodeWithTag(TestTags.bus(1)).performSemanticsAction(SemanticsActions.OnLongClick)
+            onNodeWithTag(TestTags.bus(REMINDER_BUS_ID))
+                .performSemanticsAction(SemanticsActions.OnLongClick)
             onNodeWithTag(TestTags.BUS_REMINDER_DIALOG).assertIsDisplayed()
             onNodeWithTag(TestTags.BUS_REMINDER_SET).assertIsDisplayed()
+            minutesText?.let { value ->
+                onNodeWithTag(TestTags.BUS_REMINDER_MINUTES).performTextReplacement(value)
+                onNodeWithTag(TestTags.BUS_REMINDER_SET).assertIsNotEnabled()
+            }
+
+            waitForIdle()
+            onNodeWithTag(TestTags.BUS_REMINDER_DIALOG)
+                .captureRoboImage(fileName, roborazziOptions)
         }
 
     private fun capture(
@@ -139,6 +177,8 @@ class BusScheduleScreenScreenshotTest {
     private companion object {
         const val SCREEN_WIDTH = 390
         const val SCREEN_HEIGHT = 844
+        const val REMINDER_BUS_ID = 1
+        const val REMINDER_REMAINING_MILLIS = 10 * 60_000L + 59_000L
 
         val roborazziOptions =
             RoborazziOptions(
