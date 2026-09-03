@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class, ExperimentalCoroutinesApi::class)
@@ -145,11 +146,14 @@ internal class BusScheduleViewModel(
     }
 
     private fun Bus.toBusUi(currentTime: Int?): BusUi {
+        val timeDifference = currentTime?.let { dayTime - it }
         return BusUi(
             id = id,
             dayTime = dayTimeString,
-            timeDifference = currentTime?.let { dayTime - it },
+            timeDifference = timeDifference,
             station = station,
+            departureEpochMillis =
+                timeDifference?.let { Clock.System.now().toEpochMilliseconds() + it },
         )
     }
 }

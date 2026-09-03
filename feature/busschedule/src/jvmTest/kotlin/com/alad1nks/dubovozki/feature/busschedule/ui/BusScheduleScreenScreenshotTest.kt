@@ -4,14 +4,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import androidx.compose.ui.text.font.FontFamily
 import com.alad1nks.dubovozki.core.model.Bus
 import com.alad1nks.dubovozki.feature.busschedule.model.BusScheduleTopAppBarUiState
 import com.alad1nks.dubovozki.feature.busschedule.model.BusScheduleUiState
 import com.alad1nks.dubovozki.feature.busschedule.model.BusUi
+import com.alad1nks.dubovozki.feature.busschedule.reminder.BusReminderMethod
+import com.alad1nks.dubovozki.feature.designsystem.TestTags
 import com.alad1nks.dubovozki.feature.designsystem.theme.AppTheme
 import com.alad1nks.dubovozki.resources.AppResource
 import com.dropbox.differ.SimpleImageComparator
@@ -22,6 +30,7 @@ import java.util.Locale
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.time.Clock
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalTestApi::class)
 class BusScheduleScreenScreenshotTest {
@@ -64,6 +73,74 @@ class BusScheduleScreenScreenshotTest {
             contentState.copy(isStale = true),
         )
 
+    @Test
+    fun reminderDialog() = captureReminderDialog("bus_reminder_dialog.png")
+
+    @Test
+    fun reminderDialogRejectsExcessLeadTime() =
+        captureReminderDialog(
+            fileName = "bus_reminder_dialog_invalid_minutes.png",
+            minutesText = "11",
+        )
+
+    private fun captureReminderDialog(
+        fileName: String,
+        minutesText: String? = null,
+    ) =
+        runDesktopComposeUiTest(width = SCREEN_WIDTH, height = SCREEN_HEIGHT) {
+            val departureEpochMillis = Clock.System.now().toEpochMilliseconds() + REMINDER_REMAINING_MILLIS
+            val reminderContentState =
+                contentState.copy(
+                    moscowBusList =
+                        contentState.moscowBusList.map { bus ->
+                            if (bus.id == REMINDER_BUS_ID) {
+                                bus.copy(
+                                    timeDifference = REMINDER_REMAINING_MILLIS.toInt(),
+                                    departureEpochMillis = departureEpochMillis,
+                                )
+                            } else {
+                                bus
+                            }
+                        },
+                )
+            setContent {
+                AppTheme(
+                    darkTheme = false,
+                    fontFamily = FontFamily(Font(AppResource.Font.roboto_variable)),
+                ) {
+                    Surface(modifier = Modifier.fillMaxSize()) {
+                        BusScheduleScreen(
+                            topAppBarUiState = BusScheduleTopAppBarUiState(),
+                            uiState = reminderContentState,
+                            onStationFilterSelect = {},
+                            onStationFilterSpinnerClick = {},
+                            onStationFilterSpinnerDismissRequest = {},
+                            onDayOfWeekFilterSelect = {},
+                            onDayOfWeekFilterSpinnerClick = {},
+                            onDayOfWeekFilterSpinnerDismissRequest = {},
+                            onResetFilters = {},
+                            onRefresh = {},
+                            supportedReminderMethods = BusReminderMethod.entries.toSet(),
+                            onScheduleReminder = {},
+                        )
+                    }
+                }
+            }
+
+            onNodeWithTag(TestTags.bus(REMINDER_BUS_ID))
+                .performSemanticsAction(SemanticsActions.OnLongClick)
+            onNodeWithTag(TestTags.BUS_REMINDER_DIALOG).assertIsDisplayed()
+            onNodeWithTag(TestTags.BUS_REMINDER_SET).assertIsDisplayed()
+            minutesText?.let { value ->
+                onNodeWithTag(TestTags.BUS_REMINDER_MINUTES).performTextReplacement(value)
+                onNodeWithTag(TestTags.BUS_REMINDER_SET).assertIsNotEnabled()
+            }
+
+            waitForIdle()
+            onNodeWithTag(TestTags.BUS_REMINDER_DIALOG)
+                .captureRoboImage(fileName, roborazziOptions)
+        }
+
     private fun capture(
         fileName: String,
         uiState: BusScheduleUiState,
@@ -86,6 +163,8 @@ class BusScheduleScreenScreenshotTest {
                         onDayOfWeekFilterSpinnerDismissRequest = {},
                         onResetFilters = {},
                         onRefresh = {},
+                        supportedReminderMethods = emptySet(),
+                        onScheduleReminder = {},
                     )
                 }
             }
@@ -98,6 +177,8 @@ class BusScheduleScreenScreenshotTest {
     private companion object {
         const val SCREEN_WIDTH = 390
         const val SCREEN_HEIGHT = 844
+        const val REMINDER_BUS_ID = 1
+        const val REMINDER_REMAINING_MILLIS = 10 * 60_000L + 59_000L
 
         val roborazziOptions =
             RoborazziOptions(
@@ -117,14 +198,38 @@ class BusScheduleScreenScreenshotTest {
             BusScheduleUiState.Content(
                 moscowBusList =
                     listOf(
-                        BusUi(1, "09:00", 5 * 60_000, Bus.Station.ODINTSOVO),
-                        BusUi(2, "10:00", 65 * 60_000, Bus.Station.SLAVYANSKY_BULVAR),
+                        BusUi(
+                            1,
+                            "09:00",
+                            5 * 60_000,
+                            Bus.Station.ODINTSOVO,
+                            Clock.System.now().toEpochMilliseconds() + 5 * 60_000,
+                        ),
+                        BusUi(
+                            2,
+                            "10:00",
+                            65 * 60_000,
+                            Bus.Station.SLAVYANSKY_BULVAR,
+                            Clock.System.now().toEpochMilliseconds() + 65 * 60_000,
+                        ),
                         BusUi(3, "11:30", null, Bus.Station.MOLODYOZHNAYA),
                     ),
                 dubkiBusList =
                     listOf(
-                        BusUi(4, "09:10", 15 * 60_000, Bus.Station.ODINTSOVO),
-                        BusUi(5, "10:10", 75 * 60_000, Bus.Station.MOLODYOZHNAYA),
+                        BusUi(
+                            4,
+                            "09:10",
+                            15 * 60_000,
+                            Bus.Station.ODINTSOVO,
+                            Clock.System.now().toEpochMilliseconds() + 15 * 60_000,
+                        ),
+                        BusUi(
+                            5,
+                            "10:10",
+                            75 * 60_000,
+                            Bus.Station.MOLODYOZHNAYA,
+                            Clock.System.now().toEpochMilliseconds() + 75 * 60_000,
+                        ),
                     ),
                 firstMoscowBusIndex = 0,
                 firstDubkiBusIndex = 0,
