@@ -23,6 +23,7 @@ import com.alad1nks.dubovozki.core.firebase.BusScheduleApi
 import com.alad1nks.dubovozki.core.firebase.ServicesApi
 import com.alad1nks.dubovozki.core.firebase.ServicesScheduleApi
 import com.alad1nks.dubovozki.core.firebase.model.BusScheduleResponse
+import com.alad1nks.dubovozki.core.firebase.model.ServicesScheduleResponse.ServiceScheduleItemResponse
 import com.alad1nks.dubovozki.core.model.Data
 import com.alad1nks.dubovozki.core.storage.common.AppPreferences
 import com.alad1nks.dubovozki.feature.designsystem.TestTags
@@ -344,6 +345,44 @@ class AppE2ETest {
             driver.serviceScheduleApi.emit(Data.Success(E2EFixtures.oneEmptyBuildingServiceSchedule))
             waitUntilTag(TestTags.SERVICE_SCHEDULE_EMPTY)
             onNodeWithTag(TestTags.SERVICE_SCHEDULE_BUILDING_2).assertIsSelected()
+        }
+    }
+
+    @Test
+    fun invalidLinenRowsDoNotPreventOpeningOtherBuildings() {
+        val driver =
+            E2ETestDriver(
+                initialServiceSchedule =
+                    Data.Success(
+                        E2EFixtures.happyServiceSchedule.copy(
+                            firstBuilding =
+                                listOf(
+                                    ServiceScheduleItemResponse(0, "invalid"),
+                                    ServiceScheduleItemResponse(8, "invalid"),
+                                    ServiceScheduleItemResponse(1, " "),
+                                ),
+                        ),
+                    ),
+            )
+
+        runAppTest(driver) { _, _ ->
+            click(TestTags.NAV_SERVICES)
+            click(TestTags.SERVICES_LINEN)
+            waitUntilTag(TestTags.SERVICE_SCHEDULE_EMPTY)
+            click(TestTags.SERVICE_SCHEDULE_BUILDING_2)
+            onNodeWithTag(TestTags.serviceScheduleDay(2, isToday = false)).assertIsDisplayed()
+        }
+    }
+
+    @Test
+    fun linenEntryRemainsAvailableWhileServiceLinksFail() {
+        val driver = E2ETestDriver(initialServices = Data.Error("offline"))
+
+        runAppTest(driver) { _, _ ->
+            click(TestTags.NAV_SERVICES)
+            onNodeWithTag(TestTags.COMMON_ERROR).assertIsDisplayed()
+            click(TestTags.SERVICES_LINEN)
+            onNodeWithTag(TestTags.serviceScheduleDay(1, isToday = true)).assertIsDisplayed()
         }
     }
 

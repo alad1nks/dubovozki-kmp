@@ -132,3 +132,29 @@ test("system theme follows browser color scheme", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light" });
   await expect(byTag(page, "app.theme.light")).toBeVisible();
 });
+
+for (const { locale, language, title } of [
+  { locale: "en-US", language: "en", title: "Dubovozki" },
+  { locale: "kk-KZ", language: "kk", title: "Дубовозкалар" },
+  { locale: "ru-RU", language: "ru", title: "Дубовозки" },
+]) {
+  test.describe(`system language ${locale}`, () => {
+    test.use({ locale });
+
+    test("page metadata follows system language after an explicit override", async ({ page }) => {
+      await page.evaluate(() => localStorage.setItem("language", "ru"));
+      await page.reload();
+      await expect(byTag(page, "app.content")).toBeVisible();
+      await expect(page).toHaveTitle("Дубовозки");
+      await clickTag(page, "nav.settings");
+      await clickTag(page, "settings.language");
+      await clickTag(page, "settings.language.system");
+      await expect(page).toHaveTitle(title);
+      await expect(page.locator("html")).toHaveAttribute("lang", language);
+      await page.reload();
+      await expect(byTag(page, "app.content")).toBeVisible();
+      await expect(page).toHaveTitle(title);
+      await expect(page.locator("html")).toHaveAttribute("lang", language);
+    });
+  });
+}

@@ -14,22 +14,24 @@ internal actual inline fun <reified T> MutableStateFlow<Data<T>>.addValueEventLi
     val handle =
         reference.observeEventType(
             eventType = FIRDataEventType.FIRDataEventTypeValue,
-        ) { snapshot ->
-            val snapshotValue = snapshot?.value
+            withBlock = { snapshot ->
+                val snapshotValue = snapshot?.value
 
-            if (snapshotValue == null) {
-                value = Data.Error("Snapshot value is null")
-                return@observeEventType
-            }
+                if (snapshotValue == null) {
+                    value = Data.Error("Snapshot value is null")
+                    return@observeEventType
+                }
 
-            val data = parse<T>(snapshotValue)
+                val data = parse<T>(snapshotValue)
 
-            if (data == null) {
-                value = Data.Error("Parse error")
-                return@observeEventType
-            }
+                if (data == null) {
+                    value = Data.Error("Parse error")
+                    return@observeEventType
+                }
 
-            value = Data.Success(data)
-        }
+                value = Data.Success(data)
+            },
+            withCancelBlock = { error -> value = Data.Error(error?.localizedDescription) },
+        )
     return FirebaseListenerRegistration { reference.removeObserverWithHandle(handle) }
 }

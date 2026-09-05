@@ -24,8 +24,9 @@
             get: function () { return window.__localeValue; },
             set: function (value) {
                 window.__localeValue = value;
-                document.documentElement.lang = value || navigator.language || "ru";
-                document.title = value === "en" ? "Dubovozki" : value === "kk" ? "Дубовозкалар" : "Дубовозки";
+                var language = (value || navigator.language || "ru").replace(/_/g, "-").split("-")[0].toLowerCase();
+                document.documentElement.lang = ["ru", "en", "kk"].includes(language) ? language : "ru";
+                document.title = language === "en" ? "Dubovozki" : language === "kk" ? "Дубовозкалар" : "Дубовозки";
             }
         });
     </script>

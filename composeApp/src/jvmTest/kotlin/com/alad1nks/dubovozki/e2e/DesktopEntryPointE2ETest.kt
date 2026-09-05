@@ -2,6 +2,7 @@ package com.alad1nks.dubovozki.e2e
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runComposeUiTest
@@ -62,6 +63,9 @@ class DesktopEntryPointE2ETest {
                 click(TestTags.SETTINGS_LANGUAGE)
                 click(TestTags.language("ENGLISH"))
 
+                click(TestTags.NAV_SERVICES)
+                onNodeWithTag(TestTags.SERVICES_CONTACT).assertIsDisplayed()
+
                 val preferences = isolatedKoin.koin.get<AppPreferences>()
                 runBlocking {
                     assertEquals("dark", preferences.getString("theme_mode").first { it != null })
@@ -103,7 +107,7 @@ class DesktopEntryPointE2ETest {
         const val BUS_JSON =
             """{"revision":"desktop-v1","busList":[{"id":1,"dayOfWeek":2,"dayTime":32400000,"dayTimeString":"09:00","direction":"msk","station":"odn"}]}"""
         const val SERVICES_JSON =
-            """{"contactLink":"https://example.test/contact","donutLink":"https://example.test/donate"}"""
+            """{"contactLink":"https://example.test/contact","donutLink":"https://example.test/donate","futureField":true}"""
         const val SERVICE_SCHEDULE_JSON =
             """{"firstBuilding":[{"day":1,"time":"10:00-12:00"}],"secondBuilding":[],"thirdBuilding":[]}"""
     }
