@@ -2,9 +2,14 @@ package com.alad1nks.dubovozki.core.data.repository
 
 import com.alad1nks.dubovozki.core.firebase.BusScheduleApi
 import com.alad1nks.dubovozki.core.firebase.ServicesApi
+import com.alad1nks.dubovozki.core.firebase.ServicesScheduleApi
 import com.alad1nks.dubovozki.core.firebase.model.BusScheduleResponse
 import com.alad1nks.dubovozki.core.firebase.model.ServicesResponse
+import com.alad1nks.dubovozki.core.firebase.model.ServicesScheduleResponse
+import com.alad1nks.dubovozki.core.firebase.model.ServicesScheduleResponse.ServiceScheduleItemResponse
 import com.alad1nks.dubovozki.core.model.Data
+import com.alad1nks.dubovozki.core.model.ServicesSchedule
+import com.alad1nks.dubovozki.core.model.ServicesScheduleItem
 import com.alad1nks.dubovozki.core.model.ThemeMode
 import com.alad1nks.dubovozki.core.storage.common.Storage
 import kotlinx.coroutines.flow.Flow
@@ -102,6 +107,54 @@ class RepositoryStateTest {
         }
 
     @Test
+    fun invalidAndDuplicateLinenRowsAreSkippedInEveryBuilding() =
+        runTest {
+            val rows =
+                listOf(
+                    ServiceScheduleItemResponse(1, "10:00–12:00"),
+                    ServiceScheduleItemResponse(0, "invalid"),
+                    ServiceScheduleItemResponse(8, "invalid"),
+                    ServiceScheduleItemResponse(null, "invalid"),
+                    ServiceScheduleItemResponse(2, null),
+                    ServiceScheduleItemResponse(3, " "),
+                    ServiceScheduleItemResponse(1, "10:00–12:00"),
+                    ServiceScheduleItemResponse(7, "Closed"),
+                )
+            val repository =
+                ServicesScheduleRepository(
+                    FakeServicesScheduleApi(Data.Success(ServicesScheduleResponse(rows, rows, rows))),
+                    FakeStorage(),
+                )
+
+            val result = assertIs<Data.Success<ServicesSchedule>>(repository.getLinenRoomSchedule().first())
+            val expected = listOf(ServicesScheduleItem(1, "10:00–12:00"), ServicesScheduleItem(7, "Closed"))
+            assertEquals(expected, result.value.firstBuildingSchedule)
+            assertEquals(expected, result.value.secondBuildingSchedule)
+            assertEquals(expected, result.value.thirdBuildingSchedule)
+        }
+
+    @Test
+    fun invalidCachedLinenDaysDoNotReachTheUiWhenOffline() =
+        runTest {
+            val cached =
+                ServicesScheduleResponse(
+                    firstBuilding = listOf(ServiceScheduleItemResponse(-1, "invalid")),
+                    secondBuilding = listOf(ServiceScheduleItemResponse(2, "11:00–13:00")),
+                )
+            val repository =
+                ServicesScheduleRepository(
+                    FakeServicesScheduleApi(Data.Error("offline")),
+                    FakeStorage(servicesScheduleCache = CacheEntry(cached, 123L).encode()),
+                )
+
+            val result =
+                assertIs<Data.Success<ServicesSchedule>>(repository.getLinenRoomSchedule().take(2).toList().last())
+            assertTrue(result.isStale)
+            assertTrue(result.value.firstBuildingSchedule.isEmpty())
+            assertEquals(listOf(ServicesScheduleItem(2, "11:00–13:00")), result.value.secondBuildingSchedule)
+        }
+
+    @Test
     fun legacyThemePreferenceIsMigratedInMemory() =
         runTest {
             val repository = SettingsRepository(FakeStorage(legacyDarkTheme = true))
@@ -146,6 +199,14 @@ private class FakeServicesApi(initial: Data<ServicesResponse>) : ServicesApi {
     private val state = MutableStateFlow(initial)
 
     override fun getServices(): StateFlow<Data<ServicesResponse>> = state
+
+    override fun refresh() = Unit
+}
+
+private class FakeServicesScheduleApi(initial: Data<ServicesScheduleResponse>) : ServicesScheduleApi {
+    private val state = MutableStateFlow(initial)
+
+    override fun getLinenRoomSchedule(): StateFlow<Data<ServicesScheduleResponse>> = state
 
     override fun refresh() = Unit
 }

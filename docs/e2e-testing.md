@@ -1,75 +1,100 @@
-# E2E-тестирование
+# Тестирование
 
-E2E-набор проверяет общий Compose UI и реальные entry points Android, iOS, Web и Desktop. PR-проверки работают
-только с in-process fake API, локальным REST server или Firebase Realtime Database Emulator и никогда не изменяют
-production Firebase.
+Наборы проверяют общий Compose UI, repositories/domain и отдельные платформенные интеграции.
+Текущее поведение описано в [behavior.md](behavior.md). Наличие теста или CI job не означает, что он прошёл:
+результат конкретного прогона нужно смотреть в отчёте.
 
-## Архитектура
+## Наборы и границы
 
-Основной быстрый набор находится в `composeApp/commonTest`. Он поднимает настоящий `App`, Navigation, ViewModel,
-domain и data layers. Через override-модули Koin заменяются только внешние границы: Firebase API, storage,
-московские часы и URI handler. Каждый тест получает новый Koin application и новый state driver.
-
-Платформенные проверки дополняют shared suite:
-
-| Платформа | Runner | Что проверяется |
+| Набор | Исходники | Что проверяет |
 |---|---|---|
-| JVM | Compose Multiplatform UI Test | Все P0/P1 состояния, навигация, фильтры, clock, cache, locale и theme |
-| Android | Instrumentation против `MainActivity` | Firebase SDK + Emulator, Back, realtime, DataStore и relaunch |
-| iOS | Shared simulator suite + XCUITest | SwiftUI shell, Compose controller, Back/gesture, realtime и relaunch |
-| Web | Playwright | Browser entry, accessibility bridge, realtime, reload/localStorage и 599/600 px |
-| Desktop | JVM application test | Actual platform module, первое/повторное REST-чтение и DataStore |
+| Unit | `core/{data,domain}/src/commonTest`, `feature/busschedule/src/commonTest` | Cache/error/mapping, фильтры, тема, индекс будущего рейса и минуты напоминания |
+| Shared application | `composeApp/src/commonTest/.../AppE2ETest.kt` | Настоящие App, Navigation, ViewModel, domain/data с fake API, storage, часами и URI handler |
+| Desktop integration | `composeApp/src/jvmTest/.../DesktopEntryPointE2ETest.kt` | App с actual platform DI, локальный REST, повторный GET и чтение настроек через DataStore |
+| Android instrumentation | `androidApp/src/androidTest/.../AndroidEntryPointE2ETest.kt` | MainActivity, SDK/Emulator realtime, системный Back, повторное создание Activity и настройки |
+| iOS XCUITest | `iosApp/iosAppUITests/AppEntryPointUITests.swift` | SwiftUI shell, Compose controller, SDK/Emulator realtime, Back/swipe и terminate/launch |
+| Web | `e2e/web/tests/app.spec.ts` | Browser entry, realtime, reload, localStorage, 599/600 px, тема и метаданные языка |
+| Visual | `feature/*/src/jvmTest/.../*ScreenshotTest.kt` | Roborazzi-снимки четырёх экранов и диалога напоминания |
 
-В `feature/*/jvmTest` находятся Roborazzi screenshot-тесты экранов. Они рендерят Compose Desktop в фиксированном
-viewport `390×844`, используют английскую locale и сравнивают результат с PNG-эталонами из
-`feature/*/src/jvmTest/snapshots`. Покрыты loading, error, content, empty/unavailable, offline/stale и выбранные
-theme/language состояния.
+Shared suite использует отдельные Koin application и state driver для каждого теста. Fake API публикует
+`Initial`, `Success`, `Error`; `MoscowTimeProvider` задаёт фиксированную дату и продвигает часы через Flow.
+Это относится к shared suite: native/Web/Desktop smoke не подменяют системные часы. Realtime smoke создаёт рейс
+для всех используемых групп дней и проверяет наличие строки, не точный текст относительного времени.
 
-`TestTags` — единый каталог селекторов. Android/JVM используют Compose test tags; iOS и JS включают
-accessibility bridge только при `--e2e` или `?e2e=true`. Playwright и XCUITest взаимодействуют с accessibility
-actions, а не с координатами. Production accessibility tree не получает тестовые labels.
+Desktop integration рендерит App in-process: он не запускает `main()` и реальное окно. Android закрывает и снова
+создаёт Activity в том же процессе; это не kill/relaunch процесса. Desktop читает настройки через тот же DataStore,
+не проверяя запуск нового процесса. Только iOS XCUITest явно выполняет terminate/launch; Web проверяет reload.
 
-Московское время задаётся через `MoscowTimeProvider`. Fake provider публикует изменения как Flow, поэтому
-переходы до/во время/после рейса и через границу минуты выполняются без `sleep`.
+`TestTags` — общий каталог селекторов. Android/JVM используют test tags; iOS с `--e2e` и JS с `?e2e=true`
+дополнительно помещают их в accessibility descriptions. В обычном запуске descriptions не заменяются тестовыми
+метками. Playwright кликает DOM accessibility-элементы, XCUITest — accessibility buttons; shared swipe привязан
+к найденному элементу. Это не полная проверка клавиатурного управления или screen reader.
 
-## Fixtures
+## Fixtures и изоляция
 
-Version-controlled Firebase fixtures находятся в `e2e/fixtures/firebase`, clock fixtures — в
-`E2ETestFixtures.kt`. Набор содержит happy, empty, partial-invalid, error/no-cache, cached-offline,
-cached-then-fresh и realtime состояния. `firebase.json` подключает только emulator rules из
-`e2e/firebase.rules.json`; эти открытые rules не используются production-сборкой.
-
-Android, iOS и Web направляются на Emulator только явной тестовой конфигурацией. Desktop принимает override URL
-только для loopback HTTP endpoint. Любой внешний URI перехватывается и сравнивается с ожидаемым значением.
+- JSON fixtures: `e2e/fixtures/firebase/{happy,empty,partial-invalid}.json`.
+- Shared fixtures, clock и fake state driver: `composeApp/src/commonTest/.../E2ETestFixtures.kt`.
+  Они задаются в Kotlin и не загружаются из JSON автоматически.
+- `e2e/fixtures/states/*.json` описывают последовательности сценариев; runners не читают эти файлы.
+  Эквивалентные состояния задаются вызовами fake API в shared тестах.
+- `firebase.json` подключает только открытые Emulator rules из `e2e/firebase.rules.json`.
+  Эти rules не являются production-конфигурацией.
+- Web использует `demo-dubovozki` и получает demo config через `page.addInitScript`;
+  файл `firebaseConfig.js` с заглушкой создавать не нужно. Каждый тест заново записывает happy fixture и очищает
+  localStorage первого запуска. Reload в том же тесте сохраняет настройки.
+- Все browser projects используют один Emulator namespace, поэтому `workers: 1` предотвращает взаимное
+  перезаписывание fixture при `npm test`. Nightly запускает projects на отдельных runners.
+- Android требует настоящий SDK config и подключает Emulator через `dubovozki.e2e.firebase.host/port`.
+  iOS включает loopback Emulator аргументом `--e2e` после Firebase initialization.
+- Desktop принимает URL override только с префиксом `http://127.0.0.1:` или `http://localhost:`;
+  DataStore override допускается внутри системной временной директории.
+- Shared URI tests перехватывают и сравнивают ссылки. Web устанавливает перехват `window.open`, но отдельного
+  browser-теста contact/donation пока нет. Native smoke внешние ссылки не нажимает.
 
 ## Локальный запуск
 
-Обязательные общие проверки из корня репозитория:
+Предварительная настройка JDK, SDK и Firebase описана в [README](../README.md#prerequisites).
+Все Gradle-команды ниже выполняются из корня. На Windows используйте `.\gradlew.bat` вместо `./gradlew`.
+JVM-only проверки не требуют Android Firebase config:
 
 ```shell
-./gradlew ktlintCheck test :composeApp:jvmTest
+./gradlew ktlintCheck
+./gradlew :core:data:jvmTest :core:domain:jvmTest :feature:busschedule:jvmTest :composeApp:jvmTest
+./gradlew :composeApp:jvmJar
 ```
 
-Проверка всех визуальных эталонов:
+`test` запускает подходящие host tasks, но не заменяет отдельные JVM, instrumentation, iOS и Web команды.
+Для полного host-прогона нужен Android SDK. Если есть настоящий `androidApp/google-services.json`:
 
 ```shell
-./gradlew :feature:busschedule:verifyRoborazziJvm \
-  :feature:services:verifyRoborazziJvm \
-  :feature:servicesschedule:verifyRoborazziJvm \
-  :feature:settings:verifyRoborazziJvm
+./gradlew test :androidApp:assembleDebug
 ```
 
-После осознанного изменения UI эталоны обновляются соответствующими `recordRoborazziJvm` tasks. Перед коммитом
-обязательно просмотрите изменённые PNG и снова запустите `verifyRoborazziJvm`.
-
-На Windows используйте `gradlew.bat`. Desktop entry test входит в `:composeApp:jvmTest`; отдельно его можно
-запустить так:
+CI запускает host tests без этого файла, исключая только задачу его обработки:
 
 ```shell
-./gradlew :composeApp:jvmTest --tests '*DesktopEntryPointE2ETest*'
+./gradlew test :composeApp:jvmTest -x :androidApp:processDebugGoogleServices
 ```
 
-Web Chromium самостоятельно запускает Firebase Emulator и development Web server на `127.0.0.1:9080`:
+Это исключение допустимо для host tests; оно не проверяет Firebase initialization настоящего Android приложения
+и не заменяет конфигурацию для instrumentation или обычного запуска.
+
+### Визуальные тесты
+
+```shell
+./gradlew :feature:busschedule:verifyRoborazziJvm :feature:services:verifyRoborazziJvm \
+  :feature:servicesschedule:verifyRoborazziJvm :feature:settings:verifyRoborazziJvm
+```
+
+В PowerShell запишите команду в одну строку (обратный слеш выше — перенос shell macOS/Linux).
+Эталоны находятся в `feature/*/src/jvmTest/snapshots`, viewport — `390×844`, базовая locale — English.
+Даже файл `settings_light_russian.png` показывает выбранную настройку Russian при английском окружении рендера;
+это не скриншот полной русской локализации. Есть Light/Dark состояния, но нет полной матрицы тем, языков и размеров.
+
+После намеренного изменения UI обновите нужные эталоны задачей `recordRoborazziJvm`, просмотрите PNG и снова
+запустите `verifyRoborazziJvm`. Проверка сохраняет HTML-report, JSON result и actual/diff PNG в build-директории.
+
+### Web
 
 ```shell
 cd e2e/web
@@ -78,80 +103,126 @@ npx playwright install chromium
 npm run test:chromium
 ```
 
-Полная browser-матрица:
+Playwright запускает Firebase Emulator (database `127.0.0.1:9000`, hub `127.0.0.1:4400`) и Web server
+(`127.0.0.1:9080`). Для Emulator нужен `java` в PATH, для wrapper — JDK; установка Node сама по себе недостаточна.
+Локально существующие серверы могут переиспользоваться: перед проверкой убедитесь, что они обслуживают текущую
+ветку. В CI переиспользование отключено.
+
+Полная browser-матрица — Chromium, Firefox, WebKit и mobile Chromium (Pixel 7, viewport `599×900`):
 
 ```shell
 npx playwright install chromium firefox webkit
 npm test
 ```
 
-Для проверки production Web bundle задайте `E2E_WEB_RELEASE=true` перед `npm run test:chromium`.
+Production bundle, macOS/Linux: `E2E_WEB_RELEASE=true npm run test:chromium`.
+PowerShell: `$env:E2E_WEB_RELEASE = 'true'`, затем `npm run test:chromium`;
+после прогона удалите переменную: `Remove-Item Env:E2E_WEB_RELEASE`.
 
-Android требует установленный emulator, игнорируемый `androidApp/google-services.json` и Firebase Emulator,
-запущенный с project id из этого файла:
+`E2E_EXTERNAL_SERVERS=true` отключает управление обоими серверами; `E2E_BASE_URL` меняет адрес страницы,
+но не жёстко заданный endpoint Emulator в тестах. Не используйте production URL для E2E.
+`jsBrowserTest` — отдельный Kotlin/JS test runner, не Playwright; успешная сборка JS не подтверждает его выполнение.
+
+### Android
+
+Нужны SDK, запущенный Android emulator и настоящий `androidApp/google-services.json`.
+Установите `e2e/web` dependencies командой `npm ci`, затем запустите Firebase Emulator в отдельном терминале:
 
 ```shell
-npx --prefix e2e/web firebase emulators:start --project <project-id> --only database
+cd e2e/web
+npx firebase emulators:start --config ../../firebase.json --project <project-id> --only database
+```
+
+`<project-id>` берётся из `project_info.project_id` настоящего config. Из корня в другом терминале:
+
+```shell
 ./gradlew :androidApp:connectedDebugAndroidTest
 ```
 
-Не создавайте заглушку Firebase config. В CI файл декодируется из repository secret. iOS проверяется на macOS:
+Тест сам записывает happy fixture в namespace из `database_url`, указывает SDK адрес `10.0.2.2:9000` и запускает
+MainActivity. Cleartext HTTP разрешён debug manifest. Это команда для эмулятора Android, не физического телефона.
+
+### iOS (macOS)
+
+Shared simulator suite с fake API:
 
 ```shell
 ./gradlew :composeApp:iosSimulatorArm64Test
+```
+
+Для XCUITest нужны настоящий `GoogleService-Info.plist`, Firebase Emulator и happy fixture. Из корня, после
+`npm ci` в `e2e/web`, экспортируйте ID и запустите Emulator в отдельном терминале:
+
+```shell
+export E2E_FIREBASE_PROJECT_ID=$(/usr/libexec/PlistBuddy -c 'Print :PROJECT_ID' iosApp/iosApp/GoogleService-Info.plist)
+e2e/web/node_modules/.bin/firebase emulators:start --project "$E2E_FIREBASE_PROJECT_ID" --only database
+```
+
+В терминале теста также экспортируйте `E2E_FIREBASE_PROJECT_ID` той же командой, затем:
+
+```shell
+curl --fail --request PUT --header 'Content-Type: application/json' \
+  --data-binary @e2e/fixtures/firebase/happy.json \
+  "http://127.0.0.1:9000/.json?ns=$E2E_FIREBASE_PROJECT_ID"
 xcodebuild test -project iosApp/iosApp.xcodeproj -scheme iosApp \
   -destination 'platform=iOS Simulator,id=<simulator-udid>'
 ```
 
-## Покрытие каталога
+Это подготовка, используемая nightly workflow. XCUITest требует `E2E_FIREBASE_PROJECT_ID` для realtime PUT.
+Запуск только `xcodebuild test` без Emulator/seed/переменной не является полным локальным сценарием.
 
-| IDs | Автоматизация |
+## Соответствие историческому каталогу
+
+| IDs | Реальная автоматизация / ограничение |
 |---|---|
-| E2E-001–006 | Shared navigation tests, exact 599/600 Playwright viewports, Android Back и iOS Back/gesture |
-| E2E-010–015 | Shared direction click/swipe, все station/day filters, Sunday→Monday и combined filters |
-| E2E-016–019 | Observable clock: before/at/after, minute transition, go-to-next и end-of-day |
-| E2E-020–026 | Empty/reset, retry, cache/offline/fresh, refresh с фильтрами, platform realtime и invalid DTO |
-| E2E-030–036 | Независимый linen entry, точные/ошибочные URI, unsupported links, retry/cache/realtime |
-| E2E-040–046 | Detail/back, три корпуса, current-day semantics, per-building empty, retry/cache/realtime |
-| E2E-050–055 | Applied Light/Dark tags, browser System theme, ru/en/kk/System, defaults, relaunch/storage |
-| E2E-056–057 | Локализованные заголовки/fallback и доступность длинных kk actions на phone/tablet |
-| E2E-060–063 | Actual Android/iOS/Web entry points и nightly Firefox/WebKit/mobile projects |
-| E2E-064–066 | Desktop REST refresh, platform persistence и keyboard/accessibility actions без координат |
-| E2E-067 | Отдельный weekly read-only production schema workflow |
-| Visual | Roborazzi baselines всех четырёх экранов и их loading/error/content/empty/stale/theme состояний |
+| 001–006 | Shared navigation, 599/600 Web, Android Back, iOS Back/swipe; повторная навигация считает узлы, но не проверяет весь saved state |
+| 010–015 | Shared launch, direction click/swipe, station/day и combined filters, Sunday→Monday |
+| 016–017 | Shared управляемые before/at/after relative-time assertions; unit проверяет индекс ближайшего рейса |
+| 018–019 | Кнопка «К ближайшему» и end-of-day карточка удалены в PR #58; unit проверяет отсутствие будущего индекса |
+| 020–026 | Shared empty/reset, retry, cached-offline→fresh, сохранение фильтров, invalid DTO; SDK realtime — native/Web smoke |
+| 030–036 | Shared независимый linen entry при ошибке ссылок, URI success/failure, скрытие ссылок, retry/cache/realtime |
+| 040–046 | Shared detail/back, выбор трёх корпусов, today-tag, пустой корпус, retry/cache/realtime и invalid linen rows |
+| 050–055 | Shared theme/locale/defaults, Web System color scheme и reload, native settings; см. ограничения relaunch выше |
+| 056–057 | Shared заголовок Настроек на ru/en/kk, Web kk navigation на 599/600, Web title/lang при System ru/en/kk |
+| 058 | Roborazzi отдельных состояний; полная Light/Dark × phone/tablet × ru/en/kk матрица отсутствует |
+| 060–064 | Android/iOS/Web entry smoke и Desktop platform-module integration; Desktop окно не запускается |
+| 065 | Полного kill/relaunch с восстановлением cache, темы и языка на каждой платформе нет |
+| 066 | Есть semantics selectors/actions; отдельного полного keyboard/screen-reader сценария нет |
+| 067 | Read-only GET трёх production paths с проверкой формы верхнего уровня, без валидации всех полей DTO |
 
-Roborazzi visual baselines блокируют PR при значимом изменении изображения. Playwright дополнительно сохраняет
-screenshot/trace при сбое. Локально видео сохраняется только для упавших browser tests, в CI — для каждого запуска
-теста.
+Другие границы покрытия: нет прямых assertions прокрутки к текущему дню/рейсу, полного обхода всех экранов на
+трёх языках и фактической доставки напоминаний. Shared fake ошибки не доказывают native SDK callbacks при
+permission denial или потере сети. Тесты с числом узлов/selected tag не следует описывать как проверку всей
+навигации, всех данных вкладки или полного состояния после перезапуска.
 
-## CI
+Известное ограничение текущего Kotlin/JS accessibility bridge Compose: после закрытия popup его DOM-дерево может
+остаться на пунктах закрытого меню вместо основного экрана. Визуальный экран продолжает отображаться, но следующий
+semantics locator недоступен. Последовательное управление несколькими меню без reload поэтому пока не подтверждено.
+Web locale-тест начинает с сохранённого русского языка, выбирает System через UI и проверяет title/lang до и после
+reload; он не заявляет проверку повторного открытия меню. Общая смена ru/en/kk/System проверяется в shared suite.
 
-| Trigger | Набор |
+## CI и диагностика
+
+| Trigger | Настроенные jobs |
 |---|---|
-| Pull request | ktlint, unit, shared JVM, Roborazzi verify, Chromium, Android API 24 P0, iOS compile |
-| Push в `main` | PR-набор с Roborazzi verify, Android API 24/35 и существующая release APK-сборка |
-| Nightly | Android API 24/35, iOS shared/XCUITest, все Web projects, Desktop Windows/macOS/Linux |
-| `release/*` | Shared P0 и Chromium против production Web bundle до release build/publish jobs |
-| Weekly/manual | Read-only проверка трёх production Firebase paths и schema |
+| PR в main/master | ktlint, host tests, shared JVM, Roborazzi verify, Chromium, Android API 24, iOS framework compile |
+| Push в main | Host/shared/visual/Chromium, Android API 24/35, затем существующие release APK build/deploy jobs |
+| Nightly/manual | Web projects на отдельных runners, Android API 24/35, iOS shared/XCUITest, Desktop Windows/macOS/Linux |
+| release/* | JVM suite и Chromium production bundle, затем существующие AAB build/deploy jobs |
+| Weekly/manual production smoke | GET трёх публичных Firebase paths и поверхностная проверка JSON |
 
-Web jobs записывают каждый Playwright test, Android jobs — фактический instrumentation-прогон на emulator, а nightly
-iOS job — XCUITest на Simulator. Android recorder синхронизируется со стартом instrumentation, чтобы не записывать
-Gradle/install-подготовку, а готовые части нормализуются в H.264 MP4 с постоянными 30 FPS и регулярными keyframes.
-Длинная Android-запись автоматически разбивается на части по 180 секунд. Shared JVM, Desktop и shared iOS suite
-тестируют Compose-сцену in-process, поэтому отдельный экран для них не записывается.
+Nightly не запускает Roborazzi verify. Release job с названием P0 запускает весь `composeApp:jvmTest` и Chromium
+файл: отдельного фильтра только по P0 нет. PR iOS compile — проверка сборки, а не выполнение iOS сценариев.
+Workflow definitions находятся в `.github/workflows`; branch protection нужно проверять отдельно.
 
-После любого результата UI-прогона jobs загружают видео вместе с доступной диагностикой. Roborazzi job также
-публикует HTML-report, JSON result и actual/diff PNG. Архив можно скачать в
-`Actions → <workflow run> → Artifacts` и открыть видео локально; он не коммитится в репозиторий. Web-файлы находятся
-в игнорируемом `test-results`, а Android/iOS пишут во временную директорию GitHub runner. Срок хранения определяется
-настройками Actions в репозитории.
+PR/main/nightly/release E2E используют fake, локальный REST или Emulator. Production smoke — отдельный job,
+выполняющий только GET. Он не используется для наполнения тестов и не меняет production Firebase.
 
-В PR нет безусловного retry. В CI Playwright допускает один retry, включает `failOnFlakyTests`, поэтому прошедший
-только со второй попытки тест всё равно делает job красным.
+Playwright сохраняет screenshot/trace при сбое, видео локально — при сбое, в CI — для каждого теста.
+В CI допускается один retry с `failOnFlakyTests`: успех только со второй попытки всё равно проваливает job.
+Android recorder ждёт старта instrumentation, делит запись на части до 180 секунд и нормализует H.264/30 FPS.
+Nightly iOS recorder снимает XCUITest; in-process JVM/shared iOS scenes отдельно не записываются.
 
-## Ограничения локального окружения
-
-- iOS Simulator и XCUITest запускаются только на macOS; Windows может проверить JVM, JS и Android compilation.
-- Полный Android test требует emulator и настоящий локальный Firebase config, который не коммитится.
-- Firebase Emulator и static Web server слушают только loopback interface.
-- Production smoke выполняет только GET и не содержит credentials или операций записи.
+Доступные видео и отчёты загружаются с `if: always()` в `Actions → workflow run → Artifacts`.
+Web пишет в игнорируемые `test-results`/`playwright-report`; Android/iOS видео — во временную директорию runner.
+Артефакты не коммитятся. iOS проверки выполняются только на macOS; на Windows их нужно явно помечать непроверенными.

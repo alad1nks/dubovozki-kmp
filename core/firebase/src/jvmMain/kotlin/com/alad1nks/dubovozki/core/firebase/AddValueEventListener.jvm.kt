@@ -8,11 +8,13 @@ import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 
 internal actual inline fun <reified T> MutableStateFlow<Data<T>>.addValueEventListener(
     pathString: String,
@@ -25,6 +27,8 @@ internal actual inline fun <reified T> MutableStateFlow<Data<T>>.addValueEventLi
                         .body()
 
                 value = Data.Success(data)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 value = Data.Error(e.message)
             }
@@ -37,6 +41,6 @@ private val firebaseScope = CoroutineScope(SupervisorJob() + Dispatchers.Default
 private val client =
     HttpClient(CIO) {
         install(ContentNegotiation) {
-            json()
+            json(Json { ignoreUnknownKeys = true })
         }
     }

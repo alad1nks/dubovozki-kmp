@@ -17,6 +17,7 @@
 - `resources` — общие Compose Resources и facade `AppResource`.
 
 Полный список модулей — в `settings.gradle.kts`; версии — в `gradle/libs.versions.toml`.
+Актуальное поведение и контракты — в `docs/behavior.md`, запуск и границы тестов — в `docs/e2e-testing.md`.
 
 ## Стек и targets
 
@@ -25,7 +26,9 @@
 - Firebase Realtime Database: Android SDK, iOS CocoaPods, JS npm SDK, JVM Ktor/CIO REST.
 - Targets: Android (min 24, compile/target 37, JVM target 11), `iosArm64`, `iosSimulatorArm64`, JVM Desktop
   и JS browser. `iosX64` и Wasm не настроены.
-- CI использует Temurin JDK 17. Версии сверяй с version catalog и Gradle wrapper.
+- CI устанавливает Temurin JDK 17 для запуска wrapper. Сам Gradle daemon использует JetBrains JDK 21
+  по `gradle/gradle-daemon-jvm.properties`. JVM target 11 относится к Android bytecode.
+  Версии сверяй с version catalog, Gradle wrapper и daemon criteria.
 
 ## Архитектура и KMP
 
@@ -39,7 +42,8 @@
   `PlatformModules` добавляет DataStore или JS storage. Koin запускается в `App`.
 - Route-типы находятся в `feature/*/navigation` и помечены `@Serializable`; общий граф — в `AppNavHost`.
 - Переносимый код размещай в `commonMain`, platform API/entry points — в platform source sets. Существующие
-  `expect`/`actual`: `PlatformModules`, `LocalAppLocale`, Firebase listener и путь DataStore. При изменении
+  `expect`/`actual`: `PlatformModules`, `LocalAppLocale`, Firebase listener, путь DataStore, `e2eTestTag` и
+  `rememberBusReminderLauncher`. При изменении
   контракта обновляй все actual-реализации.
 - `core:storage:datastore` не имеет JS target, `core:storage:js` имеет только JS. Остальные KMP-модули
   объявляют Android, обе iOS ARM64 цели, JVM и JS.
@@ -81,7 +85,11 @@
 ```
 
 Android запускается из Android Studio. iOS запускается из `iosApp` в Xcode; Xcode вызывает
-`:composeApp:embedAndSignAppleFrameworkForXcode`. Test tasks существуют, но test source files сейчас отсутствуют.
+`:composeApp:embedAndSignAppleFrameworkForXcode`. Unit-тесты находятся в `core/{data,domain}/src/commonTest` и
+`feature/busschedule/src/commonTest`; shared E2E — в `composeApp/src/commonTest`, Desktop integration — в
+`composeApp/src/jvmTest`. Есть Android instrumentation, iOS XCUITest, Playwright и Roborazzi-тесты всех четырёх feature.
+`test` не заменяет `jvmTest`, browser E2E и native instrumentation. Требования и команды для каждого набора описаны
+в `docs/e2e-testing.md`.
 
 ## Проверка изменений
 
@@ -96,7 +104,9 @@ Android запускается из Android Studio. iOS запускается �
 - Для Firebase нужны игнорируемые Git файлы: `androidApp/google-services.json`,
   `iosApp/iosApp/GoogleService-Info.plist`, `composeApp/src/jsMain/resources/firebaseConfig.js`. Не создавай
   заглушки и не коммить секреты.
-- JVM Firebase делает одно REST-чтение; Android/iOS/JS используют listeners. Их realtime-семантика различается.
+- JVM Firebase делает одно REST-чтение при создании API и повторное после refresh; Android/iOS/JS используют
+  listeners. Их realtime-семантика различается. Offline banner появляется после `Data.Error` при наличии cache;
+  отключение сети само по себе не гарантирует error callback Firebase SDK.
 - `composeApp/webpack.config.d/watch.js` — workaround для KT-80582; не удаляй его без отдельной проверки.
 - Без отдельного запроса не меняй identifiers/namespaces, signing/release settings, Firebase URL/path/DTO schema,
   storage keys/file name, target matrix, версии Gradle/plugins/dependencies, Xcode/CocoaPods/SPM и CI workflows.

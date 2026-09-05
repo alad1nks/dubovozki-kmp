@@ -69,13 +69,13 @@ class ServicesScheduleRepository(
         if (this == null) return emptyList()
 
         return mapNotNull { serviceScheduleItem ->
-            val day = serviceScheduleItem.day ?: return@mapNotNull null
-            val time = serviceScheduleItem.time ?: return@mapNotNull null
+            val day = serviceScheduleItem.day?.takeIf { it in 1..7 } ?: return@mapNotNull null
+            val time = serviceScheduleItem.time?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
 
             ServicesScheduleItem(
                 day = day,
                 time = time,
             )
-        }
+        }.distinct()
     }
 }

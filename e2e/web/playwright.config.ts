@@ -33,6 +33,8 @@ const managedWebServers = process.env.E2E_EXTERNAL_SERVERS
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: false,
+  // Every project seeds and mutates the same Firebase Emulator namespace.
+  workers: 1,
   forbidOnly: isCi,
   failOnFlakyTests: isCi,
   retries: isCi ? 1 : 0,
