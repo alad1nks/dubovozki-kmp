@@ -7,16 +7,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import kotlinx.coroutines.launch
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import platform.Foundation.NSCalendar
+import platform.Foundation.NSCalendarIdentifierGregorian
+import platform.Foundation.NSDateComponents
+import platform.Foundation.NSTimeZone
+import platform.Foundation.timeZoneForSecondsFromGMT
 import platform.UserNotifications.UNAuthorizationOptionAlert
 import platform.UserNotifications.UNAuthorizationOptionSound
+import platform.UserNotifications.UNCalendarNotificationTrigger
 import platform.UserNotifications.UNMutableNotificationContent
 import platform.UserNotifications.UNNotificationRequest
 import platform.UserNotifications.UNNotificationSound
-import platform.UserNotifications.UNTimeIntervalNotificationTrigger
 import platform.UserNotifications.UNUserNotificationCenter
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.time.Clock
+import kotlin.time.Instant
 
 @Composable
 internal actual fun rememberBusReminderLauncher(
@@ -38,8 +46,7 @@ internal actual fun rememberBusReminderLauncher(
 }
 
 private suspend fun scheduleNotification(request: BusReminderRequest): BusReminderResult {
-    val delayMillis = request.triggerAtEpochMillis - Clock.System.now().toEpochMilliseconds()
-    if (delayMillis <= 0) return BusReminderResult.TooLate
+    if (request.triggerAtEpochMillis <= Clock.System.now().toEpochMilliseconds()) return BusReminderResult.TooLate
     if (request.method != BusReminderMethod.NOTIFICATION) return BusReminderResult.Unsupported
 
     val notificationCenter = UNUserNotificationCenter.currentNotificationCenter()
@@ -53,17 +60,15 @@ private suspend fun scheduleNotification(request: BusReminderRequest): BusRemind
         }
     if (!authorized) return BusReminderResult.PermissionDenied
 
+    // Permission UI may stay open until after the reminder is due.
+    val trigger = createBusReminderTrigger(request.triggerAtEpochMillis) ?: return BusReminderResult.TooLate
+
     val content =
         UNMutableNotificationContent().apply {
             setTitle(request.notificationTitle)
             setBody(request.notificationBody)
             setSound(UNNotificationSound.defaultSound)
         }
-    val trigger =
-        UNTimeIntervalNotificationTrigger.triggerWithTimeInterval(
-            timeInterval = delayMillis / 1_000.0,
-            repeats = false,
-        )
     val notificationRequest =
         UNNotificationRequest.requestWithIdentifier(
             identifier = "bus-${request.busId}-${request.departureEpochMillis}",
@@ -82,4 +87,25 @@ private suspend fun scheduleNotification(request: BusReminderRequest): BusRemind
             )
         }
     }
+}
+
+internal fun createBusReminderTrigger(
+    triggerAtEpochMillis: Long,
+    nowEpochMillis: Long = Clock.System.now().toEpochMilliseconds(),
+): UNCalendarNotificationTrigger? {
+    if (triggerAtEpochMillis <= nowEpochMillis) return null
+    val time = Instant.fromEpochMilliseconds(triggerAtEpochMillis).toLocalDateTime(TimeZone.UTC)
+    val components =
+        NSDateComponents().apply {
+            calendar = NSCalendar.calendarWithIdentifier(NSCalendarIdentifierGregorian)
+            timeZone = NSTimeZone.timeZoneForSecondsFromGMT(0)
+            year = time.year.toLong()
+            month = time.month.ordinal.toLong() + 1
+            day = time.day.toLong()
+            hour = time.hour.toLong()
+            minute = time.minute.toLong()
+            second = time.second.toLong()
+        }
+    // An absolute UTC date cannot drift by time spent granting permission or changing time zones.
+    return UNCalendarNotificationTrigger.triggerWithDateMatchingComponents(components, repeats = false)
 }
