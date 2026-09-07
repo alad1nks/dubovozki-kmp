@@ -34,7 +34,7 @@ internal fun BusListItem(
     timeDifference: Int?,
     station: Bus.Station,
     modifier: Modifier = Modifier,
-    departedColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    departedColor: Color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
     onLongClick: (() -> Unit)? = null,
 ) {
     val colorScheme = LocalExtendedColorScheme.current

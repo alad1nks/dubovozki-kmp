@@ -29,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
-import com.alad1nks.dubovozki.core.model.Bus
 import com.alad1nks.dubovozki.core.model.DayOfWeekFilter
 import com.alad1nks.dubovozki.core.model.StationFilter
 import com.alad1nks.dubovozki.feature.busschedule.model.BusScheduleTopAppBarUiState
@@ -151,7 +150,6 @@ internal fun BusScheduleScreen(
                 onDayOfWeekFilterSelect = onDayOfWeekFilterSelect,
                 onDayOfWeekFilterSpinnerClick = onDayOfWeekFilterSpinnerClick,
                 onDayOfWeekFilterSpinnerDismissRequest = onDayOfWeekFilterSpinnerDismissRequest,
-                onRefreshClick = onRefresh,
                 scrollBehavior = scrollBehavior,
             )
 
@@ -305,16 +303,6 @@ private data class SelectedBusReminder(
     val bus: BusUi,
     val departureEpochMillis: Long,
 )
-
-private val Bus.Station.text: String
-    @Composable get() =
-        when (this) {
-            Bus.Station.ODINTSOVO -> stringResource(AppResource.String.bus_schedule_station_odintsovo)
-            Bus.Station.SLAVYANSKY_BULVAR ->
-                stringResource(AppResource.String.bus_schedule_station_slavyansky_bulvar)
-            Bus.Station.MOLODYOZHNAYA ->
-                stringResource(AppResource.String.bus_schedule_station_molodyozhnaya)
-        }
 
 private fun formatUpdatedAt(updatedAtEpochMillis: Long?): String {
     if (updatedAtEpochMillis == null) return "—"
