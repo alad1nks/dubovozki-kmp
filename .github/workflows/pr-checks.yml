@@ -9,6 +9,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  release-automation:
+    name: Release branch automation tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -B -m unittest discover -s .github/scripts -p 'test_prepare_release.py' -v
+
   shared:
     name: Lint, unit and shared E2E
     runs-on: ubuntu-latest
