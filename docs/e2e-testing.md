@@ -10,7 +10,7 @@
 |---|---|---|
 | Unit | `core/{data,domain}/src/commonTest`, `feature/busschedule/src/commonTest` | Cache/error/mapping, фильтры, тема, индекс будущего рейса и минуты напоминания |
 | Shared application | `composeApp/src/commonTest/.../AppE2ETest.kt` | Настоящие App, Navigation, ViewModel, domain/data с fake API, storage, часами и URI handler |
-| Desktop integration | `composeApp/src/jvmTest/.../DesktopEntryPointE2ETest.kt` | App с actual platform DI, локальный REST, повторный GET и чтение настроек через DataStore |
+| Desktop integration | `composeApp/src/jvmTest/.../DesktopEntryPointE2ETest.kt` | App с actual platform DI, локальный REST, повторный GET после ошибки и чтение настроек через DataStore |
 | Android instrumentation | `androidApp/src/androidTest/.../AndroidEntryPointE2ETest.kt` | MainActivity, SDK/Emulator realtime, системный Back, повторное создание Activity и настройки |
 | iOS XCUITest | `iosApp/iosAppUITests/AppEntryPointUITests.swift` | SwiftUI shell, Compose controller, SDK/Emulator realtime, Back/swipe и terminate/launch |
 | Web | `e2e/web/tests/app.spec.ts` | Browser entry, realtime, reload, localStorage, 599/600 px, тема и метаданные языка |
