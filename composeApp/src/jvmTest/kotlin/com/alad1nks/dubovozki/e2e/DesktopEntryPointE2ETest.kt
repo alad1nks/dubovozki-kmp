@@ -3,6 +3,7 @@ package com.alad1nks.dubovozki.e2e
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runComposeUiTest
@@ -24,11 +25,11 @@ import kotlin.test.assertEquals
 @OptIn(ExperimentalTestApi::class)
 class DesktopEntryPointE2ETest {
     @Test
-    fun realPlatformModulesReadRestAgainOnRefreshAndPersistSettings() {
+    fun realPlatformModulesRetryFailedRestRequestAndPersistSettings() {
         val requests = ConcurrentHashMap<String, Int>()
         val server =
             HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0).apply {
-                json("/busSchedule.json", BUS_JSON, requests)
+                json("/busSchedule.json", BUS_JSON, requests, failFirstRequest = true)
                 json("/services.json", SERVICES_JSON, requests)
                 json("/servicesSchedule/linenRoom.json", SERVICE_SCHEDULE_JSON, requests)
                 start()
@@ -54,8 +55,14 @@ class DesktopEntryPointE2ETest {
                 }
 
                 waitUntil(timeoutMillis = 10_000) { requests["/busSchedule.json"] == 1 }
-                click(TestTags.BUS_REFRESH)
+                waitUntil(timeoutMillis = 10_000) {
+                    onAllNodesWithTag(TestTags.COMMON_RETRY).fetchSemanticsNodes().isNotEmpty()
+                }
+                click(TestTags.COMMON_RETRY)
                 waitUntil(timeoutMillis = 10_000) { requests["/busSchedule.json"] == 2 }
+                waitUntil(timeoutMillis = 10_000) {
+                    onAllNodesWithTag(TestTags.BUS_PAGER).fetchSemanticsNodes().isNotEmpty()
+                }
 
                 click(TestTags.NAV_SETTINGS)
                 click(TestTags.SETTINGS_THEME)
@@ -87,12 +94,14 @@ class DesktopEntryPointE2ETest {
         path: String,
         body: String,
         requests: ConcurrentHashMap<String, Int>,
+        failFirstRequest: Boolean = false,
     ) {
         createContext(path) { exchange ->
-            requests.merge(path, 1, Int::plus)
-            val bytes = body.encodeToByteArray()
-            exchange.responseHeaders.add("Content-Type", "application/json")
-            exchange.sendResponseHeaders(200, bytes.size.toLong())
+            val requestCount = requests.merge(path, 1, Int::plus)
+            val shouldFail = failFirstRequest && requestCount == 1
+            val bytes = if (shouldFail) "Service Unavailable".encodeToByteArray() else body.encodeToByteArray()
+            exchange.responseHeaders.add("Content-Type", if (shouldFail) "text/plain" else "application/json")
+            exchange.sendResponseHeaders(if (shouldFail) 503 else 200, bytes.size.toLong())
             exchange.responseBody.use { it.write(bytes) }
         }
     }

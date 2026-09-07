@@ -9,6 +9,9 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
@@ -215,7 +218,7 @@ class AppE2ETest {
     }
 
     @Test
-    fun refreshKeepsCombinedFilters() {
+    fun offlineRetryKeepsCombinedFilters() {
         val driver = E2ETestDriver()
         driver.busApi.onRefresh(Data.Success(E2EFixtures.happyBusSchedule.copy(revision = "refreshed-v2")))
 
@@ -224,8 +227,16 @@ class AppE2ETest {
             selectDay("SATURDAY")
             click(TestTags.BUS_TAB_DUBKI)
             onNodeWithTag(TestTags.bus(8)).assertIsDisplayed()
-            click(TestTags.BUS_REFRESH)
+            driver.busApi.emit(Data.Error("offline"))
+            waitUntilTag(TestTags.COMMON_OFFLINE)
+            runOnUiThread {
+                onNode(hasAnyAncestor(hasTestTag(TestTags.COMMON_OFFLINE)) and hasClickAction()).performClick()
+            }
             waitUntil(timeoutMillis = 2_000) { driver.busApi.refreshCount == 1 }
+            waitUntil(timeoutMillis = 2_000) {
+                onAllNodesWithTag(TestTags.COMMON_OFFLINE).fetchSemanticsNodes().isEmpty()
+            }
+            onNodeWithTag(TestTags.BUS_TAB_DUBKI).assertIsSelected()
             onNodeWithTag(TestTags.bus(8)).assertIsDisplayed()
         }
     }
