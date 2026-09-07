@@ -6,8 +6,10 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.provider.AlarmClock
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -30,17 +32,37 @@ internal actual fun rememberBusReminderLauncher(
     val context = LocalContext.current.applicationContext
     val currentOnResult by rememberUpdatedState(onResult)
     var pendingNotification by remember { mutableStateOf<BusReminderRequest?>(null) }
-    val permissionLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+    val exactAlarmPermissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             val request = pendingNotification
             pendingNotification = null
             currentOnResult(
                 when {
-                    !granted -> BusReminderResult.PermissionDenied
                     request == null -> BusReminderResult.Failed
-                    else -> scheduleNotification(context, request)
+                    request.triggerAtEpochMillis <= Clock.System.now().toEpochMilliseconds() ->
+                        BusReminderResult.TooLate
+                    canScheduleExactNotifications(context) -> scheduleExactNotification(context, request)
+                    else -> BusReminderResult.PermissionDenied
                 },
             )
+        }
+    val notificationPermissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            val request = pendingNotification
+            when {
+                !granted -> {
+                    pendingNotification = null
+                    currentOnResult(BusReminderResult.PermissionDenied)
+                }
+                request == null -> currentOnResult(BusReminderResult.Failed)
+                needsExactAlarmPermission(context) -> {
+                    exactAlarmPermissionLauncher.launch(exactAlarmPermissionIntent(context))
+                }
+                else -> {
+                    pendingNotification = null
+                    currentOnResult(scheduleExactNotification(context, request))
+                }
+            }
         }
 
     return BusReminderLauncher(
@@ -54,9 +76,12 @@ internal actual fun rememberBusReminderLauncher(
                     BusReminderMethod.NOTIFICATION -> {
                         if (needsNotificationPermission(context)) {
                             pendingNotification = request
-                            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        } else if (needsExactAlarmPermission(context)) {
+                            pendingNotification = request
+                            exactAlarmPermissionLauncher.launch(exactAlarmPermissionIntent(context))
                         } else {
-                            currentOnResult(scheduleNotification(context, request))
+                            currentOnResult(scheduleExactNotification(context, request))
                         }
                     }
                 }
@@ -68,6 +93,19 @@ internal actual fun rememberBusReminderLauncher(
 private fun needsNotificationPermission(context: Context): Boolean =
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
         context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+
+private fun needsExactAlarmPermission(context: Context): Boolean =
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !canScheduleExactNotifications(context)
+
+private fun canScheduleExactNotifications(context: Context): Boolean =
+    Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
+        (context.getSystemService(Context.ALARM_SERVICE) as AlarmManager).canScheduleExactAlarms()
+
+private fun exactAlarmPermissionIntent(context: Context): Intent =
+    Intent(
+        Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+        Uri.parse("package:${context.packageName}"),
+    )
 
 @OptIn(ExperimentalTime::class)
 private fun openSystemAlarm(
@@ -91,7 +129,7 @@ private fun openSystemAlarm(
     }.getOrDefault(BusReminderResult.Unsupported)
 }
 
-private fun scheduleNotification(
+private fun scheduleExactNotification(
     context: Context,
     request: BusReminderRequest,
 ): BusReminderResult =
@@ -110,19 +148,11 @@ private fun scheduleNotification(
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()) {
-            alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                request.triggerAtEpochMillis,
-                pendingIntent,
-            )
-        } else {
-            alarmManager.setAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                request.triggerAtEpochMillis,
-                pendingIntent,
-            )
-        }
+        alarmManager.setExactAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            request.triggerAtEpochMillis,
+            pendingIntent,
+        )
         BusReminderResult.Scheduled(BusReminderMethod.NOTIFICATION)
     }.getOrDefault(BusReminderResult.Failed)
 
