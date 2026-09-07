@@ -16,6 +16,7 @@ the next-bus summary card and the fresh-data timestamp were removed in
 
 - [Behavior and data contracts](docs/behavior.md): current feature rules, platform differences and storage.
 - [Testing](docs/e2e-testing.md): local commands, actual coverage, CI and remaining coverage gaps.
+- [Release CI](docs/release-ci.md): Android release, iOS TestFlight and required GitHub Actions secrets.
 - [Contributor instructions](AGENTS.md): architecture boundaries, resources and required checks.
 
 ## Project layout
