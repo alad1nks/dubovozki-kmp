@@ -1,12 +1,14 @@
 name: Release
 
 on:
+  workflow_dispatch:
   push:
     branches: [ 'release/**' ]
 
 jobs:
   p0-e2e:
     name: Release P0 verification
+    if: startsWith(github.ref, 'refs/heads/release/')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
