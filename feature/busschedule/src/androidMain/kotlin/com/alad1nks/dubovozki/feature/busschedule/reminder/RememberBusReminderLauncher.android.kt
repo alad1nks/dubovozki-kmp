@@ -2,6 +2,7 @@ package com.alad1nks.dubovozki.feature.busschedule.reminder
 
 import android.Manifest
 import android.app.AlarmManager
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -134,6 +135,22 @@ private fun scheduleExactNotification(
     request: BusReminderRequest,
 ): BusReminderResult =
     runCatching {
+        if (request.triggerAtEpochMillis <= Clock.System.now().toEpochMilliseconds()) {
+            return BusReminderResult.TooLate
+        }
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        BusReminderReceiver.createChannel(context, notificationManager)
+        if (
+            !notificationManager.areNotificationsEnabled() ||
+            (
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                    notificationManager.getNotificationChannel(BusReminderReceiver.CHANNEL_ID)?.importance ==
+                    NotificationManager.IMPORTANCE_NONE
+            ) ||
+            !canScheduleExactNotifications(context)
+        ) {
+            return BusReminderResult.PermissionDenied
+        }
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val receiverIntent =
             Intent(context, BusReminderReceiver::class.java)
@@ -148,9 +165,20 @@ private fun scheduleExactNotification(
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
 
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            request.triggerAtEpochMillis,
+        val showIntent =
+            context.packageManager.getLaunchIntentForPackage(context.packageName)
+                ?: return BusReminderResult.Failed
+        val showPendingIntent =
+            PendingIntent.getActivity(
+                context,
+                request.notificationId,
+                showIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+
+        // User-requested departure reminders must not share the idle alarm rate limit.
+        alarmManager.setAlarmClock(
+            AlarmManager.AlarmClockInfo(request.triggerAtEpochMillis, showPendingIntent),
             pendingIntent,
         )
         BusReminderResult.Scheduled(BusReminderMethod.NOTIFICATION)

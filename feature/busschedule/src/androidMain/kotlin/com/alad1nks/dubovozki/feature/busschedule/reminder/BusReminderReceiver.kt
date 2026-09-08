@@ -26,15 +26,7 @@ internal class BusReminderReceiver : BroadcastReceiver() {
         }
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            notificationManager.createNotificationChannel(
-                NotificationChannel(
-                    CHANNEL_ID,
-                    context.getString(R.string.bus_reminder_channel_name),
-                    NotificationManager.IMPORTANCE_HIGH,
-                ),
-            )
-        }
+        createChannel(context, notificationManager)
 
         val title = intent.getStringExtra(EXTRA_TITLE).orEmpty()
         val body = intent.getStringExtra(EXTRA_BODY).orEmpty()
@@ -74,6 +66,21 @@ internal class BusReminderReceiver : BroadcastReceiver() {
         const val EXTRA_TITLE = "bus_reminder_title"
         const val EXTRA_BODY = "bus_reminder_body"
         const val EXTRA_NOTIFICATION_ID = "bus_reminder_notification_id"
-        private const val CHANNEL_ID = "bus_departures"
+        const val CHANNEL_ID = "bus_departures"
+
+        fun createChannel(
+            context: Context,
+            notificationManager: NotificationManager,
+        ) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                notificationManager.createNotificationChannel(
+                    NotificationChannel(
+                        CHANNEL_ID,
+                        context.getString(R.string.bus_reminder_channel_name),
+                        NotificationManager.IMPORTANCE_HIGH,
+                    ),
+                )
+            }
+        }
     }
 }
