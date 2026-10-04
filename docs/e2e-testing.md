@@ -115,6 +115,13 @@ npx playwright install chromium firefox webkit
 npm test
 ```
 
+На Linux CI Firefox запускается с виртуальным дисплеем и программным OpenGL:
+`LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a npm test -- --project=firefox --headed`.
+Firefox test profile включает `webgl.force-enabled`, чтобы разрешить WebGL2 на runner без GPU.
+Без доступного WebGL2 Skiko падает при создании canvas (`GLctx is undefined`), ещё до появления UI.
+Общий лимит browser-теста — 90 секунд; готовность Compose после загрузки и reload ожидается до 30 секунд.
+Это учитывает повторную инициализацию Compose/Skiko при reload; retry не скрывает flaky failures.
+
 Production bundle, macOS/Linux: `E2E_WEB_RELEASE=true npm run test:chromium`.
 PowerShell: `$env:E2E_WEB_RELEASE = 'true'`, затем `npm run test:chromium`;
 после прогона удалите переменную: `Remove-Item Env:E2E_WEB_RELEASE`.
@@ -161,6 +168,7 @@ e2e/web/node_modules/.bin/firebase emulators:start --project "$E2E_FIREBASE_PROJ
 В терминале теста также экспортируйте `E2E_FIREBASE_PROJECT_ID` той же командой, затем:
 
 ```shell
+node e2e/wait-for-firebase.mjs "$E2E_FIREBASE_PROJECT_ID"
 curl --fail --request PUT --header 'Content-Type: application/json' \
   --data-binary @e2e/fixtures/firebase/happy.json \
   "http://127.0.0.1:9000/.json?ns=$E2E_FIREBASE_PROJECT_ID"
@@ -169,6 +177,9 @@ xcodebuild test -project iosApp/iosApp.xcodeproj -scheme iosApp \
 ```
 
 Это подготовка, используемая nightly workflow. XCUITest требует `E2E_FIREBASE_PROJECT_ID` для realtime PUT.
+Ожидается HTTP-готовность базы на порту 9000, а не только Emulator Hub на 4400: Hub стартует раньше базы.
+Ожидание ограничено 120 секундами и завершается ошибкой, если база не готова; seed выполняется только после него.
+Регрессии ожидания: `node --test e2e/wait-for-firebase.test.mjs`.
 Запуск только `xcodebuild test` без Emulator/seed/переменной не является полным локальным сценарием.
 
 ## Соответствие историческому каталогу

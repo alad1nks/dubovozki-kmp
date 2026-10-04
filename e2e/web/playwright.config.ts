@@ -14,7 +14,7 @@ const managedWebServers = process.env.E2E_EXTERNAL_SERVERS
       {
         command: "firebase emulators:start --project demo-dubovozki --only database",
         cwd: repositoryRoot,
-        url: "http://127.0.0.1:4400/emulators",
+        url: "http://127.0.0.1:9000/.json?ns=demo-dubovozki",
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
       },
@@ -33,6 +33,8 @@ const managedWebServers = process.env.E2E_EXTERNAL_SERVERS
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: false,
+  // Compose/Skiko startup is repeated on reload; software-rendered CI browsers need more than 30s.
+  timeout: 90_000,
   // Every project seeds and mutates the same Firebase Emulator namespace.
   workers: 1,
   forbidOnly: isCi,
@@ -49,7 +51,14 @@ export default defineConfig({
   webServer: managedWebServers,
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
-    { name: "firefox", use: { ...devices["Desktop Firefox"] } },
+    {
+      name: "firefox",
+      use: {
+        ...devices["Desktop Firefox"],
+        // GPU-less runners otherwise reject WebGL2 before Skiko can render the app.
+        launchOptions: { firefoxUserPrefs: { "webgl.force-enabled": true } },
+      },
+    },
     { name: "webkit", use: { ...devices["Desktop Safari"] } },
     {
       name: "mobile-chromium",

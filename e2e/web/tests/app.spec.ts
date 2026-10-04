@@ -10,6 +10,10 @@ const tagSelector = (tag: string) =>
 const tagElements = (page: Page, tag: string) => page.locator(tagSelector(tag));
 const byTag = (page: Page, tag: string) => page.locator(`${tagSelector(tag)}:visible`).first();
 
+async function waitForApp(page: Page) {
+  await expect(byTag(page, "app.content")).toBeVisible({ timeout: 30_000 });
+}
+
 async function clickTag(page: Page, tag: string) {
   const element = tagElements(page, tag).last();
   await element.waitFor({ state: "attached" });
@@ -43,7 +47,7 @@ async function openSeededApp(page: Page) {
   });
   expect(response.ok()).toBeTruthy();
   await page.goto("/?e2e=true");
-  await expect(byTag(page, "app.content")).toBeVisible();
+  await waitForApp(page);
 }
 
 test.beforeEach(async ({ page }) => {
@@ -85,14 +89,14 @@ test("settings survive a browser reload", async ({ page }) => {
   await clickTag(page, "settings.theme.dark");
   await expect.poll(() => page.evaluate(() => localStorage.getItem("theme_mode"))).toBe("dark");
   await page.reload();
-  await expect(byTag(page, "app.content")).toBeVisible();
+  await waitForApp(page);
   await clickTag(page, "nav.settings");
   await clickTag(page, "settings.language");
   await clickTag(page, "settings.language.english");
 
   await expect.poll(() => page.evaluate(() => localStorage.getItem("language"))).toBe("en");
   await page.reload();
-  await expect(byTag(page, "app.content")).toBeVisible();
+  await waitForApp(page);
   await clickTag(page, "nav.settings");
   await expect(byTag(page, "settings.theme.current.dark")).toBeVisible();
   await expect(byTag(page, "settings.language.current.english")).toBeVisible();
@@ -114,6 +118,7 @@ test("600px viewport uses navigation rail", async ({ page }) => {
 test("long localized actions remain reachable on phone and tablet", async ({ page }) => {
   await page.evaluate(() => localStorage.setItem("language", "kk"));
   await page.reload();
+  await waitForApp(page);
   await page.setViewportSize({ width: 599, height: 900 });
   await expect(byTag(page, "nav.services")).toBeInViewport();
   await expect(byTag(page, "nav.settings")).toBeInViewport();
@@ -127,6 +132,7 @@ test("system theme follows browser color scheme", async ({ page }) => {
   await page.evaluate(() => localStorage.setItem("theme_mode", "system"));
   await page.emulateMedia({ colorScheme: "dark" });
   await page.reload();
+  await waitForApp(page);
   await expect(byTag(page, "app.theme.dark")).toBeVisible();
 
   await page.emulateMedia({ colorScheme: "light" });
@@ -144,7 +150,7 @@ for (const { locale, language, title } of [
     test("page metadata follows system language after an explicit override", async ({ page }) => {
       await page.evaluate(() => localStorage.setItem("language", "ru"));
       await page.reload();
-      await expect(byTag(page, "app.content")).toBeVisible();
+      await waitForApp(page);
       await expect(page).toHaveTitle("Дубовозки");
       await clickTag(page, "nav.settings");
       await clickTag(page, "settings.language");
@@ -152,7 +158,7 @@ for (const { locale, language, title } of [
       await expect(page).toHaveTitle(title);
       await expect(page.locator("html")).toHaveAttribute("lang", language);
       await page.reload();
-      await expect(byTag(page, "app.content")).toBeVisible();
+      await waitForApp(page);
       await expect(page).toHaveTitle(title);
       await expect(page.locator("html")).toHaveAttribute("lang", language);
     });
