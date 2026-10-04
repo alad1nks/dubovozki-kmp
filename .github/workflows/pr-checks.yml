@@ -154,4 +154,14 @@ jobs:
       - run: chmod +x ./gradlew
       - name: Decode iOS Firebase config
         run: echo "${{ secrets.FIREBASE_CONFIG_IOS }}" | base64 --decode > iosApp/iosApp/GoogleService-Info.plist
-      - run: ./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64
+      - name: Build app framework and run shared iOS E2E
+        run: ./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64 :composeApp:iosSimulatorArm64Test
+      - name: Upload shared iOS diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-ios-shared-reports
+          path: |
+            composeApp/build/reports/tests/
+            composeApp/build/test-results/
+          if-no-files-found: ignore

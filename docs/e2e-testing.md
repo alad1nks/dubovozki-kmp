@@ -25,6 +25,9 @@ Desktop integration рендерит App in-process: он не запускае�
 создаёт Activity в том же процессе; это не kill/relaunch процесса. Desktop читает настройки через тот же DataStore,
 не проверяя запуск нового процесса. Только iOS XCUITest явно выполняет terminate/launch; Web проверяет reload.
 
+Desktop integration удерживает первый HTTP-ответ сервисов до перехода на экран, затем ждёт появления контакта.
+`waitForIdle()` синхронизирует Compose, но не завершение запросов Ktor; ожидание данных проверяется отдельно.
+
 `TestTags` — общий каталог селекторов. Android/JVM используют test tags; iOS с `--e2e` и JS с `?e2e=true`
 дополнительно помещают их в accessibility descriptions. В обычном запуске descriptions не заменяются тестовыми
 метками. Playwright кликает DOM accessibility-элементы, XCUITest — accessibility buttons; shared swipe привязан
@@ -157,6 +160,11 @@ Shared simulator suite с fake API:
 ./gradlew :composeApp:iosSimulatorArm64Test
 ```
 
+Исполняемый файл shared iOS-тестов всё равно линкует транзитивный Firebase cinterop из `core:firebase`.
+Этот модуль передаёт сгенерированные CocoaPods build settings через конфигурацию `iosSimulatorTestPods`;
+тестовая линковка использует их framework search paths и rpath после сборки Pod. Статический framework приложения
+по-прежнему линкуется окончательно в Xcode; CocoaPods-плагин в `composeApp` для этого не подключается.
+
 Для XCUITest нужны настоящий `GoogleService-Info.plist`, Firebase Emulator и happy fixture. Из корня, после
 `npm ci` в `e2e/web`, экспортируйте ID и запустите Emulator в отдельном терминале:
 
@@ -216,14 +224,15 @@ reload; он не заявляет проверку повторного отк�
 
 | Trigger | Настроенные jobs |
 |---|---|
-| PR в main/master | ktlint, host tests, shared JVM, Roborazzi verify, Chromium, Android API 24, iOS framework compile |
+| PR в main/master | ktlint, host tests, shared JVM, Roborazzi verify, Chromium, Android API 24, iOS framework compile и shared iOS |
 | Push в main | Host/shared/visual/Chromium, Android API 24/35, затем существующие release APK build/deploy jobs |
 | Nightly/manual | Web projects на отдельных runners, Android API 24/35, iOS shared/XCUITest, Desktop Windows/macOS/Linux |
 | release/* | JVM suite и Chromium production bundle, затем существующие AAB build/deploy jobs |
 | Weekly/manual production smoke | GET трёх публичных Firebase paths и поверхностная проверка JSON |
 
 Nightly не запускает Roborazzi verify. Release job с названием P0 запускает весь `composeApp:jvmTest` и Chromium
-файл: отдельного фильтра только по P0 нет. PR iOS compile — проверка сборки, а не выполнение iOS сценариев.
+файл: отдельного фильтра только по P0 нет. PR iOS compile собирает framework и выполняет shared iOS-тесты;
+SwiftUI shell XCUITest остаётся в nightly.
 Workflow definitions находятся в `.github/workflows`; branch protection нужно проверять отдельно.
 
 PR/main/nightly/release E2E используют fake, локальный REST или Emulator. Production smoke — отдельный job,

@@ -3,6 +3,7 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
+import org.jetbrains.kotlin.gradle.targets.native.tasks.PodBuildTask
 
 plugins {
     alias(libs.plugins.androidMultiplatformLibrary)
@@ -84,4 +85,16 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
         }
     }
+}
+
+// CocoaPods configures linking only in its own project. Share the simulator build settings
+// with the application's test executable, which consumes this module's cinterop transitively.
+val iosSimulatorTestPods =
+    configurations.create("iosSimulatorTestPods") {
+        isCanBeConsumed = true
+        isCanBeResolved = false
+    }
+val simulatorPodBuild = tasks.named<PodBuildTask>("podBuildFirebaseDatabaseIosSimulator")
+artifacts.add(iosSimulatorTestPods.name, simulatorPodBuild.flatMap { it.buildSettingsFile }) {
+    builtBy(simulatorPodBuild)
 }
