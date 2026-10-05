@@ -191,4 +191,6 @@ jobs:
             composeApp/build/reports/tests/
             ${{ runner.temp }}/e2e-recordings/
             firebase-emulator.log
+            firebase-debug.log
+            database-debug.log
           if-no-files-found: ignore

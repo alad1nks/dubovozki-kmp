@@ -172,13 +172,19 @@ Shared simulator suite с fake API:
 bash e2e/run-ios-shell-e2e.sh
 ```
 
-Тот же скрипт используется в PR и nightly: запускает Emulator, записывает happy fixture, выбирает и загружает
-симулятор, выполняет XCUITest с видео и останавливает Emulator. Можно задать `SIMULATOR_UDID` вручную.
+Тот же скрипт используется в PR и nightly: сначала выполняет `build-for-testing` и останавливает Gradle daemon,
+затем запускает Emulator, записывает happy fixture, загружает симулятор и выполняет `test-without-building`
+с видео. Тяжёлая компиляция не конкурирует с тестовым сервером за ресурсы. Можно задать `SIMULATOR_UDID` вручную.
+XCUITest выполняется три раза (`-test-iterations 3`), без retry-until-pass: любая ошибка проваливает job.
 Перед повторным запуском переместите предыдущий `iosApp/TestResults.xcresult`: Xcode требует новый путь отчёта.
 Namespace берётся из `DATABASE_URL` в plist, как у Firebase SDK, и может отличаться от `PROJECT_ID`.
 Он передаётся в test runner через `TEST_RUNNER_E2E_FIREBASE_NAMESPACE`; Xcode удаляет префикс `TEST_RUNNER_`.
 Обычная переменная окружения shell в XCUITest не передаётся. Тест проверяет realtime PUT в том же namespace,
 возврат кнопкой и жестом от левого края, сохранение темы и языка после terminate/launch.
+Перед каждым запуском тест записывает рейс 502 и ждёт его в UI, затем записывает 503 и проверяет обновление
+без перезапуска. Это исключает ложный успех из-за cache предыдущей итерации. PUT выполняется через async
+URLSession с ограничением запроса 15 секунд и всей операции 30 секунд; сетевые ошибки доходят до XCTest,
+а не теряются за отдельным 10-секундным expectation.
 Ожидается HTTP-готовность базы на порту 9000, а не только Emulator Hub на 4400: Hub стартует раньше базы.
 Ожидание ограничено 120 секундами и завершается ошибкой, если база не готова; seed выполняется только после него.
 Регрессии ожидания: `node --test e2e/wait-for-firebase.test.mjs`.
