@@ -1,13 +1,25 @@
 import XCTest
 
 final class AppEntryPointUITests: XCTestCase {
-    func testSwiftUIShellLaunchesComposeAndNavigates() {
+    override func setUpWithError() throws {
+        continueAfterFailure = false
+    }
+
+    @MainActor
+    func testSwiftUIShellLaunchesComposeAndNavigates() async throws {
+        let namespace = try XCTUnwrap(
+            ProcessInfo.processInfo.environment["E2E_FIREBASE_NAMESPACE"],
+            "Pass TEST_RUNNER_E2E_FIREBASE_NAMESPACE to xcodebuild"
+        )
+        // Reset the initial row on every iteration so a cached previous update cannot pass the test.
+        try await replaceBusScheduleInEmulator(namespace: namespace, busId: 502)
         let app = XCUIApplication()
         app.launchArguments += ["--e2e"]
         app.launch()
 
         XCTAssertTrue(app.buttons["nav.schedule"].waitForExistence(timeout: 15))
-        replaceBusScheduleInEmulator()
+        XCTAssertTrue(app.descendants(matching: .any)["bus.item.502"].waitForExistence(timeout: 10))
+        try await replaceBusScheduleInEmulator(namespace: namespace, busId: 503)
         XCTAssertTrue(app.descendants(matching: .any)["bus.item.503"].waitForExistence(timeout: 10))
         app.buttons["nav.services"].tap()
         XCTAssertTrue(app.buttons["services.linen"].waitForExistence(timeout: 10))
@@ -18,7 +30,9 @@ final class AppEntryPointUITests: XCTestCase {
         XCTAssertTrue(app.buttons["nav.services"].waitForExistence(timeout: 10))
         app.buttons["services.linen"].tap()
         XCTAssertTrue(app.buttons["service_schedule.back"].waitForExistence(timeout: 10))
-        app.swipeRight()
+        let leftEdge = app.coordinate(withNormalizedOffset: CGVector(dx: 0.01, dy: 0.5))
+        let rightSide = app.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.5))
+        leftEdge.press(forDuration: 0.05, thenDragTo: rightSide)
         XCTAssertTrue(app.buttons["nav.services"].waitForExistence(timeout: 10))
 
         app.buttons["nav.settings"].tap()
@@ -36,14 +50,10 @@ final class AppEntryPointUITests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["settings.language.current.english"].waitForExistence(timeout: 10))
     }
 
-    private func replaceBusScheduleInEmulator() {
-        guard let projectId = ProcessInfo.processInfo.environment["E2E_FIREBASE_PROJECT_ID"] else {
-            XCTFail("E2E_FIREBASE_PROJECT_ID is required")
-            return
-        }
+    private func replaceBusScheduleInEmulator(namespace: String, busId: Int) async throws {
         let buses = [1, 2, 3, 7].map { dayOfWeek in
             [
-                "id": 503,
+                "id": busId,
                 "dayOfWeek": dayOfWeek,
                 "dayTime": 43_200_000,
                 "dayTimeString": "12:00",
@@ -51,19 +61,24 @@ final class AppEntryPointUITests: XCTestCase {
                 "station": "odn",
             ] as [String: Any]
         }
-        let payload: [String: Any] = ["revision": "ios-realtime-v2", "busList": buses]
-        let url = URL(string: "http://127.0.0.1:9000/busSchedule.json?ns=\(projectId)")!
+        let payload: [String: Any] = ["revision": "ios-realtime-\(busId)", "busList": buses]
+        let url = try XCTUnwrap(URL(string: "http://127.0.0.1:9000/busSchedule.json?ns=\(namespace)"))
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try! JSONSerialization.data(withJSONObject: payload)
+        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
 
-        let updated = expectation(description: "Firebase Emulator updated")
-        URLSession.shared.dataTask(with: request) { _, response, error in
-            XCTAssertNil(error)
-            XCTAssertEqual((response as? HTTPURLResponse)?.statusCode, 200)
-            updated.fulfill()
-        }.resume()
-        wait(for: [updated], timeout: 10)
+        // Await the request itself: an XCTest expectation deadline used to hide its network error.
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.timeoutIntervalForRequest = 15
+        configuration.timeoutIntervalForResource = 30
+        let session = URLSession(configuration: configuration)
+        defer { session.invalidateAndCancel() }
+        let (data, response) = try await session.data(for: request)
+        XCTAssertEqual(
+            (response as? HTTPURLResponse)?.statusCode,
+            200,
+            "Firebase PUT failed: \(String(decoding: data, as: UTF8.self))"
+        )
     }
 }

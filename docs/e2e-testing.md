@@ -25,6 +25,9 @@ Desktop integration рендерит App in-process: он не запускае�
 создаёт Activity в том же процессе; это не kill/relaunch процесса. Desktop читает настройки через тот же DataStore,
 не проверяя запуск нового процесса. Только iOS XCUITest явно выполняет terminate/launch; Web проверяет reload.
 
+Desktop integration удерживает первый HTTP-ответ сервисов до перехода на экран, затем ждёт появления контакта.
+`waitForIdle()` синхронизирует Compose, но не завершение запросов Ktor; ожидание данных проверяется отдельно.
+
 `TestTags` — общий каталог селекторов. Android/JVM используют test tags; iOS с `--e2e` и JS с `?e2e=true`
 дополнительно помещают их в accessibility descriptions. В обычном запуске descriptions не заменяются тестовыми
 метками. Playwright кликает DOM accessibility-элементы, XCUITest — accessibility buttons; shared swipe привязан
@@ -115,6 +118,13 @@ npx playwright install chromium firefox webkit
 npm test
 ```
 
+На Linux CI Firefox запускается с виртуальным дисплеем и программным OpenGL:
+`LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a npm test -- --project=firefox --headed`.
+Firefox test profile включает `webgl.force-enabled`, чтобы разрешить WebGL2 на runner без GPU.
+Без доступного WebGL2 Skiko падает при создании canvas (`GLctx is undefined`), ещё до появления UI.
+Общий лимит browser-теста — 90 секунд; готовность Compose после загрузки и reload ожидается до 30 секунд.
+Это учитывает повторную инициализацию Compose/Skiko при reload; retry не скрывает flaky failures.
+
 Production bundle, macOS/Linux: `E2E_WEB_RELEASE=true npm run test:chromium`.
 PowerShell: `$env:E2E_WEB_RELEASE = 'true'`, затем `npm run test:chromium`;
 после прогона удалите переменную: `Remove-Item Env:E2E_WEB_RELEASE`.
@@ -150,25 +160,34 @@ Shared simulator suite с fake API:
 ./gradlew :composeApp:iosSimulatorArm64Test
 ```
 
-Для XCUITest нужны настоящий `GoogleService-Info.plist`, Firebase Emulator и happy fixture. Из корня, после
-`npm ci` в `e2e/web`, экспортируйте ID и запустите Emulator в отдельном терминале:
+Исполняемый файл shared iOS-тестов всё равно линкует транзитивный Firebase cinterop из `core:firebase`.
+Этот модуль передаёт сгенерированные CocoaPods build settings через конфигурацию `iosSimulatorTestPods`;
+тестовая линковка использует их framework search paths и rpath после сборки Pod. Статический framework приложения
+по-прежнему линкуется окончательно в Xcode; CocoaPods-плагин в `composeApp` для этого не подключается.
+
+Для XCUITest нужны настоящий `GoogleService-Info.plist`, macOS, Xcode, Node, Java и `jq`.
+После `npm ci` в `e2e/web` запустите из корня:
 
 ```shell
-export E2E_FIREBASE_PROJECT_ID=$(/usr/libexec/PlistBuddy -c 'Print :PROJECT_ID' iosApp/iosApp/GoogleService-Info.plist)
-e2e/web/node_modules/.bin/firebase emulators:start --project "$E2E_FIREBASE_PROJECT_ID" --only database
+bash e2e/run-ios-shell-e2e.sh
 ```
 
-В терминале теста также экспортируйте `E2E_FIREBASE_PROJECT_ID` той же командой, затем:
-
-```shell
-curl --fail --request PUT --header 'Content-Type: application/json' \
-  --data-binary @e2e/fixtures/firebase/happy.json \
-  "http://127.0.0.1:9000/.json?ns=$E2E_FIREBASE_PROJECT_ID"
-xcodebuild test -project iosApp/iosApp.xcodeproj -scheme iosApp \
-  -destination 'platform=iOS Simulator,id=<simulator-udid>'
-```
-
-Это подготовка, используемая nightly workflow. XCUITest требует `E2E_FIREBASE_PROJECT_ID` для realtime PUT.
+Тот же скрипт используется в PR и nightly: сначала выполняет `build-for-testing` и останавливает Gradle daemon,
+затем запускает Emulator, записывает happy fixture, загружает симулятор и выполняет `test-without-building`
+с видео. Тяжёлая компиляция не конкурирует с тестовым сервером за ресурсы. Можно задать `SIMULATOR_UDID` вручную.
+XCUITest выполняется три раза (`-test-iterations 3`), без retry-until-pass: любая ошибка проваливает job.
+Перед повторным запуском переместите предыдущий `iosApp/TestResults.xcresult`: Xcode требует новый путь отчёта.
+Namespace берётся из `DATABASE_URL` в plist, как у Firebase SDK, и может отличаться от `PROJECT_ID`.
+Он передаётся в test runner через `TEST_RUNNER_E2E_FIREBASE_NAMESPACE`; Xcode удаляет префикс `TEST_RUNNER_`.
+Обычная переменная окружения shell в XCUITest не передаётся. Тест проверяет realtime PUT в том же namespace,
+возврат кнопкой и жестом от левого края, сохранение темы и языка после terminate/launch.
+Перед каждым запуском тест записывает рейс 502 и ждёт его в UI, затем записывает 503 и проверяет обновление
+без перезапуска. Это исключает ложный успех из-за cache предыдущей итерации. PUT выполняется через async
+URLSession с ограничением запроса 15 секунд и всей операции 30 секунд; сетевые ошибки доходят до XCTest,
+а не теряются за отдельным 10-секундным expectation.
+Ожидается HTTP-готовность базы на порту 9000, а не только Emulator Hub на 4400: Hub стартует раньше базы.
+Ожидание ограничено 120 секундами и завершается ошибкой, если база не готова; seed выполняется только после него.
+Регрессии ожидания: `node --test e2e/wait-for-firebase.test.mjs`.
 Запуск только `xcodebuild test` без Emulator/seed/переменной не является полным локальным сценарием.
 
 ## Соответствие историческому каталогу
@@ -205,14 +224,14 @@ reload; он не заявляет проверку повторного отк�
 
 | Trigger | Настроенные jobs |
 |---|---|
-| PR в main/master | ktlint, host tests, shared JVM, Roborazzi verify, Chromium, Android API 24, iOS framework compile |
+| PR в main/master | ktlint, host tests, shared JVM, Roborazzi verify, Chromium, Android API 24, iOS framework compile, shared iOS и XCUITest |
 | Push в main | Host/shared/visual/Chromium, Android API 24/35, затем существующие release APK build/deploy jobs |
 | Nightly/manual | Web projects на отдельных runners, Android API 24/35, iOS shared/XCUITest, Desktop Windows/macOS/Linux |
 | release/* | JVM suite и Chromium production bundle, затем существующие AAB build/deploy jobs |
 | Weekly/manual production smoke | GET трёх публичных Firebase paths и поверхностная проверка JSON |
 
 Nightly не запускает Roborazzi verify. Release job с названием P0 запускает весь `composeApp:jvmTest` и Chromium
-файл: отдельного фильтра только по P0 нет. PR iOS compile — проверка сборки, а не выполнение iOS сценариев.
+файл: отдельного фильтра только по P0 нет. PR iOS собирает framework и выполняет shared iOS и SwiftUI shell XCUITest.
 Workflow definitions находятся в `.github/workflows`; branch protection нужно проверять отдельно.
 
 PR/main/nightly/release E2E используют fake, локальный REST или Emulator. Production smoke — отдельный job,
@@ -221,7 +240,7 @@ PR/main/nightly/release E2E используют fake, локальный REST �
 Playwright сохраняет screenshot/trace при сбое, видео локально — при сбое, в CI — для каждого теста.
 В CI допускается один retry с `failOnFlakyTests`: успех только со второй попытки всё равно проваливает job.
 Android recorder ждёт старта instrumentation, делит запись на части до 180 секунд и нормализует H.264/30 FPS.
-Nightly iOS recorder снимает XCUITest; in-process JVM/shared iOS scenes отдельно не записываются.
+PR/nightly iOS recorder снимает XCUITest; in-process JVM/shared iOS scenes отдельно не записываются.
 
 Доступные видео и отчёты загружаются с `if: always()` в `Actions → workflow run → Artifacts`.
 Web пишет в игнорируемые `test-results`/`playwright-report`; Android/iOS видео — во временную директорию runner.

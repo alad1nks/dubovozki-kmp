@@ -142,7 +142,7 @@ jobs:
           if-no-files-found: ignore
 
   ios-build:
-    name: iOS compile
+    name: iOS compile and E2E
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -151,7 +151,33 @@ jobs:
           java-version: '17'
           distribution: temurin
           cache: gradle
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: e2e/web/package-lock.json
+      - run: npm ci
+        working-directory: e2e/web
       - run: chmod +x ./gradlew
       - name: Decode iOS Firebase config
         run: echo "${{ secrets.FIREBASE_CONFIG_IOS }}" | base64 --decode > iosApp/iosApp/GoogleService-Info.plist
-      - run: ./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64
+      - name: Build app framework and run shared iOS E2E
+        run: ./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64 :composeApp:iosSimulatorArm64Test
+      - name: Test Firebase readiness helper
+        run: node --test e2e/wait-for-firebase.test.mjs
+      - name: Run SwiftUI shell XCUITest with screen recording
+        run: bash e2e/run-ios-shell-e2e.sh
+      - name: Upload iOS video and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-ios-shared-reports
+          path: |
+            composeApp/build/reports/tests/
+            composeApp/build/test-results/
+            iosApp/TestResults.xcresult/
+            ${{ runner.temp }}/e2e-recordings/
+            firebase-emulator.log
+            firebase-debug.log
+            database-debug.log
+          if-no-files-found: ignore

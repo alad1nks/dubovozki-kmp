@@ -43,7 +43,16 @@ jobs:
         working-directory: e2e/web
       - run: npx playwright install --with-deps ${{ matrix.browser }}
         working-directory: e2e/web
-      - run: npm test -- --project=${{ matrix.project }}
+      - name: Install software OpenGL for Firefox
+        if: matrix.project == 'firefox'
+        run: sudo apt-get install --yes libgl1-mesa-dri libglx-mesa0 libegl-mesa0
+      - name: Run browser E2E
+        run: |
+          if [ "${{ matrix.project }}" = firefox ]; then
+            LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a npm test -- --project=firefox --headed
+          else
+            npm test -- --project=${{ matrix.project }}
+          fi
         working-directory: e2e/web
       - name: Upload Web videos and diagnostics
         if: always()
@@ -166,27 +175,12 @@ jobs:
         run: echo "${{ secrets.FIREBASE_CONFIG_IOS }}" | base64 --decode > iosApp/iosApp/GoogleService-Info.plist
       - run: npm ci
         working-directory: e2e/web
-      - name: Start Firebase Emulator and seed fixture
-        run: |
-          PROJECT_ID=$(/usr/libexec/PlistBuddy -c 'Print :PROJECT_ID' iosApp/iosApp/GoogleService-Info.plist)
-          echo "E2E_FIREBASE_PROJECT_ID=$PROJECT_ID" >> "$GITHUB_ENV"
-          e2e/web/node_modules/.bin/firebase emulators:start --project "$PROJECT_ID" --only database > firebase-emulator.log 2>&1 &
-          for attempt in {1..60}; do curl --fail --silent http://127.0.0.1:4400/emulators && break; sleep 1; done
-          curl --fail --silent --request PUT --header 'Content-Type: application/json' --data-binary @e2e/fixtures/firebase/happy.json "http://127.0.0.1:9000/.json?ns=$PROJECT_ID"
+      - name: Test Firebase readiness helper
+        run: node --test e2e/wait-for-firebase.test.mjs
       - name: Run shared iOS suite
         run: ./gradlew :composeApp:iosSimulatorArm64Test
-      - name: Select and boot simulator
-        run: |
-          UDID=$(xcrun simctl list devices available -j | jq -r '[.devices[][] | select(.name | startswith("iPhone"))][0].udid')
-          xcrun simctl boot "$UDID" || true
-          xcrun simctl bootstatus "$UDID" -b
-          echo "SIMULATOR_UDID=$UDID" >> "$GITHUB_ENV"
       - name: Run SwiftUI shell XCUITest with screen recording
-        run: |
-          bash e2e/record-ios-e2e.sh "$SIMULATOR_UDID" ios-xcuitest.mp4 \
-            xcodebuild test -project iosApp/iosApp.xcodeproj -scheme iosApp \
-            -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
-            -resultBundlePath iosApp/TestResults.xcresult
+        run: bash e2e/run-ios-shell-e2e.sh
       - name: Upload iOS video and diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -197,4 +191,6 @@ jobs:
             composeApp/build/reports/tests/
             ${{ runner.temp }}/e2e-recordings/
             firebase-emulator.log
+            firebase-debug.log
+            database-debug.log
           if-no-files-found: ignore

@@ -1,6 +1,8 @@
 import org.gradle.api.tasks.testing.Test
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.androidMultiplatformLibrary)
@@ -101,6 +103,40 @@ kotlin {
             implementation(projects.core.storage.datastore)
         }
     }
+}
+
+val iosSimulatorTestPods =
+    configurations.create("iosSimulatorTestPods") {
+        isCanBeConsumed = false
+        isCanBeResolved = true
+    }
+dependencies {
+    add(
+        iosSimulatorTestPods.name,
+        project(path = ":core:firebase", configuration = "iosSimulatorTestPods"),
+    )
+}
+
+// Static app frameworks leave final linking to Xcode. Standalone test executables need
+// the CocoaPods framework search paths and runtime paths themselves.
+tasks.withType<KotlinNativeLink>().matching { it.name == "linkDebugTestIosSimulatorArm64" }.configureEach {
+    dependsOn(iosSimulatorTestPods)
+    inputs.files(iosSimulatorTestPods)
+    toolOptions.freeCompilerArgs.addAll(
+        iosSimulatorTestPods.elements.map { settingsFiles ->
+            val settings = Properties()
+            settingsFiles.single().asFile.reader().use { settings.load(it) }
+            val frameworkPaths =
+                listOf(requireNotNull(settings.getProperty("CONFIGURATION_BUILD_DIR")).trim('"')) +
+                    Regex("""(?:[^\s"]|"[^"]*")+""")
+                        .findAll(settings.getProperty("FRAMEWORK_SEARCH_PATHS").orEmpty())
+                        .map { it.value.replace("\"", "") }
+                        .toList()
+            frameworkPaths.distinct().flatMap { path ->
+                listOf("-linker-option", "-F$path", "-linker-option", "-rpath", "-linker-option", path)
+            }
+        },
+    )
 }
 
 dependencies {

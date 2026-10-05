@@ -2,6 +2,7 @@ package com.alad1nks.dubovozki.e2e
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
@@ -19,6 +20,9 @@ import org.koin.dsl.koinApplication
 import java.io.File
 import java.net.InetSocketAddress
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -27,11 +31,14 @@ class DesktopEntryPointE2ETest {
     @Test
     fun realPlatformModulesRetryFailedRestRequestAndPersistSettings() {
         val requests = ConcurrentHashMap<String, Int>()
+        val servicesResponse = CountDownLatch(1)
+        val serverExecutor = Executors.newCachedThreadPool()
         val server =
             HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0).apply {
                 json("/busSchedule.json", BUS_JSON, requests, failFirstRequest = true)
-                json("/services.json", SERVICES_JSON, requests)
+                json("/services.json", SERVICES_JSON, requests, responseGate = servicesResponse)
                 json("/servicesSchedule/linenRoom.json", SERVICE_SCHEDULE_JSON, requests)
+                executor = serverExecutor
                 start()
             }
         val dataStoreFile =
@@ -71,6 +78,14 @@ class DesktopEntryPointE2ETest {
                 click(TestTags.language("ENGLISH"))
 
                 click(TestTags.NAV_SERVICES)
+                // UI idleness does not wait for Ktor's real HTTP request. Keep this response
+                // pending until navigation so the test also covers a slow first services load.
+                waitUntil(timeoutMillis = 10_000) { requests["/services.json"] == 1 }
+                onAllNodesWithTag(TestTags.SERVICES_CONTACT).assertCountEquals(0)
+                servicesResponse.countDown()
+                waitUntil(timeoutMillis = 10_000) {
+                    onAllNodesWithTag(TestTags.SERVICES_CONTACT).fetchSemanticsNodes().isNotEmpty()
+                }
                 onNodeWithTag(TestTags.SERVICES_CONTACT).assertIsDisplayed()
 
                 val preferences = isolatedKoin.koin.get<AppPreferences>()
@@ -84,7 +99,9 @@ class DesktopEntryPointE2ETest {
                 isolatedKoin.close()
             }
         } finally {
+            servicesResponse.countDown()
             server.stop(0)
+            serverExecutor.shutdownNow()
             System.clearProperty("dubovozki.e2e.firebase.url")
             System.clearProperty("dubovozki.e2e.datastore.path")
         }
@@ -95,9 +112,11 @@ class DesktopEntryPointE2ETest {
         body: String,
         requests: ConcurrentHashMap<String, Int>,
         failFirstRequest: Boolean = false,
+        responseGate: CountDownLatch? = null,
     ) {
         createContext(path) { exchange ->
             val requestCount = requests.merge(path, 1, Int::plus)
+            check(responseGate?.await(30, TimeUnit.SECONDS) != false) { "Timed out waiting to release $path" }
             val shouldFail = failFirstRequest && requestCount == 1
             val bytes = if (shouldFail) "Service Unavailable".encodeToByteArray() else body.encodeToByteArray()
             exchange.responseHeaders.add("Content-Type", if (shouldFail) "text/plain" else "application/json")
