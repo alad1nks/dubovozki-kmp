@@ -3,22 +3,18 @@ package com.alad1nks.dubovozki.feature.services.ui
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Message
 import androidx.compose.material.icons.outlined.LocalLaundryService
 import androidx.compose.material.icons.outlined.MonetizationOn
-import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -37,10 +33,7 @@ import com.alad1nks.dubovozki.feature.designsystem.e2eTestTag
 import com.alad1nks.dubovozki.feature.services.model.ServicesUiState
 import com.alad1nks.dubovozki.resources.AppResource
 import kotlinx.coroutines.launch
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
-import kotlin.time.Instant
 
 @Composable
 internal fun ServicesRoute(
@@ -92,7 +85,7 @@ internal fun ServicesScreen(
                     .fillMaxSize()
                     .widthIn(max = 720.dp),
         ) {
-            ServicesTopAppBar(onRefreshClick = onRefresh)
+            ServicesTopAppBar()
             LinenRoomItem(onClick = onLinenRoomClick)
 
             when (uiState) {
@@ -112,27 +105,9 @@ internal fun ServicesScreen(
                 is ServicesUiState.Content -> {
                     if (uiState.isStale) {
                         OfflineBanner(
-                            message =
-                                stringResource(
-                                    AppResource.String.common_offline_updated_at,
-                                    formatUpdatedAt(uiState.updatedAtEpochMillis),
-                                ),
+                            message = stringResource(AppResource.String.common_offline_cached),
                             actionLabel = stringResource(AppResource.String.common_retry),
                             onAction = onRefresh,
-                        )
-                    } else if (uiState.updatedAtEpochMillis != null) {
-                        Text(
-                            text =
-                                stringResource(
-                                    AppResource.String.common_updated_at,
-                                    formatUpdatedAt(uiState.updatedAtEpochMillis),
-                                ),
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 4.dp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.labelSmall,
                         )
                     }
                     ExternalServicesContent(
@@ -210,22 +185,10 @@ private fun ExternalServicesContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ServicesTopAppBar(
-    onRefreshClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LargeTopAppBar(
+    TopAppBar(
         title = { Text(text = stringResource(AppResource.String.services_top_app_bar)) },
-        actions = {
-            IconButton(
-                onClick = onRefreshClick,
-                modifier = Modifier.e2eTestTag(TestTags.SERVICES_REFRESH),
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Refresh,
-                    contentDescription = stringResource(AppResource.String.common_refresh),
-                )
-            }
-        },
         modifier = modifier,
     )
 }
@@ -235,13 +198,3 @@ private fun String?.takeIfSupported(): String? =
         value.startsWith("https://") || value.startsWith("http://") || value.startsWith("mailto:") ||
             value.startsWith("tg://")
     }
-
-private fun formatUpdatedAt(updatedAtEpochMillis: Long?): String {
-    if (updatedAtEpochMillis == null) return "—"
-    val dateTime =
-        Instant.fromEpochMilliseconds(updatedAtEpochMillis + MOSCOW_OFFSET_MILLIS)
-            .toLocalDateTime(TimeZone.UTC)
-    return "${dateTime.hour.toString().padStart(2, '0')}:${dateTime.minute.toString().padStart(2, '0')}"
-}
-
-private const val MOSCOW_OFFSET_MILLIS = 3 * 60 * 60 * 1_000L

@@ -10,9 +10,9 @@ import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -93,7 +93,7 @@ internal fun SettingsScreen(
 private fun SettingsTopAppBar(
     modifier: Modifier = Modifier,
 ) {
-    LargeTopAppBar(
+    TopAppBar(
         title = { Text(text = stringResource(AppResource.String.settings_top_app_bar)) },
         modifier = modifier,
     )
