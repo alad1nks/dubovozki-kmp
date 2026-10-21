@@ -41,6 +41,9 @@ cleanup() {
   if [[ -n "$profile_path" ]]; then
     rm -f "$profile_path"
   fi
+  if [[ -f "$signing_dir/project.pbxproj" ]]; then
+    cp "$signing_dir/project.pbxproj" "$project_path"
+  fi
   rm -f "$firebase_path"
   rm -rf "$signing_dir"
 }
@@ -58,56 +61,8 @@ printf '%s' "$APP_STORE_CONNECT_API_KEY_BASE64" | base64 --decode \
 security cms -D -i "$signing_dir/profile.mobileprovision" > "$signing_dir/profile.plist"
 
 # Read the existing bundle ID; reject development/ad-hoc, expired or mismatched profiles before building.
-profile_uuid=$(python3 - "$signing_dir/profile.plist" "$firebase_path" "$signing_dir/ExportOptions.plist" <<'PY'
-import datetime
-import os
-import pathlib
-import plistlib
-import re
-import sys
-import uuid
-
-def fail(message):
-    sys.exit(f"::error::{message}")
-
-config = pathlib.Path("iosApp/Configuration/Config.xcconfig").read_text()
-match = re.search(r"^PRODUCT_BUNDLE_IDENTIFIER\s*=\s*(\S+)\s*$", config, re.MULTILINE)
-if not match:
-    fail("Cannot read PRODUCT_BUNDLE_IDENTIFIER from Config.xcconfig")
-bundle_id = match[1]
-team_id = os.environ["APPLE_TEAM_ID"]
-with open(sys.argv[1], "rb") as source:
-    profile = plistlib.load(source)
-with open(sys.argv[2], "rb") as source:
-    firebase = plistlib.load(source)
-entitlements = profile.get("Entitlements", {})
-if team_id not in profile.get("TeamIdentifier", []):
-    fail("Provisioning profile does not belong to APPLE_TEAM_ID")
-prefixes = profile.get("ApplicationIdentifierPrefix", [])
-if entitlements.get("application-identifier") not in [f"{prefix}.{bundle_id}" for prefix in prefixes]:
-    fail("Provisioning profile must match the explicit app bundle ID")
-if (entitlements.get("get-task-allow", False) or "ProvisionedDevices" in profile
-        or profile.get("ProvisionsAllDevices", False) or not entitlements.get("beta-reports-active", False)):
-    fail("Use an App Store Connect distribution provisioning profile")
-if profile["ExpirationDate"] <= datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None):
-    fail("Provisioning profile has expired")
-if firebase.get("BUNDLE_ID") != bundle_id:
-    fail("FIREBASE_CONFIG_IOS does not match the app bundle ID")
-profile_uuid = str(uuid.UUID(profile["UUID"])).upper()
-with open(sys.argv[3], "wb") as target:
-    plistlib.dump({
-        "method": "app-store-connect",
-        "destination": "export",
-        "signingStyle": "manual",
-        "teamID": team_id,
-        "signingCertificate": "Apple Distribution",
-        "provisioningProfiles": {bundle_id: profile_uuid},
-        "manageAppVersionAndBuildNumber": False,
-        "uploadSymbols": True,
-    }, target)
-print(profile_uuid)
-PY
-)
+project_path="$PWD/iosApp/iosApp.xcodeproj/project.pbxproj"
+cp "$project_path" "$signing_dir/project.pbxproj"
 
 keychain_password=$(openssl rand -hex 32)
 echo "::add-mask::$keychain_password"
@@ -118,14 +73,16 @@ security import "$signing_dir/certificate.p12" -P "$IOS_DISTRIBUTION_CERTIFICATE
   -A -t cert -f pkcs12 -k "$keychain_path"
 security set-key-partition-list -S apple-tool:,apple:,codesign: -k "$keychain_password" "$keychain_path" >/dev/null
 security list-keychains -d user -s "$keychain_path" "$HOME/Library/Keychains/login.keychain-db"
+profile_uuid=$(python3 .github/scripts/configure_ios_release.py \
+  "$signing_dir/profile.plist" "$firebase_path" "$signing_dir/ExportOptions.plist" \
+  "$project_path" "$build_number" "$keychain_path")
 # Xcode 16+ profile location.
 profile_path="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles/$profile_uuid.mobileprovision"
 mkdir -p "$(dirname "$profile_path")"
 cp "$signing_dir/profile.mobileprovision" "$profile_path"
 
 echo "Archiving iOS Release, build $build_number"
-# Xcode, not the shell, expands these build-setting expressions.
-# shellcheck disable=SC2016
+# App-only signing and linker settings were applied to its Release configuration.
 xcodebuild archive \
   -project iosApp/iosApp.xcodeproj \
   -scheme iosApp \
@@ -134,13 +91,6 @@ xcodebuild archive \
   -archivePath "$release_dir/dubovozki.xcarchive" \
   -resultBundlePath "$release_dir/archive.xcresult" \
   -derivedDataPath "$RUNNER_TEMP/ios-derived-data" \
-  "DEVELOPMENT_TEAM=$APPLE_TEAM_ID" \
-  CODE_SIGN_STYLE=Manual \
-  'CODE_SIGN_IDENTITY=Apple Distribution' \
-  "PROVISIONING_PROFILE_SPECIFIER=$profile_uuid" \
-  "CURRENT_PROJECT_VERSION=$build_number" \
-  'FRAMEWORK_SEARCH_PATHS=$(inherited) $(SRCROOT)/../composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)' \
-  'OTHER_LDFLAGS=$(inherited) -framework ComposeApp' \
   2>&1 | tee "$release_dir/archive.log"
 
 xcodebuild -exportArchive \

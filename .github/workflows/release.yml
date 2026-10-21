@@ -119,6 +119,8 @@ jobs:
         run: chmod +x ./gradlew
       - name: Run shared iOS tests
         run: ./gradlew :composeApp:iosSimulatorArm64Test
+      - name: Test iOS release configuration
+        run: python3 -m unittest discover -s .github/scripts -p 'test_configure_ios_release.py' -v
       - name: Build, sign and upload to TestFlight
         shell: bash
         run: bash .github/scripts/ios-release.sh
