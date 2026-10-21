@@ -76,8 +76,7 @@ internal fun BusListItem(
                 Text(
                     text = dayTime,
                     color = color,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontFamily = busTimeFontFamily,
+                    style = MaterialTheme.typography.headlineMedium.withBusTimeDigits(),
                 )
 
                 Spacer(modifier = Modifier.width(16.dp))
