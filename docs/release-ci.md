@@ -153,7 +153,13 @@ base64 -i /path/to/GoogleService-Info.plist | tr -d '\n' | pbcopy
   как более низкий номер. Одновременные релизы могут загрузиться не по порядку: повторите актуальный запуск,
   если Apple отклонила его номер. Уже успешно загруженные версии не удаляются.
 - CI создаёт архив штатной схемой `iosApp` и вызывает существующий `embedAndSignAppleFrameworkForXcode`.
-  Настройки manual signing и пути/линковка `ComposeApp.framework` передаются в `xcodebuild` только для CI.
+  Настройки manual signing и пути/линковка `ComposeApp.framework` задаются только в Release-конфигурации
+  target `iosApp` во временном checkout CI. Глобальные overrides `xcodebuild` не используются, поэтому
+  provisioning profile не применяется к Swift Package targets. Исходный project-файл восстанавливается при cleanup.
+  Профиль выбирается по его имени; для установки и export сохраняется его исходный UUID.
+  До архивирования проверяется, что в keychain есть валидная signing identity с сертификатом из профиля.
+  Если проверка не проходит, нужно сверить сертификат с приватным ключом и сертификат, выбранный в профиле.
+  Регрессионные проверки на macOS: `python3 -m unittest discover -s .github/scripts -p 'test_configure_ios_release.py' -v`.
 - IPA, dSYM и логи сохраняются на 14 дней в артефакте `ios-release-<run_number>-<run_attempt>`.
   При ошибке сохраняются доступные диагностические файлы. Ключи подписи, API-ключ и временный keychain
   удаляются при завершении скрипта; они не входят в артефакт. Runner одноразовый.
