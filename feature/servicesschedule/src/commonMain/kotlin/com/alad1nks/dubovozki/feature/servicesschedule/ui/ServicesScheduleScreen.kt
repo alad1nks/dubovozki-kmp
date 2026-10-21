@@ -78,7 +78,6 @@ internal fun ServiceScheduleScreen(
             ServicesScheduleTopAppBar(
                 servicesScheduleType = servicesScheduleType,
                 onBackClick = onBackClick,
-                onRefreshClick = onRefresh,
             )
             ServicesScheduleTabRow(
                 selectedTabIndex = pagerState.currentPage,
