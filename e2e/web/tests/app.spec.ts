@@ -55,6 +55,13 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("P0 launch, schedule, services and settings", async ({ page }) => {
+  const stylesheet = await page.request.get("/styles.css");
+  expect(stylesheet.ok()).toBeTruthy();
+  expect(stylesheet.headers()["content-type"]).toMatch(/^text\/css\b/);
+  await expect.poll(() => page.locator("body").evaluate((body) => ({
+    width: body.clientWidth,
+    height: body.clientHeight,
+  }))).toEqual(page.viewportSize());
   await expect(byTag(page, "nav.schedule")).toBeVisible();
   await clickTag(page, "nav.services");
   await expect(byTag(page, "services.linen")).toBeVisible();

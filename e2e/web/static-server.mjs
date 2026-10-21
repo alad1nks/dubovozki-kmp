@@ -6,6 +6,7 @@ const roots = [process.argv[2], process.argv[4]].filter(Boolean).map((root) => n
 const port = Number(process.argv[3] ?? 9080);
 const contentTypes = {
   ".html": "text/html; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
   ".mjs": "text/javascript; charset=utf-8",
   ".wasm": "application/wasm",
