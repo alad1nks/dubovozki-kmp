@@ -125,9 +125,14 @@ Firefox test profile включает `webgl.force-enabled`, чтобы разр
 Общий лимит browser-теста — 90 секунд; готовность Compose после загрузки и reload ожидается до 30 секунд.
 Это учитывает повторную инициализацию Compose/Skiko при reload; retry не скрывает flaky failures.
 
-Production bundle, macOS/Linux: `E2E_WEB_RELEASE=true npm run test:chromium`.
+Для production bundle сначала выполните из корня `./gradlew :composeApp:jsBrowserProductionWebpack`
+(`gradlew.bat` на Windows), затем перейдите в `e2e/web`.
+macOS/Linux: `E2E_WEB_RELEASE=true npm run test:chromium`.
 PowerShell: `$env:E2E_WEB_RELEASE = 'true'`, затем `npm run test:chromium`;
 после прогона удалите переменную: `Remove-Item Env:E2E_WEB_RELEASE`.
+В этом режиме Playwright только обслуживает готовый bundle; при изменении приложения пересоберите его.
+Release CI собирает bundle отдельным шагом с лимитом 45 минут и видимым Gradle-логом.
+Ожидание готовности статического сервера ограничено двумя минутами и не включает сборку.
 
 `E2E_EXTERNAL_SERVERS=true` отключает управление обоими серверами; `E2E_BASE_URL` меняет адрес страницы,
 но не жёстко заданный endpoint Emulator в тестах. Не используйте production URL для E2E.

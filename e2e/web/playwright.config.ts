@@ -6,7 +6,7 @@ const gradleCommand = process.platform === "win32" ? "gradlew.bat" : "./gradlew"
 const managedWebPort = "9080";
 const isCi = Boolean(process.env.CI);
 const webCommand = process.env.E2E_WEB_RELEASE
-  ? `${gradleCommand} :composeApp:jsBrowserProductionWebpack && node e2e/web/static-server.mjs composeApp/build/kotlin-webpack/js/productionExecutable ${managedWebPort} composeApp/build/processedResources/js/main`
+  ? `node e2e/web/static-server.mjs composeApp/build/kotlin-webpack/js/productionExecutable ${managedWebPort} composeApp/build/processedResources/js/main`
   : `${gradleCommand} :composeApp:jsBrowserDevelopmentRun --no-configuration-cache`;
 const managedWebServers = process.env.E2E_EXTERNAL_SERVERS
   ? undefined
@@ -26,7 +26,7 @@ const managedWebServers = process.env.E2E_EXTERNAL_SERVERS
           : { env: { DUBOVOZKI_E2E_WEB_PORT: managedWebPort } }),
         url: `http://127.0.0.1:${managedWebPort}`,
         reuseExistingServer: !process.env.CI,
-        timeout: process.env.E2E_WEB_RELEASE ? 1_200_000 : 600_000,
+        timeout: process.env.E2E_WEB_RELEASE ? 120_000 : 600_000,
       },
     ];
 
