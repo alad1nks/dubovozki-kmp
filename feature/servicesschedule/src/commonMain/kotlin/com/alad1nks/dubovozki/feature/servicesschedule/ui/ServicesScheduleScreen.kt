@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.alad1nks.dubovozki.core.model.ServicesScheduleType
 import com.alad1nks.dubovozki.feature.designsystem.TestTags
@@ -109,17 +110,6 @@ internal fun ServiceScheduleScreen(
                             actionLabel = stringResource(AppResource.String.common_retry),
                             onAction = onRefresh,
                         )
-                    } else if (uiState.updatedAtEpochMillis != null) {
-                        Text(
-                            text =
-                                stringResource(
-                                    AppResource.String.common_updated_at,
-                                    formatUpdatedAt(uiState.updatedAtEpochMillis),
-                                ),
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.labelSmall,
-                        )
                     }
                     HorizontalPager(
                         state = pagerState,
@@ -158,6 +148,7 @@ private fun ServiceScheduleContent(
                 modifier = Modifier.padding(24.dp),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
             )
         }
         return
