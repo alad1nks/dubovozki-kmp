@@ -12,8 +12,7 @@ concurrency:
 jobs:
   web:
     name: Web ${{ matrix.project }}
-    # Playwright 1.55.0 supports Ubuntu 24.04; ubuntu-latest can select unsupported newer images.
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
