@@ -4,8 +4,11 @@ Workflow [Release](../.github/workflows/release.yml) запускается пр
 включая `release/1.0` и `release/ios/1.0`. Сначала проходят общие P0-проверки Desktop и Chromium.
 После их успеха независимо запускаются:
 
-- `build`: существующие unit-тесты, подписанный Android AAB, артефакт `app-release`.
-  Затем `post-build` сохраняет AAB в `alad1nks/alad1nks.github.io`, каталог `dubovozki`.
+- `build`: существующие unit-тесты, подписанные Android APK и AAB, артефакт `app-release`.
+  Затем `post-build` сохраняет `dubovozki.apk` и `dubovozki.aab` в ветку `main` репозитория
+  `alad1nks/alad1nks.github.io`, каталог `dubovozki/release-<номер релиза>`.
+  Номер берётся из последнего сегмента release-ветки: `release/2.4` и `release/ios/2.4` → `release-2.4`.
+  Другие релизы сохраняются; повторная сборка той же версии обновляет файлы только в её каталоге.
 - `ios-release`: shared iOS-тесты, Xcode Release archive для устройства ARM64, подписанный IPA
   и загрузка в App Store Connect для TestFlight. Runner — `macos-26` с установленными Xcode и CocoaPods.
 
@@ -27,7 +30,7 @@ Workflow:
    `chore: bump release version to X.Y`. Коммит меняет Android `versionName` и iOS `MARKETING_VERSION` на `X.Y`,
    а Android `versionCode` — на максимум среди `main` и всех числовых release-веток плюс один.
    Изменения из предыдущей release-ветки в новый релиз не переносятся. Сам `main` не меняется.
-4. Отправляет ветку в GitHub и явно запускает **Release** на ней: общие проверки, Android AAB и iOS TestFlight.
+4. Отправляет ветку в GitHub и явно запускает **Release** на ней: общие проверки, Android APK/AAB и iOS TestFlight.
    Ссылка на ветку и список release-запусков появляются в Summary.
 
 Если release-веток ещё нет, за основу берётся большая пользовательская версия Android/iOS из `main`
@@ -85,9 +88,9 @@ API-ключ используется для загрузки; подпись в
 | `KEY_ALIAS` | Alias ключа в keystore. |
 | `KEY_PASSWORD` | Пароль ключа. |
 | `KEYSTORE_PASSWORD` | Пароль keystore. |
-| `ACCESS_TOKEN` | GitHub token с правом записи в `alad1nks/alad1nks.github.io` для сохранения AAB. Для fine-grained PAT: доступ к этому репозиторию и `Contents: Read and write`. |
+| `ACCESS_TOKEN` | GitHub token с правом записи в `alad1nks/alad1nks.github.io` для сохранения APK и AAB. Для fine-grained PAT: доступ к этому репозиторию и `Contents: Read and write`. |
 
-Эти секреты и существующий способ доставки Android AAB сохраняются.
+Для доставки Android APK и AAB используются эти же секреты.
 
 ## Первичная настройка Apple
 
@@ -171,7 +174,8 @@ base64 -i /path/to/GoogleService-Info.plist | tr -d '\n' | pbcopy
 1. Убедитесь, что секреты настроены, и запустите **Actions → Create release → Run workflow** из `main`.
 2. Проверьте новую ветку и коммит версий, затем откройте Actions → Release.
    После `p0-e2e` должны стартовать оба платформенных job.
-3. Проверьте Android `app-release` и `post-build`, затем iOS `ios-release-*` и шаг загрузки.
+3. Проверьте оба файла в Android `app-release` и в каталоге `dubovozki/release-<номер релиза>`
+   после `post-build`, затем iOS `ios-release-*` и шаг загрузки.
 4. В App Store Connect проверьте новую версию/номер сборки в TestFlight, завершение обработки Apple
    и доступность для настроенной группы тестировщиков.
 
