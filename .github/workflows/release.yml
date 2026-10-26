@@ -75,23 +75,27 @@ jobs:
       - name: Run local tests
         run: ./gradlew test
 
-      - name: Build AAB
-        run: ./gradlew bundleRelease
+      - name: Build APK and AAB
+        run: ./gradlew :androidApp:assembleRelease :androidApp:bundleRelease
         env:
           SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         if: success()
 
-      - name: Rename AAB
-        run: mv androidApp/build/outputs/bundle/release/androidApp-release.aab androidApp/build/outputs/bundle/release/dubovozki.aab
+      - name: Prepare Android release artifacts
+        run: |
+          mkdir -p build/release-artifacts
+          mv androidApp/build/outputs/apk/release/androidApp-release.apk build/release-artifacts/dubovozki.apk
+          mv androidApp/build/outputs/bundle/release/androidApp-release.aab build/release-artifacts/dubovozki.aab
         if: success()
 
-      - name: Upload AAB to GitHub
+      - name: Upload APK and AAB to GitHub
         uses: actions/upload-artifact@v6
         with:
           name: app-release
-          path: androidApp/build/outputs/bundle/release/dubovozki.aab
+          path: build/release-artifacts/
+          if-no-files-found: error
         if: success()
 
   ios-release:
@@ -153,25 +157,40 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
+      - name: Resolve release directory
+        id: release
+        shell: bash
+        run: |
+          release_number="${GITHUB_REF_NAME##*/}"
+          if [[ ! "$release_number" =~ ^[0-9][0-9A-Za-z._-]*$ ]]; then
+            echo "Invalid release number: $release_number" >&2
+            exit 1
+          fi
+          echo "directory=dubovozki/release-$release_number" >> "$GITHUB_OUTPUT"
 
       - name: Checkout io repository
         uses: actions/checkout@v5
         with:
           repository: 'alad1nks/alad1nks.github.io'
+          ref: main
           token: ${{ secrets.ACCESS_TOKEN }}
 
-      - name: Download AAB
+      - name: Download APK and AAB
         uses: actions/download-artifact@v7
         with:
           name: app-release
-          path: dubovozki
+          path: ${{ steps.release.outputs.directory }}
 
-      - name: Commit AAB
+      - name: Commit APK and AAB
+        env:
+          RELEASE_DIRECTORY: ${{ steps.release.outputs.directory }}
         run: |
           git config --local user.name 'alad1nks'
           git config --local user.email 'alad1nks@users.noreply.github.com'
-          git add dubovozki/*.aab
-          git commit -m 'Add generated AAB file'
+          git add -- "$RELEASE_DIRECTORY/dubovozki.apk" "$RELEASE_DIRECTORY/dubovozki.aab"
+          if git diff --cached --quiet; then
+            echo "Android release artifacts are already up to date"
+            exit 0
+          fi
+          git commit -m "Add Android release artifacts in $RELEASE_DIRECTORY"
           git push
