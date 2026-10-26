@@ -8,7 +8,8 @@ on:
 jobs:
   quality:
     name: Main lint, unit, shared and Web E2E
-    runs-on: ubuntu-latest
+    # Playwright 1.55.0 supports Ubuntu 24.04; ubuntu-latest can select unsupported newer images.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
