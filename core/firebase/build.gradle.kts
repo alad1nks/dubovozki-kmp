@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 import org.jetbrains.kotlin.gradle.targets.native.tasks.PodBuildTask
+import org.jetbrains.kotlin.gradle.targets.native.tasks.PodGenTask
 
 plugins {
     alias(libs.plugins.androidMultiplatformLibrary)
@@ -84,6 +85,29 @@ kotlin {
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.serialization.kotlinx.json)
         }
+    }
+}
+
+// The Kotlin plugin only raises synthetic Pods to iOS 12, which newer Xcode versions reject.
+// Apply the module's minimum to every Pod while preserving dependencies with a higher minimum.
+tasks.withType<PodGenTask>().configureEach {
+    val deploymentTarget = requireNotNull(kotlin.cocoapods.ios.deploymentTarget)
+    inputs.property("minimumIosDeploymentTarget", deploymentTarget)
+    doLast {
+        val podfile = podfile.get()
+        val configurationLoop = "target.build_configurations.each do |config|"
+        val deploymentTargetOverride =
+            """
+            $configurationLoop
+                  minimum_target = Gem::Version.new('$deploymentTarget')
+                  current_target = Gem::Version.new(config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] || '0')
+                  if current_target < minimum_target
+                    config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '$deploymentTarget'
+                  end
+            """.trimIndent()
+        val content = podfile.readText()
+        check(configurationLoop in content) { "Synthetic Podfile no longer contains the expected configuration loop" }
+        podfile.writeText(content.replace(configurationLoop, deploymentTargetOverride))
     }
 }
 

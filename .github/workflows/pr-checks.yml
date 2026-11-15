@@ -68,6 +68,8 @@ jobs:
       - run: chmod +x ./gradlew
       - run: npm ci
         working-directory: e2e/web
+      - name: Test Firebase readiness helper
+        run: node --test e2e/wait-for-firebase.test.mjs
       - run: npx playwright install --with-deps chromium
         working-directory: e2e/web
       - run: npm run test:chromium
@@ -163,8 +165,6 @@ jobs:
         run: echo "${{ secrets.FIREBASE_CONFIG_IOS }}" | base64 --decode > iosApp/iosApp/GoogleService-Info.plist
       - name: Build app framework and run shared iOS E2E
         run: ./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64 :composeApp:iosSimulatorArm64Test
-      - name: Test Firebase readiness helper
-        run: node --test e2e/wait-for-firebase.test.mjs
       - name: Run SwiftUI shell XCUITest with screen recording
         run: bash e2e/run-ios-shell-e2e.sh
       - name: Upload iOS video and diagnostics

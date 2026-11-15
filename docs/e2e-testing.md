@@ -46,7 +46,7 @@ Desktop integration удерживает первый HTTP-ответ серви
   файл `firebaseConfig.js` с заглушкой создавать не нужно. Каждый тест заново записывает happy fixture и очищает
   localStorage первого запуска. Reload в том же тесте сохраняет настройки.
 - Все browser projects используют один Emulator namespace, поэтому `workers: 1` предотвращает взаимное
-  перезаписывание fixture при `npm test`. Nightly запускает projects на отдельных runners.
+  перезаписывание fixture при `npm test`. Ручной E2E workflow запускает projects на отдельных runners.
 - Android требует настоящий SDK config и подключает Emulator через `dubovozki.e2e.firebase.host/port`.
   iOS включает loopback Emulator аргументом `--e2e` после Firebase initialization.
 - Desktop принимает URL override только с префиксом `http://127.0.0.1:` или `http://localhost:`;
@@ -177,7 +177,7 @@ Shared simulator suite с fake API:
 bash e2e/run-ios-shell-e2e.sh
 ```
 
-Тот же скрипт используется в PR и nightly: сначала выполняет `build-for-testing` и останавливает Gradle daemon,
+Тот же скрипт используется в PR и ручном E2E workflow: сначала выполняет `build-for-testing` и останавливает Gradle daemon,
 затем запускает Emulator, записывает happy fixture, загружает симулятор и выполняет `test-without-building`
 с видео. Тяжёлая компиляция не конкурирует с тестовым сервером за ресурсы. Можно задать `SIMULATOR_UDID` вручную.
 XCUITest выполняется три раза (`-test-iterations 3`), без retry-until-pass: любая ошибка проваливает job.
@@ -231,21 +231,23 @@ reload; он не заявляет проверку повторного отк�
 |---|---|
 | PR в main/master | ktlint, host tests, shared JVM, Roborazzi verify, Chromium, Android API 24, iOS framework compile, shared iOS и XCUITest |
 | Push в main | Host/shared/visual/Chromium, Android API 24/35, затем существующие release APK build/deploy jobs |
-| Nightly/manual | Web projects на отдельных runners, Android API 24/35, iOS shared/XCUITest, Desktop Windows/macOS/Linux |
+| Manual E2E | Web projects на отдельных runners, Android API 24/35, iOS shared/XCUITest, Desktop Windows/Linux |
 | release/* | JVM suite и Chromium production bundle, затем существующие AAB build/deploy jobs |
-| Weekly/manual production smoke | GET трёх публичных Firebase paths и поверхностная проверка JSON |
+| Manual production smoke | GET трёх публичных Firebase paths и поверхностная проверка JSON |
 
-Nightly не запускает Roborazzi verify. Release job с названием P0 запускает весь `composeApp:jvmTest` и Chromium
+Ручной E2E workflow не запускает Roborazzi verify. Release job с названием P0 запускает весь `composeApp:jvmTest` и Chromium
 файл: отдельного фильтра только по P0 нет. PR iOS собирает framework и выполняет shared iOS и SwiftUI shell XCUITest.
+Запуски по расписанию отключены; E2E и production smoke доступны через `workflow_dispatch`.
+macOS используется только для iOS-сборок, тестов и релиза; Android build/deploy выполняются на Ubuntu.
 Workflow definitions находятся в `.github/workflows`; branch protection нужно проверять отдельно.
 
-PR/main/nightly/release E2E используют fake, локальный REST или Emulator. Production smoke — отдельный job,
+PR/main/manual/release E2E используют fake, локальный REST или Emulator. Production smoke — отдельный job,
 выполняющий только GET. Он не используется для наполнения тестов и не меняет production Firebase.
 
 Playwright сохраняет screenshot/trace при сбое, видео локально — при сбое, в CI — для каждого теста.
 В CI допускается один retry с `failOnFlakyTests`: успех только со второй попытки всё равно проваливает job.
 Android recorder ждёт старта instrumentation, делит запись на части до 180 секунд и нормализует H.264/30 FPS.
-PR/nightly iOS recorder снимает XCUITest; in-process JVM/shared iOS scenes отдельно не записываются.
+PR/manual iOS recorder снимает XCUITest; in-process JVM/shared iOS scenes отдельно не записываются.
 
 Доступные видео и отчёты загружаются с `if: always()` в `Actions → workflow run → Artifacts`.
 Web пишет в игнорируемые `test-results`/`playwright-report`; Android/iOS видео — во временную директорию runner.
