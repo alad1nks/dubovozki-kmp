@@ -21,6 +21,10 @@ async function clickTag(page: Page, tag: string) {
 }
 
 async function openSeededApp(page: Page) {
+  await page.route("**/firebaseConfig.js", (route) => route.fulfill({
+    contentType: "text/javascript",
+    body: "export const firebaseConfig = window.firebaseConfig;",
+  }));
   await page.addInitScript(() => {
     if (sessionStorage.getItem("dubovozki.e2e.initialized") !== "true") {
       localStorage.clear();
@@ -171,3 +175,43 @@ for (const { locale, language, title } of [
     });
   });
 }
+
+
+test("cold schedule loads station and hour labels after initial autoscroll", async ({ page }) => {
+  await page.clock.setFixedTime(new Date("2026-11-19T09:00:00Z"));
+  const response = await page.request.put("http://127.0.0.1:9000/busSchedule.json?ns=demo-dubovozki", {
+    data: {
+      revision: "cold-autoscroll",
+      busList: [1, 2, 3, 7].flatMap((dayOfWeek) => [
+        ...Array.from({ length: 120 }, (_, index) => ({
+          id: 1000 + index,
+          dayOfWeek,
+          dayTime: (6 * 60 + index) * 60_000,
+          dayTimeString: `${String(6 + Math.floor(index / 60)).padStart(2, "0")}:${String(index % 60).padStart(2, "0")}`,
+          direction: "msk",
+          station: "odn",
+        })),
+        ...[5, 65].map((minutes, index) => ({
+          id: 2000 + index,
+          dayOfWeek,
+          dayTime: (12 * 60 + minutes) * 60_000,
+          dayTimeString: index === 0 ? "12:05" : "13:05",
+          direction: "msk",
+          station: "slv",
+        })),
+      ]),
+    },
+  });
+  expect(response.ok()).toBeTruthy();
+  await page.route("**/*.cvr", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await route.continue();
+  });
+  await page.reload();
+  await waitForApp(page);
+  await expect(byTag(page, "bus.item.2000")).toBeVisible();
+  await expect(byTag(page, "bus.item.2000")).toContainText("in 5 minutes");
+  await expect(byTag(page, "bus.item.2001")).toContainText("in 1 hour 5 minutes");
+  await expect(byTag(page, "bus.item.2000")).toContainText("Slavyansky Blvr");
+  await expect(byTag(page, "bus.item.2001")).toContainText("Slavyansky Blvr");
+});
