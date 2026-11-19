@@ -1,0 +1,101 @@
+name: Web release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Web release checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: gradle
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: e2e/web/package-lock.json
+      - run: chmod +x ./gradlew
+      - name: Run lint, unit, shared E2E and screenshot verification
+        run: |
+          ./gradlew ktlintCheck test :composeApp:jvmTest \
+            :feature:busschedule:verifyRoborazziJvm \
+            :feature:services:verifyRoborazziJvm \
+            :feature:servicesschedule:verifyRoborazziJvm \
+            :feature:settings:verifyRoborazziJvm \
+            -x :androidApp:processDebugGoogleServices
+      - run: npm ci
+        working-directory: e2e/web
+      - run: npx playwright install --with-deps chromium
+        working-directory: e2e/web
+      - run: npm run test:chromium
+        working-directory: e2e/web
+      - name: Upload Web release diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-release-diagnostics
+          path: |
+            e2e/web/test-results/
+            e2e/web/playwright-report/
+            **/build/reports/tests/
+            **/build/reports/roborazzi/
+            **/build/test-results/roborazzi/
+            **/build/outputs/roborazzi/
+          if-no-files-found: ignore
+
+  web-deploy:
+    name: Deploy Web to Firebase Hosting
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    concurrency:
+      group: firebase-hosting-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate deployment settings
+        env:
+          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
+          FIREBASE_CONFIG_JS: ${{ secrets.FIREBASE_CONFIG_JS }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          for setting in FIREBASE_PROJECT_ID FIREBASE_CONFIG_JS FIREBASE_SERVICE_ACCOUNT; do
+            if [[ -z "${!setting}" ]]; then
+              echo "::error::Missing repository setting: $setting"
+              exit 1
+            fi
+          done
+          printf '%s' "$FIREBASE_CONFIG_JS" | base64 --decode > composeApp/src/jsMain/resources/firebaseConfig.js
+          test -s composeApp/src/jsMain/resources/firebaseConfig.js
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: gradle
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build Web distribution
+        run: ./gradlew :composeApp:jsBrowserDistribution
+      - name: Verify deployment files
+        run: |
+          for file in index.html composeApp.js firebaseConfig.js styles.css skiko.wasm; do
+            test -s "composeApp/build/dist/js/productionExecutable/$file"
+          done
+          test -d composeApp/build/dist/js/productionExecutable/composeResources
+      - name: Publish production site
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: ${{ vars.FIREBASE_PROJECT_ID }}
+          channelId: live

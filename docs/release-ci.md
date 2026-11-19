@@ -2,11 +2,14 @@
 
 ## Web / Firebase Hosting
 
-Job `web-deploy` в [основном CI](../.github/workflows/build-and-deploy.yml) публикует сайт после push в `main`
-и успешного `quality` (lint, unit, shared E2E, screenshots и Chromium E2E). Android jobs не блокируют Web.
-CI собирает `:composeApp:jsBrowserDistribution` и публикует `composeApp/build/dist/js/productionExecutable`
-в live-канал default Hosting site. Конкурирующие публикации выполняются последовательно;
-перед публикацией устаревший относительно `main` коммит пропускается.
+Workflow [Web release](../.github/workflows/web-release.yml) запускается только вручную через
+**Actions → Web release → Run workflow**. Выберите ветку (обычно `main`) и подтвердите запуск.
+Push и merge сами по себе не публикуют Web. Workflow проверяет и публикует коммит выбранной ветки,
+зафиксированный при запуске; новые коммиты в `main` не меняют выбранный релиз.
+
+Сначала проходит `quality` (lint, unit, shared E2E, screenshots и Chromium E2E), затем `web-deploy`
+собирает `:composeApp:jsBrowserDistribution` и публикует `composeApp/build/dist/js/productionExecutable`
+в live-канал default Hosting site. Конкурирующие публикации выполняются последовательно.
 
 Первичная настройка в Firebase и GitHub:
 
@@ -31,9 +34,10 @@ CI собирает `:composeApp:jsBrowserDistribution` и публикует `c
 
    Файл должен экспортировать именованный `firebaseConfig` с параметрами production Web App.
    Web-конфигурация входит в публичную сборку; JSON-ключ сервисного аккаунта туда не помещается.
-4. После попадания workflow в `main` проверьте Actions → Android CI → Deploy Web to Firebase Hosting,
-   затем откройте URL сайта из Firebase Console и проверьте расписание, локали и перезагрузку страницы.
-   Для повторной попытки используйте Re-run failed jobs у актуального запуска `main`.
+4. После попадания workflow в `main` запустите Actions → Web release → Run workflow на нужной ветке.
+   После успешного Deploy Web to Firebase Hosting откройте URL сайта из Firebase Console
+   и проверьте расписание, локали и перезагрузку страницы.
+   Для повторной попытки того же релиза используйте Re-run failed jobs; для нового коммита — Run workflow.
 
 Публикация выполняется официальным Hosting action с `channelId: live` и касается только Hosting.
 Не используйте общий `firebase deploy`: секция `database` в корневом `firebase.json` указывает на открытые
