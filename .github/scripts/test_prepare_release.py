@@ -52,12 +52,12 @@ class PrepareReleaseTest(unittest.TestCase):
         Path("release-only.txt").write_text("must not carry into the next release\n")
         self.git("add", ".")
         self.git("commit", "-m", f"release {version}")
-        self.git("update-ref", f"refs/remotes/origin/release/{version}", self.git("rev-parse", "HEAD"))
+        self.git("update-ref", f"refs/remotes/origin/release-mobile/{version}", self.git("rev-parse", "HEAD"))
         self.git("switch", "main")
 
     def test_release_is_one_version_commit_on_main_for_both_platforms(self):
         self.release("2.3", 8)
-        self.assertEqual(prepare("100"), ("release/2.4", "2.4", True))
+        self.assertEqual(prepare("100"), ("release-mobile/2.4", "2.4", True))
         self.assertEqual(self.git("rev-parse", "HEAD^"), self.main_sha)
         self.assertEqual(self.git("rev-parse", "main"), self.main_sha)
         self.assertEqual(set(self.git("diff", "--name-only", "HEAD^", "HEAD").splitlines()), {ANDROID, IOS})
@@ -88,7 +88,7 @@ class PrepareReleaseTest(unittest.TestCase):
 
     def test_non_numeric_and_nested_release_branches_are_ignored(self):
         for suffix in ("next", "ios/99.0", "2.99-beta", "02.99", "2.99.0"):
-            self.git("update-ref", f"refs/remotes/origin/release/{suffix}", self.main_sha)
+            self.git("update-ref", f"refs/remotes/origin/release-mobile/{suffix}", self.main_sha)
         self.assertEqual(prepare("105")[1], "2.4")
 
     def test_retry_reuses_the_published_commit(self):
@@ -118,6 +118,45 @@ class PrepareReleaseTest(unittest.TestCase):
             prepare("109")
         self.assertEqual(self.git("rev-parse", "HEAD"), self.main_sha)
         self.assertEqual(self.git("status", "--porcelain"), "")
+
+    def test_legacy_mobile_branches_preserve_version_and_code(self):
+        self.release("3.4", 42)
+        self.git("update-ref", "refs/remotes/origin/release/3.4",
+                 self.git("rev-parse", "refs/remotes/origin/release-mobile/3.4"))
+        self.git("update-ref", "-d", "refs/remotes/origin/release-mobile/3.4")
+        self.assertEqual(prepare("200"), ("release-mobile/3.5", "3.5", True))
+        self.assertIn("versionCode = 43", Path(ANDROID).read_text())
+
+    def test_first_web_release_is_independent_and_preserves_main_tree(self):
+        self.release("99.9", 100)
+        self.assertEqual(prepare("201", "web"), ("release-web/1.0", "1.0", True))
+        self.assertEqual(self.git("rev-parse", "HEAD^"), self.main_sha)
+        self.assertEqual(self.git("rev-parse", "HEAD^{tree}"), self.git("rev-parse", "main^{tree}"))
+        self.assertIn("Release-Workflow-Run: 201", self.git("log", "-1", "--format=%B"))
+
+    def test_web_versions_are_numeric_and_ignore_other_branches(self):
+        for suffix in ("2.9", "2.10", "99.0-beta", "ios/99.0", "02.99"):
+            self.git("update-ref", f"refs/remotes/origin/release-web/{suffix}", self.main_sha)
+        self.assertEqual(prepare("202", "web"), ("release-web/2.11", "2.11", True))
+
+    def test_web_retry_reuses_branch_and_new_run_increments_version(self):
+        branch, _, _ = prepare("203", "web")
+        self.git("update-ref", f"refs/remotes/origin/{branch}", self.git("rev-parse", "HEAD"))
+        self.git("switch", "main")
+        self.assertEqual(prepare("203", "web"), (branch, "1.0", False))
+        self.assertEqual(prepare("204", "web"), ("release-web/1.1", "1.1", True))
+
+    def test_web_retry_rejects_advanced_branch(self):
+        branch, _, _ = prepare("205", "web")
+        self.git("commit", "--allow-empty", "-m", "hotfix")
+        self.git("update-ref", f"refs/remotes/origin/{branch}", self.git("rev-parse", "HEAD"))
+        self.git("switch", "main")
+        with self.assertRaisesRegex(ValueError, "advanced after creation"):
+            prepare("205", "web")
+
+    def test_web_branches_do_not_affect_mobile_version(self):
+        self.git("update-ref", "refs/remotes/origin/release-web/99.9", self.main_sha)
+        self.assertEqual(prepare("206"), ("release-mobile/2.4", "2.4", True))
 
     def test_dirty_checkout_is_rejected(self):
         Path("uncommitted.txt").write_text("user changes\n")

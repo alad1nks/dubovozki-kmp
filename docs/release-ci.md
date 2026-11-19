@@ -2,10 +2,22 @@
 
 ## Web / Firebase Hosting
 
-Workflow [Web release](../.github/workflows/web-release.yml) запускается только вручную через
-**Actions → Web release → Run workflow**. Выберите ветку (обычно `main`) и подтвердите запуск.
-Push и merge сами по себе не публикуют Web. Workflow проверяет и публикует коммит выбранной ветки,
-зафиксированный при запуске; новые коммиты в `main` не меняют выбранный релиз.
+Для нового релиза откройте **Actions → Create release web → Run workflow** из `main`.
+Workflow [Create release web](../.github/workflows/create-release-web.yml) создаёт ветку
+`release-web/X.Y` из актуального `main` и запускает [Release web](../.github/workflows/release-web.yml).
+Первая версия — `1.0`; далее minor максимальной числовой версии увеличивается на один
+(`1.9 → 1.10`). Нумерация независима от мобильных релизов; вложенные и нечисловые ветки игнорируются.
+Версии Android/iOS не меняются. Пустой служебный коммит сохраняет `Release-Workflow-Run` для повторного запуска.
+
+Создание сериализовано отдельно от мобильных релизов. Используется `GITHUB_TOKEN` с правами
+`contents: write` и `actions: write`; rulesets должны разрешать создание `release-web/**`.
+Существующая ветка не перезаписывается. Если push прошёл, а dispatch упал, **Re-run jobs** повторно
+использует ветку того же запуска. Если ветка уже продвинулась, запустите **Release web** вручную на ней.
+Новый запуск **Create release web** создаёт следующую версию; повторный dispatch может создать ещё одну сборку.
+
+Workflow **Release web** также запускается вручную на существующей `release-web/**`-ветке.
+На `main` и других ветках проверки и публикация пропускаются. Push и merge сами по себе не публикуют Web.
+Workflow публикует коммит выбранной ветки, зафиксированный при запуске.
 
 Сначала проходит `quality` (lint, unit, shared E2E, screenshots и Chromium E2E), затем `web-deploy`
 собирает `:composeApp:jsBrowserDistribution` и публикует `composeApp/build/dist/js/productionExecutable`
@@ -34,7 +46,7 @@ Push и merge сами по себе не публикуют Web. Workflow пр�
 
    Файл должен экспортировать именованный `firebaseConfig` с параметрами production Web App.
    Web-конфигурация входит в публичную сборку; JSON-ключ сервисного аккаунта туда не помещается.
-4. После попадания workflow в `main` запустите Actions → Web release → Run workflow на нужной ветке.
+4. После попадания workflow в `main` запустите Actions → Create release web → Run workflow из `main`.
    После успешного Deploy Web to Firebase Hosting откройте URL сайта из Firebase Console
    и проверьте расписание, локали и перезагрузку страницы.
    Для повторной попытки того же релиза используйте Re-run failed jobs; для нового коммита — Run workflow.
@@ -45,14 +57,14 @@ E2E-правила, которые нельзя публиковать в produc
 
 ## Android и iOS
 
-Workflow [Mobile release](../.github/workflows/mobile-release.yml) запускается вручную на `release/**`,
-включая `release/1.0` и `release/ios/1.0`. Сначала проходят общие P0-проверки Desktop и Chromium.
+Workflow [Release mobile](../.github/workflows/release-mobile.yml) запускается вручную на `release-mobile/**`,
+например `release-mobile/1.0`. Сначала проходят общие P0-проверки Desktop и Chromium.
 После их успеха независимо запускаются:
 
 - `build`: существующие unit-тесты, подписанные Android APK и AAB, артефакт `app-release`.
   Затем `post-build` сохраняет `dubovozki.apk` и `dubovozki.aab` в ветку `main` репозитория
   `alad1nks/alad1nks.github.io`, каталог `dubovozki/release-<номер релиза>`.
-  Номер берётся из последнего сегмента release-ветки: `release/2.4` и `release/ios/2.4` → `release-2.4`.
+  Номер берётся из последнего сегмента release-ветки: `release-mobile/2.4` → `release-2.4`.
   Другие релизы сохраняются; повторная сборка той же версии обновляет файлы только в её каталоге.
 - `ios-release`: shared iOS-тесты, Xcode Release archive для устройства ARM64, подписанный IPA
   и загрузка в App Store Connect для TestFlight. Runner — `macos-26` с установленными Xcode и CocoaPods.
@@ -62,20 +74,21 @@ Push в обычную ветку и PR в `main` не запускают releas
 
 ## Создание релиза кнопкой в GitHub
 
-После merge workflow в `main` откройте **Actions → Create mobile release → Run workflow**,
+После merge workflow в `main` откройте **Actions → Create release mobile → Run workflow**,
 оставьте **Use workflow from: main** и нажмите **Run workflow**. Вводить номер версии не нужно.
 Workflow:
 
 1. Получает актуальный `main` и все release-ветки из GitHub.
-2. Находит максимальную числовую версию среди веток строго вида `release/X.Y` и увеличивает minor на один:
-   `release/2.3 → release/2.4`, `release/2.9 → release/2.10`, `release/3.0 → release/3.1`.
+2. Находит максимальную числовую версию среди веток строго вида `release-mobile/X.Y` и старых `release/X.Y` и увеличивает minor на один:
+   `release-mobile/2.3 → release-mobile/2.4`, `release-mobile/2.9 → release-mobile/2.10`, `release-mobile/3.0 → release-mobile/3.1`.
+   Старые `release/X.Y` учитываются также для `versionCode`; новые ветки создаются только как `release-mobile/X.Y`.
    Это последняя существующая релизная ветка, независимо от результата её сборки и даты push.
    Вложенные ветки, суффиксы вроде `-beta` и версии `X.Y.Z` при вычислении не учитываются.
 3. Создаёт новую ветку **из актуального `main`**, добавляя ровно один коммит
-   `chore: bump release version to X.Y`. Коммит меняет Android `versionName` и iOS `MARKETING_VERSION` на `X.Y`,
+   `chore: bump release mobile version to X.Y`. Коммит меняет Android `versionName` и iOS `MARKETING_VERSION` на `X.Y`,
    а Android `versionCode` — на максимум среди `main` и всех числовых release-веток плюс один.
    Изменения из предыдущей release-ветки в новый релиз не переносятся. Сам `main` не меняется.
-4. Отправляет ветку в GitHub и явно запускает **Mobile release** на ней: общие проверки, Android APK/AAB и iOS TestFlight.
+4. Отправляет ветку в GitHub и явно запускает **Release mobile** на ней: общие проверки, Android APK/AAB и iOS TestFlight.
    Ссылка на ветку и список release-запусков появляются в Summary.
 
 Если release-веток ещё нет, за основу берётся большая пользовательская версия Android/iOS из `main`
@@ -84,22 +97,22 @@ Workflow:
 Не удаляйте числовые release-ветки, если хотите сохранять историю нумерации: workflow не сверяется
 с Google Play или App Store Connect и учитывает только существующие ветки.
 
-Дополнительных секретов для **Create mobile release** не требуется: используется встроенный `GITHUB_TOKEN`
+Дополнительных секретов для **Create release mobile** не требуется: используется встроенный `GITHUB_TOKEN`
 с `contents: write` и `actions: write`. Настройки организации и rulesets должны разрешать GitHub Actions
-создавать `release/**` и запускать workflows. Push от `GITHUB_TOKEN` не вызывает следующий push-workflow,
+создавать `release-mobile/**` и запускать workflows. Push от `GITHUB_TOKEN` не вызывает следующий push-workflow,
 поэтому сборка запускается через `workflow_dispatch`.
 Это [документированное поведение GitHub](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
 
 Создание релизов сериализовано; публикация новой ветки требует, чтобы её ещё не существовало на сервере.
 Уже существующая ветка не перезаписывается даже при конкурентном создании вне workflow.
-Если push прошёл, а запуск Mobile release упал, используйте **Re-run jobs** в том же запуске Create mobile release:
+Если push прошёл, а запуск Release mobile упал, используйте **Re-run jobs** в том же запуске Create release mobile:
 ветка находится по `Release-Workflow-Run` в коммите и повторно используется. Если в неё уже внесены новые
-коммиты, скрипт остановится; запустите **Actions → Mobile release → Run workflow** и выберите эту release-ветку.
-Новый запуск через кнопку Create mobile release создаёт следующую версию. Повторная отправка Mobile release может
+коммиты, скрипт остановится; запустите **Actions → Release mobile → Run workflow** и выберите эту release-ветку.
+Новый запуск через кнопку Create release mobile создаёт следующую версию. Повторная отправка Release mobile может
 создать ещё один запуск сборки той же ветки, если предыдущая отправка успела выполниться.
 
-Workflow **Mobile release** также доступен для ручного запуска на существующей `release/**`-ветке;
-если выбрать `main`, платформенные сборки будут пропущены. Push в `main` и `release/**` ничего не запускает.
+Workflow **Release mobile** также доступен для ручного запуска на существующей `release-mobile/**`-ветке;
+если выбрать `main`, платформенные сборки будут пропущены. Push в `main` и `release-mobile/**` ничего не запускает.
 
 Workflow **Android CI** (`build-and-deploy.yml`) также запускается только вручную.
 Для сборки и отправки APK в `alad1nks/alad1nks.github.io/dubovozki` выберите `main`;
@@ -193,13 +206,15 @@ base64 -i /path/to/GoogleService-Info.plist | tr -d '\n' | pbcopy
 ## Версии, повторные запуски и результат
 
 - Пользовательская версия берётся из `MARKETING_VERSION` в `iosApp/Configuration/Config.xcconfig`
-  (в `main` сейчас `1.0`). Create mobile release обновляет её вместе с Android `versionName` в новом коммите.
+  (в `main` сейчас `1.0`). Create release mobile обновляет её вместе с Android `versionName` в новом коммите.
   При ручном создании ветки обновите версии самостоятельно: одно имя ветки значения в коде не меняет.
 - `CFBundleVersion` задаётся только при CI-сборке по формуле
   `(github.run_number / 100 + 1).(github.run_number % 100).github.run_attempt`, с целочисленным делением.
   Например, запуск 123 → `2.23.1`, его повтор → `2.23.2`, запуск 124 → `2.24.1`.
   Это укладывается в ограничения Apple на длину компонентов и не повторяет номер при Re-run jobs.
   Скрипт поддерживает run number до 999899 и attempt до 99; при превышении останавливается до подписи.
+- После переименования workflow в `release-mobile.yml` проверьте его `run_number`: у нового workflow
+  счётчик может начаться заново. Перед загрузкой той же версии убедитесь, что номер сборки выше уже загруженного.
 - Перед первой загрузкой проверьте, что вычисленный номер выше ранее загруженных сборок той же версии.
   После более нового релиза повторяйте последний запуск; повтор старого может быть отклонён Apple
   как более низкий номер. Одновременные релизы могут загрузиться не по порядку: повторите актуальный запуск,
@@ -220,8 +235,8 @@ base64 -i /path/to/GoogleService-Info.plist | tr -d '\n' | pbcopy
 
 ## Проверка после merge
 
-1. Убедитесь, что секреты настроены, и запустите **Actions → Create mobile release → Run workflow** из `main`.
-2. Проверьте новую ветку и коммит версий, затем откройте Actions → Mobile release.
+1. Убедитесь, что секреты настроены, и запустите **Actions → Create release mobile → Run workflow** из `main`.
+2. Проверьте новую ветку и коммит версий, затем откройте Actions → Release mobile.
    После `p0-e2e` должны стартовать оба платформенных job.
 3. Проверьте оба файла в Android `app-release` и в каталоге `dubovozki/release-<номер релиза>`
    после `post-build`, затем iOS `ios-release-*` и шаг загрузки.
