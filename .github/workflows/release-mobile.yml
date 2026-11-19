@@ -1,12 +1,12 @@
-name: Mobile release
+name: Release mobile
 
 on:
   workflow_dispatch:
 
 jobs:
   p0-e2e:
-    name: Mobile release P0 verification
-    if: startsWith(github.ref, 'refs/heads/release/')
+    name: Release mobile P0 verification
+    if: startsWith(github.ref, 'refs/heads/release-mobile/')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

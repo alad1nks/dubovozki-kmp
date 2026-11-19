@@ -131,7 +131,7 @@ macOS/Linux: `E2E_WEB_RELEASE=true npm run test:chromium`.
 PowerShell: `$env:E2E_WEB_RELEASE = 'true'`, затем `npm run test:chromium`;
 после прогона удалите переменную: `Remove-Item Env:E2E_WEB_RELEASE`.
 В этом режиме Playwright только обслуживает готовый bundle; при изменении приложения пересоберите его.
-Mobile release собирает bundle отдельным шагом с лимитом 45 минут и видимым Gradle-логом.
+Release mobile собирает bundle отдельным шагом с лимитом 45 минут и видимым Gradle-логом.
 Ожидание готовности статического сервера ограничено двумя минутами и не включает сборку.
 
 `E2E_EXTERNAL_SERVERS=true` отключает управление обоими серверами; `E2E_BASE_URL` меняет адрес страницы,
@@ -230,13 +230,15 @@ reload; он не заявляет проверку повторного отк�
 | Trigger | Настроенные jobs |
 |---|---|
 | PR в main/master | ktlint, Android debug APK, Desktop JVM JAR, Web production bundle, iOS simulator framework |
-| Push в main или release/** | Ничего не запускается |
+| Push в main, release-mobile/** или release-web/** | Ничего не запускается |
 | Manual Android CI (main) | Host/shared/visual/Chromium, Android API 24/35, затем release APK build/deploy в io |
 | Manual E2E | Web projects на отдельных runners, Android API 24/35, iOS shared/XCUITest, Desktop Windows/Linux |
-| Manual Mobile release (release/**) | JVM suite и Chromium production bundle, затем существующие AAB build/deploy jobs |
+| Manual Release mobile (release-mobile/**) | JVM suite и Chromium production bundle, затем существующие AAB build/deploy jobs |
+| Manual Create release mobile / Create release web (main) | Создание релизной ветки и dispatch соответствующего Release workflow |
+| Manual Release web (release-web/**) | Lint, unit, shared E2E, screenshots и Chromium, затем Firebase Hosting |
 | Manual production smoke | GET трёх публичных Firebase paths и поверхностная проверка JSON |
 
-Ручной E2E workflow не запускает Roborazzi verify. Mobile release job с названием P0 запускает весь `composeApp:jvmTest` и Chromium
+Ручной E2E workflow не запускает Roborazzi verify. Release mobile job с названием P0 запускает весь `composeApp:jvmTest` и Chromium
 файл: отдельного фильтра только по P0 нет. PR iOS только собирает framework.
 Запуски по push и расписанию отключены; E2E, релизы и production smoke доступны через `workflow_dispatch`.
 macOS используется только для iOS-сборок, тестов и релиза; Android build/deploy выполняются на Ubuntu.

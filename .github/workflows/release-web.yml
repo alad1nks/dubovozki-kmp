@@ -1,4 +1,4 @@
-name: Web release
+name: Release web
 
 on:
   workflow_dispatch:
@@ -8,7 +8,8 @@ permissions:
 
 jobs:
   quality:
-    name: Web release checks
+    name: Release web checks
+    if: startsWith(github.ref, 'refs/heads/release-web/')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,11 +38,11 @@ jobs:
         working-directory: e2e/web
       - run: npm run test:chromium
         working-directory: e2e/web
-      - name: Upload Web release diagnostics
+      - name: Upload Release web diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: web-release-diagnostics
+          name: release-web-diagnostics
           path: |
             e2e/web/test-results/
             e2e/web/playwright-report/
