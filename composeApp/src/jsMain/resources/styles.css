@@ -4,4 +4,7 @@ html, body {
     margin: 0;
     padding: 0;
     overflow: hidden;
+    /* Compose handles list/pager gestures; do not pan or bounce the host document. */
+    touch-action: pinch-zoom;
+    overscroll-behavior: none;
 }
