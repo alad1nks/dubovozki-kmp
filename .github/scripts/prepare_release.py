@@ -55,7 +55,7 @@ def prepare(run_id):
         previous = git("log", "-1", "--format=%H", f"--grep=^{marker}$", ref)
         if previous:
             if previous != git("rev-parse", ref):
-                raise ValueError(f"{ref} advanced after creation; run Release manually on that branch")
+                raise ValueError(f"{ref} advanced after creation; run Mobile release manually on that branch")
             return ref.removeprefix("refs/remotes/origin/"), ".".join(map(str, version)), False
 
     android = git("show", f"origin/main:{ANDROID}", strip=False)

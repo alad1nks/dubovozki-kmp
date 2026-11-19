@@ -131,7 +131,7 @@ macOS/Linux: `E2E_WEB_RELEASE=true npm run test:chromium`.
 PowerShell: `$env:E2E_WEB_RELEASE = 'true'`, затем `npm run test:chromium`;
 после прогона удалите переменную: `Remove-Item Env:E2E_WEB_RELEASE`.
 В этом режиме Playwright только обслуживает готовый bundle; при изменении приложения пересоберите его.
-Release CI собирает bundle отдельным шагом с лимитом 45 минут и видимым Gradle-логом.
+Mobile release собирает bundle отдельным шагом с лимитом 45 минут и видимым Gradle-логом.
 Ожидание готовности статического сервера ограничено двумя минутами и не включает сборку.
 
 `E2E_EXTERNAL_SERVERS=true` отключает управление обоими серверами; `E2E_BASE_URL` меняет адрес страницы,
@@ -177,7 +177,7 @@ Shared simulator suite с fake API:
 bash e2e/run-ios-shell-e2e.sh
 ```
 
-Тот же скрипт используется в PR и ручном E2E workflow: сначала выполняет `build-for-testing` и останавливает Gradle daemon,
+Тот же скрипт используется в ручном E2E workflow: сначала выполняет `build-for-testing` и останавливает Gradle daemon,
 затем запускает Emulator, записывает happy fixture, загружает симулятор и выполняет `test-without-building`
 с видео. Тяжёлая компиляция не конкурирует с тестовым сервером за ресурсы. Можно задать `SIMULATOR_UDID` вручную.
 XCUITest выполняется три раза (`-test-iterations 3`), без retry-until-pass: любая ошибка проваливает job.
@@ -229,15 +229,16 @@ reload; он не заявляет проверку повторного отк�
 
 | Trigger | Настроенные jobs |
 |---|---|
-| PR в main/master | ktlint, host tests, shared JVM, Roborazzi verify, Chromium, Android API 24, iOS framework compile, shared iOS и XCUITest |
-| Push в main | Host/shared/visual/Chromium, Android API 24/35, затем существующие release APK build/deploy jobs |
+| PR в main/master | ktlint, Android debug APK, Desktop JVM JAR, Web production bundle, iOS simulator framework |
+| Push в main или release/** | Ничего не запускается |
+| Manual Android CI (main) | Host/shared/visual/Chromium, Android API 24/35, затем release APK build/deploy в io |
 | Manual E2E | Web projects на отдельных runners, Android API 24/35, iOS shared/XCUITest, Desktop Windows/Linux |
-| release/* | JVM suite и Chromium production bundle, затем существующие AAB build/deploy jobs |
+| Manual Mobile release (release/**) | JVM suite и Chromium production bundle, затем существующие AAB build/deploy jobs |
 | Manual production smoke | GET трёх публичных Firebase paths и поверхностная проверка JSON |
 
-Ручной E2E workflow не запускает Roborazzi verify. Release job с названием P0 запускает весь `composeApp:jvmTest` и Chromium
-файл: отдельного фильтра только по P0 нет. PR iOS собирает framework и выполняет shared iOS и SwiftUI shell XCUITest.
-Запуски по расписанию отключены; E2E и production smoke доступны через `workflow_dispatch`.
+Ручной E2E workflow не запускает Roborazzi verify. Mobile release job с названием P0 запускает весь `composeApp:jvmTest` и Chromium
+файл: отдельного фильтра только по P0 нет. PR iOS только собирает framework.
+Запуски по push и расписанию отключены; E2E, релизы и production smoke доступны через `workflow_dispatch`.
 macOS используется только для iOS-сборок, тестов и релиза; Android build/deploy выполняются на Ubuntu.
 Workflow definitions находятся в `.github/workflows`; branch protection нужно проверять отдельно.
 
