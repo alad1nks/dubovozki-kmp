@@ -1,4 +1,4 @@
-name: Create release
+name: Create mobile release
 
 on:
   workflow_dispatch:
@@ -23,7 +23,7 @@ jobs:
           SOURCE_REF: ${{ github.ref }}
         run: |
           if [[ "$SOURCE_REF" != refs/heads/main ]]; then
-            echo '::error::Run Create release with main selected in Use workflow from.'
+            echo '::error::Run Create mobile release with main selected in Use workflow from.'
             exit 1
           fi
       - uses: actions/checkout@v4
@@ -49,11 +49,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_BRANCH: ${{ steps.prepare.outputs.branch }}
         # Pushes authenticated with GITHUB_TOKEN do not trigger push workflows; dispatch does.
-        run: gh workflow run release.yml --ref "$RELEASE_BRANCH"
-      - name: Release started
+        run: gh workflow run mobile-release.yml --ref "$RELEASE_BRANCH"
+      - name: Mobile release started
         env:
           RELEASE_BRANCH: ${{ steps.prepare.outputs.branch }}
           REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
         run: |
-          printf '\nRelease started for [%s](%s/tree/%s). Follow [Release runs](%s/actions/workflows/release.yml).\n' \
+          printf '\nMobile release started for [%s](%s/tree/%s). Follow [Mobile release runs](%s/actions/workflows/mobile-release.yml).\n' \
             "$RELEASE_BRANCH" "$REPOSITORY_URL" "$RELEASE_BRANCH" "$REPOSITORY_URL" >> "$GITHUB_STEP_SUMMARY"
