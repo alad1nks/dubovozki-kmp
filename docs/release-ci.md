@@ -1,4 +1,45 @@
-# Релизы Android и iOS в CI
+# Релизы Android, iOS и Web в CI
+
+## Web / Firebase Hosting
+
+Job `web-deploy` в [основном CI](../.github/workflows/build-and-deploy.yml) публикует сайт после push в `main`
+и успешного `quality` (lint, unit, shared E2E, screenshots и Chromium E2E). Android jobs не блокируют Web.
+CI собирает `:composeApp:jsBrowserDistribution` и публикует `composeApp/build/dist/js/productionExecutable`
+в live-канал default Hosting site. Конкурирующие публикации выполняются последовательно;
+перед публикацией устаревший относительно `main` коммит пропускается.
+
+Первичная настройка в Firebase и GitHub:
+
+1. В Firebase Console откройте production-проект и активируйте default site в Hosting.
+2. В Google Cloud IAM создайте отдельный сервисный аккаунт для Hosting с ролями
+   `roles/firebasehosting.admin` и `roles/serviceusage.apiKeysViewer`. Создайте для него JSON-ключ.
+   Для этого статического live-сайта роли Firebase Authentication Admin и Cloud Run Viewer не нужны.
+   См. [инструкцию Firebase action](https://github.com/FirebaseExtended/action-hosting-deploy/blob/main/docs/service-account.md).
+3. В GitHub → Settings → Secrets and variables → Actions добавьте настройки уровня repository:
+
+   | Тип | Имя | Значение |
+   |---|---|---|
+   | Variable | `FIREBASE_PROJECT_ID` | ID production Firebase-проекта, не его отображаемое имя |
+   | Secret | `FIREBASE_SERVICE_ACCOUNT` | Полный JSON-ключ сервисного аккаунта, без base64 |
+   | Secret | `FIREBASE_CONFIG_JS` | Base64 настоящего `composeApp/src/jsMain/resources/firebaseConfig.js` |
+
+   На macOS скопировать web-конфигурацию в base64 можно так:
+
+   ```sh
+   base64 < composeApp/src/jsMain/resources/firebaseConfig.js | tr -d '\n' | pbcopy
+   ```
+
+   Файл должен экспортировать именованный `firebaseConfig` с параметрами production Web App.
+   Web-конфигурация входит в публичную сборку; JSON-ключ сервисного аккаунта туда не помещается.
+4. После попадания workflow в `main` проверьте Actions → Android CI → Deploy Web to Firebase Hosting,
+   затем откройте URL сайта из Firebase Console и проверьте расписание, локали и перезагрузку страницы.
+   Для повторной попытки используйте Re-run failed jobs у актуального запуска `main`.
+
+Публикация выполняется официальным Hosting action с `channelId: live` и касается только Hosting.
+Не используйте общий `firebase deploy`: секция `database` в корневом `firebase.json` указывает на открытые
+E2E-правила, которые нельзя публиковать в production. Настроенные production Database Rules сохраняются.
+
+## Android и iOS
 
 Workflow [Release](../.github/workflows/release.yml) запускается при каждом push в `release/**`,
 включая `release/1.0` и `release/ios/1.0`. Сначала проходят общие P0-проверки Desktop и Chromium.
