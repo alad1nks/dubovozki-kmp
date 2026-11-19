@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -49,6 +50,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import org.jetbrains.compose.resources.getPluralString
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.rememberResourceEnvironment
 import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Instant
 
@@ -184,39 +188,46 @@ internal fun BusScheduleScreen(
                             onAction = onRefresh,
                         )
                     }
-                    HorizontalPager(
-                        state = pagerState,
-                        modifier = Modifier.weight(1f).e2eTestTag(TestTags.BUS_PAGER),
-                    ) { page ->
-                        val busList = if (page == 0) uiState.moscowBusList else uiState.dubkiBusList
-                        val firstBusIndex =
-                            if (page == 0) uiState.firstMoscowBusIndex else uiState.firstDubkiBusIndex
-                        val listState = if (page == 0) moscowState else dubkiState
-
-                        BusSchedulePage(
-                            busList = busList,
-                            firstBusIndex = firstBusIndex,
-                            listState = listState,
-                            positionKey =
-                                "${topAppBarUiState.selectedStationFilter}:" +
-                                    "${topAppBarUiState.selectedDayOfWeekFilter}:" +
-                                    uiState.updatedAtEpochMillis,
-                            remindersEnabled =
-                                topAppBarUiState.selectedDayOfWeekFilter == DayOfWeekFilter.TODAY,
-                            onResetFilters = onResetFilters,
-                            onBusLongClick = { bus ->
-                                bus.departureEpochMillis
-                                    ?.takeIf { bus.timeDifference?.let { it > 0 } == true }
-                                    ?.let { departureEpochMillis ->
-                                        selectedReminder =
-                                            SelectedBusReminder(
-                                                bus = bus,
-                                                departureEpochMillis = departureEpochMillis,
-                                            )
-                                    }
-                            },
-                            scrollBehavior = scrollBehavior,
+                    if (!scheduleTextResourcesReady()) {
+                        LoadingState(
+                            message = stringResource(AppResource.String.common_loading),
+                            modifier = Modifier.fillMaxSize(),
                         )
+                    } else {
+                        HorizontalPager(
+                            state = pagerState,
+                            modifier = Modifier.weight(1f).e2eTestTag(TestTags.BUS_PAGER),
+                        ) { page ->
+                            val busList = if (page == 0) uiState.moscowBusList else uiState.dubkiBusList
+                            val firstBusIndex =
+                                if (page == 0) uiState.firstMoscowBusIndex else uiState.firstDubkiBusIndex
+                            val listState = if (page == 0) moscowState else dubkiState
+
+                            BusSchedulePage(
+                                busList = busList,
+                                firstBusIndex = firstBusIndex,
+                                listState = listState,
+                                positionKey =
+                                    "${topAppBarUiState.selectedStationFilter}:" +
+                                        "${topAppBarUiState.selectedDayOfWeekFilter}:" +
+                                        uiState.updatedAtEpochMillis,
+                                remindersEnabled =
+                                    topAppBarUiState.selectedDayOfWeekFilter == DayOfWeekFilter.TODAY,
+                                onResetFilters = onResetFilters,
+                                onBusLongClick = { bus ->
+                                    bus.departureEpochMillis
+                                        ?.takeIf { bus.timeDifference?.let { it > 0 } == true }
+                                        ?.let { departureEpochMillis ->
+                                            selectedReminder =
+                                                SelectedBusReminder(
+                                                    bus = bus,
+                                                    departureEpochMillis = departureEpochMillis,
+                                                )
+                                        }
+                                },
+                                scrollBehavior = scrollBehavior,
+                            )
+                        }
                     }
                 }
             }
@@ -240,6 +251,29 @@ internal fun BusScheduleScreen(
             )
         }
     }
+}
+
+@Composable
+private fun scheduleTextResourcesReady(): Boolean {
+    val environment = rememberResourceEnvironment()
+    val resourcesReady by produceState(false, environment) {
+        // Resource caches share the first caller's coroutine. A lazy row can be disposed by
+        // the initial scroll, cancelling the load for every row waiting for the same resource.
+        // Warm the text cache from the page before creating or scrolling lazy items.
+        listOf(
+            AppResource.String.bus_schedule_station_odintsovo,
+            AppResource.String.bus_schedule_station_slavyansky_bulvar,
+            AppResource.String.bus_schedule_station_molodyozhnaya,
+            AppResource.String.bus_schedule_now,
+            AppResource.String.bus_schedule_time_until,
+            AppResource.String.bus_schedule_time_ago,
+            AppResource.String.bus_reminder_long_press_action,
+        ).forEach { getString(environment, it) }
+        getPluralString(environment, AppResource.Plural.bus_schedule_duration_hours, 1, 1)
+        getPluralString(environment, AppResource.Plural.bus_schedule_duration_minutes, 1, 1)
+        value = true
+    }
+    return resourcesReady
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
